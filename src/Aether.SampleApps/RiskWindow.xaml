@@ -1,0 +1,28 @@
+<Window x:Class="Aether.SampleApps.RiskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Synthetic Risk View" Height="560" Width="920">
+  <DockPanel Margin="12">
+    <StackPanel DockPanel.Dock="Top">
+      <TextBlock Text="Synthetic Risk View" FontSize="16" FontWeight="SemiBold" />
+      <TextBlock Text="Fictitious exposures only. Synthetic account identifiers are not rendered." FontSize="11" Foreground="#FF6B6B6B" />
+      <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…" />
+    </StackPanel>
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+      <TextBlock x:Name="GrossText" FontWeight="SemiBold" Margin="0,0,24,0" />
+      <TextBlock x:Name="NetText" FontWeight="SemiBold" Margin="0,0,24,0" />
+      <TextBlock x:Name="Dv01Text" FontWeight="SemiBold" />
+    </StackPanel>
+    <DataGrid x:Name="Grid" Margin="0,10,0,0" AutoGenerateColumns="False" IsReadOnly="True"
+              SelectionMode="Single" HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Ticker" Binding="{Binding Ticker}" Width="90" />
+        <DataGridTextColumn Header="Issuer (fictitious)" Binding="{Binding Issuer}" Width="240" />
+        <DataGridTextColumn Header="Rating" Binding="{Binding Rating}" Width="80" />
+        <DataGridTextColumn Header="Notional" Binding="{Binding Notional, StringFormat=N0}" Width="120" />
+        <DataGridTextColumn Header="Market value" Binding="{Binding MarketValue, StringFormat=N0}" Width="120" />
+        <DataGridTextColumn Header="DV01" Binding="{Binding Dv01, StringFormat=N0}" Width="90" />
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</Window>

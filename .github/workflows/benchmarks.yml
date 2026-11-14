@@ -1,0 +1,38 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: 'Publish round-trip samples'
+        required: false
+        default: '1000'
+
+permissions:
+  contents: read
+
+jobs:
+  benchmarks:
+    name: Microbenchmarks and IPC latency baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build Release
+        run: dotnet build AetherWorkspace.slnx -c Release
+      - name: Run harnesses
+        env:
+          SAMPLES: ${{ github.event.inputs.samples }}
+        run: |
+          mkdir -p .aether/benchmarks
+          dotnet run -c Release --project benchmarks/Aether.Benchmarks -- --filter "*" | tee .aether/benchmarks/microbenchmarks.txt
+          dotnet run -c Release --project benchmarks/Aether.IpcBench -- --samples "$SAMPLES" --warmup 100 --payload-bytes 1024 | tee .aether/benchmarks/ipc-latency.txt
+      - name: Upload benchmark evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-evidence
+          path: |
+            .aether/benchmarks/
+            BenchmarkDotNet.Artifacts/results/

@@ -1,0 +1,26 @@
+# Build outputs
+bin/
+obj/
+artifacts/
+BenchmarkDotNet.Artifacts/
+TestResults/
+*.user
+*.suo
+.vs/
+.idea/
+*.binlog
+
+# Workspace-local tooling (SDK, NuGet cache, local test outputs)
+.tools/
+_scratch/
+_source/
+
+# Local runtime state produced by demos and tests
+.aether/
+*.received.txt
+*.log
+*.sock
+
+# OS
+.DS_Store
+Thumbs.db

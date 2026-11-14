@@ -1,0 +1,15 @@
+<Window x:Class="Aether.SampleApps.ChartWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Synthetic Bond Chart" Height="460" Width="900">
+  <DockPanel Margin="12">
+    <StackPanel DockPanel.Dock="Top">
+      <TextBlock Text="Synthetic Bond Chart" FontSize="16" FontWeight="SemiBold" />
+      <TextBlock Text="Vector chart of deterministic synthetic yield series (WebView2 not required for the MVP)." FontSize="11" Foreground="#FF6B6B6B" />
+      <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…" />
+    </StackPanel>
+    <Border Margin="0,10,0,0" BorderBrush="#FFD0D4DA" BorderThickness="1" CornerRadius="4" Background="#FFFBFCFD">
+      <Canvas x:Name="ChartCanvas" ClipToBounds="True" />
+    </Border>
+  </DockPanel>
+</Window>

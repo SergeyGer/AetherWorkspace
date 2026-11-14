@@ -1,0 +1,29 @@
+name: Feature proposal
+description: Propose a bounded, testable AetherWorkspace enhancement
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / expected outcome
+      description: Describe the user-facing friction and measurable result.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Define positive, failure and denied behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security, data classification and cloud egress implications
+    validations:
+      required: true
+  - type: input
+    id: deps
+    attributes:
+      label: Dependencies / milestone

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Aether.SampleApps.Headless</RootNamespace>
+    <AssemblyName>Aether.SampleApps.Headless</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Broker.Client\Aether.Broker.Client.csproj" />
+    <ProjectReference Include="..\Aether.Contracts\Aether.Contracts.csproj" />
+    <ProjectReference Include="..\Aether.Security\Aether.Security.csproj" />
+  </ItemGroup>
+</Project>

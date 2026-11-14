@@ -1,0 +1,30 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Aether.Benchmarks/Aether.Benchmarks.csproj" />
+    <Project Path="benchmarks/Aether.IpcBench/Aether.IpcBench.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Aether.AI/Aether.AI.csproj" />
+    <Project Path="src/Aether.Broker.Client/Aether.Broker.Client.csproj" />
+    <Project Path="src/Aether.Broker/Aether.Broker.csproj" />
+    <Project Path="src/Aether.BrokerApp/Aether.BrokerApp.csproj" />
+    <Project Path="src/Aether.Contracts/Aether.Contracts.csproj" />
+    <Project Path="src/Aether.Execution/Aether.Execution.csproj" />
+    <Project Path="src/Aether.SampleApps.Headless/Aether.SampleApps.Headless.csproj" />
+    <Project Path="src/Aether.SampleApps/Aether.SampleApps.csproj" />
+    <Project Path="src/Aether.Security/Aether.Security.csproj" />
+    <Project Path="src/Aether.Shell.Headless/Aether.Shell.Headless.csproj" />
+    <Project Path="src/Aether.Shell/Aether.Shell.csproj" />
+    <Project Path="src/Aether.Workflow/Aether.Workflow.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aether.AI.Tests/Aether.AI.Tests.csproj" />
+    <Project Path="tests/Aether.Broker.Tests/Aether.Broker.Tests.csproj" />
+    <Project Path="tests/Aether.Contracts.Tests/Aether.Contracts.Tests.csproj" />
+    <Project Path="tests/Aether.E2E.Tests/Aether.E2E.Tests.csproj" />
+    <Project Path="tests/Aether.Execution.Tests/Aether.Execution.Tests.csproj" />
+    <Project Path="tests/Aether.Security.Tests/Aether.Security.Tests.csproj" />
+    <Project Path="tests/Aether.Testing/Aether.Testing.csproj" />
+    <Project Path="tests/Aether.Workflow.Tests/Aether.Workflow.Tests.csproj" />
+  </Folder>
+</Solution>

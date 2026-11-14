@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Aether.Broker.Client</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Contracts\Aether.Contracts.csproj" />
+  </ItemGroup>
+</Project>

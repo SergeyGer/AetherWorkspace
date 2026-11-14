@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package aether.v1;
+
+option csharp_namespace = "Aether.Contracts.V1";
+
+import "aether/v1/common.proto";
+
+// Versioned message envelope. The payload itself is explicit, typed JSON that
+// the broker validates against the declared context type before delivery.
+message ContextEnvelope {
+  string message_id = 1;
+  string trace_id = 2;
+  string span_id = 3;
+  string schema_version = 4;
+  string context_type = 5;
+  Classification classification = 6;
+  int64 created_at_unix_ms = 7;
+  int64 deadline_unix_ms = 8;
+  Provenance provenance = 9;
+  string payload_json = 10;
+  string channel = 11;
+}
+
+message WindowBounds {
+  int32 x = 1;
+  int32 y = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+message WindowPlacement {
+  string app_id = 1;
+  string instance_id = 2;
+  string window_id = 3;
+  string title = 4;
+  WindowBounds bounds = 5;
+  string monitor_id = 6;
+  bool visible = 7;
+}
+
+message WindowLayout {
+  string layout = 1;
+  repeated WindowPlacement placements = 2;
+  string monitor_id = 3;
+}

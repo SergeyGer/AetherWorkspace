@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "synthetic": true,
+  "description": "Synthetic risk/exposure fixture. No real customers, positions or market data.",
+  "currency": "USD",
+  "asOf": "2026-11-14",
+  "positions": [
+    {
+      "ticker": "NRST",
+      "issuer": "Northstar Capital (fictitious)",
+      "rating": "A",
+      "notional": 24000000,
+      "marketValue": -1250000,
+      "dv01": -2160,
+      "syntheticAccountId": "ACC-00000001"
+    },
+    {
+      "ticker": "VEGA",
+      "issuer": "Vega Energy (fictitious)",
+      "rating": "BBB",
+      "notional": 11500000,
+      "marketValue": 240000,
+      "dv01": 1035,
+      "syntheticAccountId": "ACC-00000002"
+    },
+    {
+      "ticker": "ORIN",
+      "issuer": "Orion Utilities (fictitious)",
+      "rating": "AA",
+      "notional": 7000000,
+      "marketValue": -85000,
+      "dv01": 490,
+      "syntheticAccountId": "ACC-00000003"
+    }
+  ]
+}

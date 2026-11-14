@@ -1,0 +1,1048 @@
+{
+  "project": "AetherWorkspace",
+  "specVersion": "3.0",
+  "created": "2026-11-14",
+  "milestones": [
+    "M0",
+    "v0.1.0",
+    "v0.2.0",
+    "v0.3.0",
+    "v0.4.0",
+    "v0.5.0",
+    "v0.6.0",
+    "v1.0.0"
+  ],
+  "issues": [
+    {
+      "id": "AW-001",
+      "milestone": "M0",
+      "title": "Bootstrap .NET 10 solution and CI skeleton",
+      "summary": "Create a supported, reproducible Windows build baseline.",
+      "tasks": [
+        "Create solution, global.json, Directory.Packages.props and editorconfig.",
+        "Add src/tests/benchmarks/docs folders and Windows build workflow.",
+        "Enable warnings-as-errors on owned code and unit-test discovery."
+      ],
+      "acceptance": [
+        "Fresh Windows runner restores, builds and runs placeholder unit suite.",
+        "No hardcoded secrets; exact SDK and tool versions documented."
+      ],
+      "dependencies": [],
+      "labels": [
+        "foundation"
+      ],
+      "mapping": [
+        "NFR-06"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-001-bootstrap-net-10-solution-and-ci-skeleton.md"
+    },
+    {
+      "id": "AW-002",
+      "milestone": "M0",
+      "title": "Define versioned contracts and synthetic data fixtures",
+      "summary": "Specify concrete message and plan contracts before implementation.",
+      "tasks": [
+        "Write protobuf envelope, app manifest and ActionPlan JSON schemas.",
+        "Define four classification labels and end-to-end provenance fields.",
+        "Create three independent synthetic financial data fixtures."
+      ],
+      "acceptance": [
+        "JSON examples validate; protobuf compiles from clean checkout.",
+        "Fixtures contain no real personal or financial data."
+      ],
+      "dependencies": [
+        "AW-001"
+      ],
+      "labels": [
+        "contracts",
+        "security"
+      ],
+      "mapping": [
+        "BR-06"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-002-define-versioned-contracts-and-synthetic-data-fixtures.md"
+    },
+    {
+      "id": "AW-003",
+      "milestone": "M0",
+      "title": "Prototype gRPC/Named Pipes transport and authenticated handshake",
+      "summary": "Test feasibility of the local broker transport and session binding.",
+      "tasks": [
+        "Implement minimal gRPC/HTTP2 Named Pipe server and client.",
+        "Evaluate current-user pipe ACLs and process identity binding.",
+        "Benchmark 1 KB request/reply with trace IDs."
+      ],
+      "acceptance": [
+        "Transport works across two independent processes.",
+        "Document threat boundary and supported Windows build."
+      ],
+      "dependencies": [
+        "AW-001",
+        "AW-002"
+      ],
+      "labels": [
+        "spike",
+        "ipc"
+      ],
+      "mapping": [
+        "BR-02",
+        "NFR-01"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-003-prototype-grpc-named-pipes-transport-and-authenticated-handshake.md"
+    },
+    {
+      "id": "AW-004",
+      "milestone": "M0",
+      "title": "Run cross-process docking feasibility spike",
+      "summary": "Decide if HWND embedding deserves a later optional milestone.",
+      "tasks": [
+        "Test two owned windows under DPI variations, modal dialogs and keyboard focus.",
+        "Record crash, teardown and accessibility behavior.",
+        "Write go/no-go ADR with top-level arrangement fallback."
+      ],
+      "acceptance": [
+        "Spike report and reproducible samples are committed.",
+        "No dependency on docking remains for MVP."
+      ],
+      "dependencies": [
+        "AW-001"
+      ],
+      "labels": [
+        "spike",
+        "windows"
+      ],
+      "mapping": [
+        "UX-01"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-004-run-cross-process-docking-feasibility-spike.md"
+    },
+    {
+      "id": "AW-005",
+      "milestone": "M0",
+      "title": "Publish threat model, default policy and constraints",
+      "summary": "Capture trust boundaries before AI integrations.",
+      "tasks": [
+        "Model IPC impersonation, injection, cloud exfiltration and log disclosure.",
+        "Define deny-by-default PUBLIC/INTERNAL/RESTRICTED/UNKNOWN policy.",
+        "Set consent and capability rules; document residual risks."
+      ],
+      "acceptance": [
+        "Threat model includes mitigations and residual limitations.",
+        "UNKNOWN always denies cloud in policy unit tests."
+      ],
+      "dependencies": [
+        "AW-002"
+      ],
+      "labels": [
+        "security",
+        "documentation"
+      ],
+      "mapping": [
+        "SE-03",
+        "NFR-04"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-005-publish-threat-model-default-policy-and-constraints.md"
+    },
+    {
+      "id": "AW-006",
+      "milestone": "M0",
+      "title": "Create benchmark and golden workflow harness",
+      "summary": "Establish reproducible baselines before performance claims.",
+      "tasks": [
+        "Create stopwatch trace harness, fixture corpus and manual task script.",
+        "Specify reference PC, p50/p95/p99 measurement protocol.",
+        "Add smoke launch scenario to Windows CI."
+      ],
+      "acceptance": [
+        "Benchmark methodology and raw schema are documented.",
+        "Initial baseline recorded without unsupported performance claims."
+      ],
+      "dependencies": [
+        "AW-003"
+      ],
+      "labels": [
+        "testing",
+        "benchmark"
+      ],
+      "mapping": [
+        "NFR-01"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-006-create-benchmark-and-golden-workflow-harness.md"
+    },
+    {
+      "id": "AW-007",
+      "milestone": "v0.1.0",
+      "title": "Implement allowlisted app registry and process launcher",
+      "summary": "Broker discovers and launches only authorized demo apps.",
+      "tasks": [
+        "Parse and validate app registry manifest.",
+        "Enforce canonical executable paths and fixed argument templates.",
+        "Provide launch timeouts and error results."
+      ],
+      "acceptance": [
+        "Authorized sample app launches; path traversal/unknown app denied.",
+        "No arbitrary path from model input is used."
+      ],
+      "dependencies": [
+        "AW-002",
+        "AW-003",
+        "AW-005"
+      ],
+      "labels": [
+        "broker",
+        "security"
+      ],
+      "mapping": [
+        "BR-01"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-007-implement-allowlisted-app-registry-and-process-launcher.md"
+    },
+    {
+      "id": "AW-008",
+      "milestone": "v0.1.0",
+      "title": "Implement broker registration and capability handshake",
+      "summary": "Bind caller sessions to trusted sample app instances.",
+      "tasks": [
+        "Design registration handshake and bounded session TTL.",
+        "Verify process identity and map to approved capabilities.",
+        "Deny spoofed identity and replayed session tokens."
+      ],
+      "acceptance": [
+        "Authenticated sample apps register; negative tests denied.",
+        "Every privileged call includes capability authorization."
+      ],
+      "dependencies": [
+        "AW-007"
+      ],
+      "labels": [
+        "broker",
+        "security"
+      ],
+      "mapping": [
+        "BR-02",
+        "SE-03"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-008-implement-broker-registration-and-capability-handshake.md"
+    },
+    {
+      "id": "AW-009",
+      "milestone": "v0.1.0",
+      "title": "Build three independent synthetic sample apps",
+      "summary": "Create visible cross-process context propagation targets.",
+      "tasks": [
+        "Build Watchlist WPF process, Risk WPF process and chart module.",
+        "Include typed context handlers with source metadata.",
+        "Generate deterministic synthetic holdings and summaries."
+      ],
+      "acceptance": [
+        "Each sample app starts independently and renders fixture data.",
+        "No actual market data integrations."
+      ],
+      "dependencies": [
+        "AW-002",
+        "AW-008"
+      ],
+      "labels": [
+        "samples",
+        "ui"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-009-build-three-independent-synthetic-sample-apps.md"
+    },
+    {
+      "id": "AW-010",
+      "milestone": "v0.1.0",
+      "title": "Build basic WPF Shell and top-level window arrangement",
+      "summary": "Provide a usable desktop without reparenting.",
+      "tasks": [
+        "Create command/status toolbar and window registry.",
+        "Implement open/focus/side-by-side arrangement for registered windows.",
+        "Handle absent/closed window and cancellation."
+      ],
+      "acceptance": [
+        "Three windows can be launched and arranged on reference desktop.",
+        "Shell remains responsive when child process terminates."
+      ],
+      "dependencies": [
+        "AW-007",
+        "AW-009"
+      ],
+      "labels": [
+        "ui",
+        "windows"
+      ],
+      "mapping": [
+        "UX-01"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-010-build-basic-wpf-shell-and-top-level-window-arrangement.md"
+    },
+    {
+      "id": "AW-011",
+      "milestone": "v0.1.0",
+      "title": "Implement typed context channels and trace propagation",
+      "summary": "Synchronize synthetic instrument context across apps.",
+      "tasks": [
+        "Implement protobuf context broadcasts on a named default channel.",
+        "Preserve message ID, trace ID, source and classification.",
+        "Provide cross-process E2E assertion."
+      ],
+      "acceptance": [
+        "Selecting an instrument in Watchlist updates two other apps.",
+        "Every event has source and correlation metadata."
+      ],
+      "dependencies": [
+        "AW-008",
+        "AW-009"
+      ],
+      "labels": [
+        "interop",
+        "broker"
+      ],
+      "mapping": [
+        "BR-03"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-011-implement-typed-context-channels-and-trace-propagation.md"
+    },
+    {
+      "id": "AW-012",
+      "milestone": "v0.1.0",
+      "title": "Implement guarded ActionPlan validator and executor",
+      "summary": "Do not let model output invoke arbitrary commands.",
+      "tasks": [
+        "Define allowlisted LaunchApp/PublishContext/ArrangeWindows/SummarizeContext actions.",
+        "Validate schema, authorization, action count and deadlines.",
+        "Implement explicit states, cancellation and structured error handling."
+      ],
+      "acceptance": [
+        "Valid plans execute deterministically.",
+        "100 documented unsafe plans produce no side effects."
+      ],
+      "dependencies": [
+        "AW-005",
+        "AW-007",
+        "AW-011"
+      ],
+      "labels": [
+        "execution",
+        "security"
+      ],
+      "mapping": [
+        "NFR-03"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-012-implement-guarded-actionplan-validator-and-executor.md"
+    },
+    {
+      "id": "AW-013",
+      "milestone": "v0.1.0",
+      "title": "Add command bar and pluggable planning adapter",
+      "summary": "Connect user command to typed plan without direct tool execution.",
+      "tasks": [
+        "Support deterministic command parser for reference workflow.",
+        "Add one optional configured cloud planning adapter for PUBLIC synthetic input.",
+        "Make cloud opt-in and validate model outputs before executor."
+      ],
+      "acceptance": [
+        "Reference command yields correct ActionPlan via deterministic path.",
+        "Cloud mode requires explicit consent and denied payloads never reach provider."
+      ],
+      "dependencies": [
+        "AW-010",
+        "AW-012"
+      ],
+      "labels": [
+        "ai",
+        "ui",
+        "security"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-013-add-command-bar-and-pluggable-planning-adapter.md"
+    },
+    {
+      "id": "AW-014",
+      "milestone": "v0.1.0",
+      "title": "Implement minimal privacy gateway and private local summary",
+      "summary": "Demonstrate a genuinely private route for restricted synthetic context.",
+      "tasks": [
+        "Implement source-first classification and UNKNOWN fail-closed.",
+        "Provide one local inference adapter with configurable model/endpoint.",
+        "Block external provider calls for RESTRICTED and UNKNOWN, including retries."
+      ],
+      "acceptance": [
+        "Private demo summary can run on documented local-AI hardware.",
+        "Network test observes zero cloud AI calls for RESTRICTED/UNKNOWN."
+      ],
+      "dependencies": [
+        "AW-005",
+        "AW-012",
+        "AW-013"
+      ],
+      "labels": [
+        "ai",
+        "privacy"
+      ],
+      "mapping": [
+        "NFR-04"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-014-implement-minimal-privacy-gateway-and-private-local-summary.md"
+    },
+    {
+      "id": "AW-015",
+      "milestone": "v0.1.0",
+      "title": "Automate MVP end-to-end workflow and quick-start demo",
+      "summary": "Publish a complete, repeatable vertical slice.",
+      "tasks": [
+        "Script three-app synthetic workflow including denial test.",
+        "Add mock-based Windows CI E2E and an optional local-model manual test.",
+        "Write quick start, screenshots and MVP limitations."
+      ],
+      "acceptance": [
+        "New checkout reproduces the workflow with tests.",
+        "Acceptance screenshots and trace ID demonstrably correspond to same workflow."
+      ],
+      "dependencies": [
+        "AW-010",
+        "AW-011",
+        "AW-012",
+        "AW-014"
+      ],
+      "labels": [
+        "testing",
+        "documentation",
+        "release"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-015-automate-mvp-end-to-end-workflow-and-quick-start-demo.md"
+    },
+    {
+      "id": "AW-016",
+      "milestone": "v0.2.0",
+      "title": "Add bounded queues, ordering, backpressure and deduplication",
+      "summary": "Handle bursts and partial delivery failures explicitly.",
+      "tasks": [
+        "Add per-channel queue bounds and overflow result.",
+        "Define ordering guarantees and retry eligibility.",
+        "Add cancellation/deadline and deduplication tests."
+      ],
+      "acceptance": [
+        "Overload does not cause unbounded memory growth.",
+        "Retry does not duplicate documented idempotent actions."
+      ],
+      "dependencies": [
+        "AW-011",
+        "AW-012"
+      ],
+      "labels": [
+        "broker",
+        "reliability"
+      ],
+      "mapping": [
+        "BR-03",
+        "BR-04"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-016-add-bounded-queues-ordering-backpressure-and-deduplication.md"
+    },
+    {
+      "id": "AW-017",
+      "milestone": "v0.2.0",
+      "title": "Add heartbeat, fault isolation and controlled restart",
+      "summary": "Recover from expected child app failures.",
+      "tasks": [
+        "Implement health states and missed-heartbeat rules.",
+        "Provide restart action with bounded attempts.",
+        "Inject app crashes, hangs and broker disconnects."
+      ],
+      "acceptance": [
+        "Shell and Broker survive child crash tests.",
+        "UI reports deterministic failure state and safe restart path."
+      ],
+      "dependencies": [
+        "AW-015",
+        "AW-016"
+      ],
+      "labels": [
+        "reliability",
+        "ui"
+      ],
+      "mapping": [
+        "BR-05",
+        "NFR-08"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-017-add-heartbeat-fault-isolation-and-controlled-restart.md"
+    },
+    {
+      "id": "AW-018",
+      "milestone": "v0.2.0",
+      "title": "Measure IPC, UI responsiveness and resource limits",
+      "summary": "Replace aspirational speed claims with evidence.",
+      "tasks": [
+        "Run warmed 1 KB, three-app p50/p95/p99 benchmark.",
+        "Record CPU/memory allocations and GC metrics.",
+        "Document hardware, variance, instrumentation and regressions."
+      ],
+      "acceptance": [
+        "BENCHMARKS.md contains raw reproducible protocol and result.",
+        "Any target miss has issue/ADR, not a hidden exception."
+      ],
+      "dependencies": [
+        "AW-006",
+        "AW-016"
+      ],
+      "labels": [
+        "benchmark",
+        "testing"
+      ],
+      "mapping": [
+        "NFR-01",
+        "NFR-02"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-018-measure-ipc-ui-responsiveness-and-resource-limits.md"
+    },
+    {
+      "id": "AW-019",
+      "milestone": "v0.2.0",
+      "title": "Verify offline-mode network isolation and failure behavior",
+      "summary": "Distinguish private routing from genuine offline operation.",
+      "tasks": [
+        "Add private mode UI and provider health status.",
+        "Run with network egress blocked; test missing local runtime.",
+        "Check no unauthorized fallback to cloud."
+      ],
+      "acceptance": [
+        "Offline-supported commands run with egress disabled.",
+        "Uninstalled model yields safe error without unexpected cloud call."
+      ],
+      "dependencies": [
+        "AW-014"
+      ],
+      "labels": [
+        "privacy",
+        "testing"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-019-verify-offline-mode-network-isolation-and-failure-behavior.md"
+    },
+    {
+      "id": "AW-020",
+      "milestone": "v0.2.0",
+      "title": "Build minimal tamper-evident local audit chain",
+      "summary": "Expose accountable, redacted execution outcomes.",
+      "tasks": [
+        "Define structured audit schema and HMAC/hash-chain verification.",
+        "Exclude prompt and raw PII, add retention settings.",
+        "Document local-admin limitations and rotation semantics."
+      ],
+      "acceptance": [
+        "Audit verifier detects a modified historical test entry.",
+        "Secret and PII fixtures do not appear in logs."
+      ],
+      "dependencies": [
+        "AW-012",
+        "AW-014"
+      ],
+      "labels": [
+        "security",
+        "observability"
+      ],
+      "mapping": [
+        "SE-04",
+        "SE-05"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-020-build-minimal-tamper-evident-local-audit-chain.md"
+    },
+    {
+      "id": "AW-021",
+      "milestone": "v0.3.0",
+      "title": "Document FDC3 3.0 supported-subset matrix",
+      "summary": "Specify exactly what the project does and does not implement.",
+      "tasks": [
+        "Map Desktop Agent API, channel, context and intent surfaces.",
+        "List unsupported methods and deviations.",
+        "Add schema/version compatibility expectations."
+      ],
+      "acceptance": [
+        "Matrix is published and reviewed against official standard.",
+        "No blanket FDC3 compliance claim."
+      ],
+      "dependencies": [
+        "AW-015"
+      ],
+      "labels": [
+        "fdc3",
+        "documentation"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-021-document-fdc3-3-0-supported-subset-matrix.md"
+    },
+    {
+      "id": "AW-022",
+      "milestone": "v0.3.0",
+      "title": "Implement supported FDC3 contexts and channels",
+      "summary": "Extend context interoperability beyond a custom demo contract.",
+      "tasks": [
+        "Create context mappings and validator tests.",
+        "Implement selected user/app channel semantics.",
+        "Propagate trace ID, timestamp and source metadata."
+      ],
+      "acceptance": [
+        "Selected contexts round-trip without unsupported field loss.",
+        "Source metadata is preserved across owned apps."
+      ],
+      "dependencies": [
+        "AW-021",
+        "AW-011"
+      ],
+      "labels": [
+        "fdc3",
+        "interop"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-022-implement-supported-fdc3-contexts-and-channels.md"
+    },
+    {
+      "id": "AW-023",
+      "milestone": "v0.3.0",
+      "title": "Implement limited intent resolution and app directory",
+      "summary": "Support bounded standard-intent workflows.",
+      "tasks": [
+        "Add selected raise-intent and resolution flow.",
+        "Map app-registry entries to declared App Directory subset.",
+        "Ensure existing capability checks apply after resolution."
+      ],
+      "acceptance": [
+        "Supported intent resolves to expected registered sample target.",
+        "Unknown intent and unapproved target are rejected."
+      ],
+      "dependencies": [
+        "AW-021",
+        "AW-022",
+        "AW-008"
+      ],
+      "labels": [
+        "fdc3",
+        "interop",
+        "security"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-023-implement-limited-intent-resolution-and-app-directory.md"
+    },
+    {
+      "id": "AW-024",
+      "milestone": "v0.3.0",
+      "title": "Validate FDC3 subset with contract and external tests",
+      "summary": "Back interoperability claims with evidence.",
+      "tasks": [
+        "Create standards fixture suites with provenance checks.",
+        "Test version mismatch and unsupported behavior.",
+        "Attempt independent implementation interop where practicable."
+      ],
+      "acceptance": [
+        "Conformance matrix contains pass/fail/unsupported evidence.",
+        "No unsupported behavior silently masquerades as supported."
+      ],
+      "dependencies": [
+        "AW-022",
+        "AW-023"
+      ],
+      "labels": [
+        "fdc3",
+        "testing"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-024-validate-fdc3-subset-with-contract-and-external-tests.md"
+    },
+    {
+      "id": "AW-025",
+      "milestone": "v0.4.0",
+      "title": "Add optional local entity detection and sensitivity escalation",
+      "summary": "Improve classification while keeping deterministic rules authoritative.",
+      "tasks": [
+        "Integrate optional local NER/PII detector behind interface.",
+        "Create synthetic adversarial entities and false-negative review.",
+        "Prove detector can escalate but never downgrade trusted classification."
+      ],
+      "acceptance": [
+        "Failure leads to UNKNOWN/RESTRICTED cloud denial.",
+        "Publish precision/recall only with labeled dataset and setup."
+      ],
+      "dependencies": [
+        "AW-014",
+        "AW-020"
+      ],
+      "labels": [
+        "privacy",
+        "ai",
+        "testing"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-025-add-optional-local-entity-detection-and-sensitivity-escalation.md"
+    },
+    {
+      "id": "AW-026",
+      "milestone": "v0.4.0",
+      "title": "Implement session-scoped reversible token vault",
+      "summary": "Enable explicitly authorized sanitization without claiming anonymity.",
+      "tasks": [
+        "Add volatile token mappings scoped to session and TTL.",
+        "Reject unknown/unissued placeholders on response.",
+        "Add cancellation cleanup and output rehydration guard."
+      ],
+      "acceptance": [
+        "No raw sensitive values appear in cloud test doubles.",
+        "Expired or foreign tokens cannot be rehydrated."
+      ],
+      "dependencies": [
+        "AW-025"
+      ],
+      "labels": [
+        "privacy",
+        "security"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-026-implement-session-scoped-reversible-token-vault.md"
+    },
+    {
+      "id": "AW-027",
+      "milestone": "v0.4.0",
+      "title": "Implement capability-based model router",
+      "summary": "Select models based on task, availability, policy and hardware.",
+      "tasks": [
+        "Define provider capability registry and local health probes.",
+        "Implement routing with cloud opt-in, fail-closed restrictions and fallback matrix.",
+        "Keep exact model IDs in config and document license metadata."
+      ],
+      "acceptance": [
+        "Restricted tasks never route to cloud when local unavailable.",
+        "Provider swap does not alter executor or broker code."
+      ],
+      "dependencies": [
+        "AW-014",
+        "AW-026"
+      ],
+      "labels": [
+        "ai",
+        "architecture"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-027-implement-capability-based-model-router.md"
+    },
+    {
+      "id": "AW-028",
+      "milestone": "v0.4.0",
+      "title": "Publish model evaluation suite and cost/latency study",
+      "summary": "Provide reproducible model-selection evidence.",
+      "tasks": [
+        "Build ≥100 command labeled corpus and score exact plan correctness.",
+        "Measure TTFT, end-to-end latency, tokens/sec and model footprint.",
+        "Compare deterministic, small local and cloud strategies with equivalent tasks."
+      ],
+      "acceptance": [
+        "Report includes hardware, model versions, uncertainty and raw outputs scrubbed.",
+        "Selected model policy justified by evidence rather than brand."
+      ],
+      "dependencies": [
+        "AW-027",
+        "AW-006"
+      ],
+      "labels": [
+        "ai",
+        "benchmark"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-028-publish-model-evaluation-suite-and-cost-latency-study.md"
+    },
+    {
+      "id": "AW-029",
+      "milestone": "v0.4.0",
+      "title": "Add egress instrumentation and privacy adversarial regression",
+      "summary": "Test real network requests, not only mocked provider functions.",
+      "tasks": [
+        "Intercept and count external requests in controlled test environment.",
+        "Exercise errors, retries, unknown classifications and injection fixtures.",
+        "Publish threat-to-test traceability summary."
+      ],
+      "acceptance": [
+        "Zero external AI calls in every RESTRICTED/UNKNOWN test case.",
+        "All known egress paths are enumerated and monitored."
+      ],
+      "dependencies": [
+        "AW-025",
+        "AW-026",
+        "AW-027"
+      ],
+      "labels": [
+        "security",
+        "testing"
+      ],
+      "mapping": [
+        "NFR-04"
+      ],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-029-add-egress-instrumentation-and-privacy-adversarial-regression.md"
+    },
+    {
+      "id": "AW-030",
+      "milestone": "v0.5.0",
+      "title": "Optionally integrate owned-window docking after go decision",
+      "summary": "Keep experimental window embedding isolated from core workflow.",
+      "tasks": [
+        "Read AW-004 ADR and recheck Windows versions.",
+        "If feasible, implement an opt-in owned-app contract and teardown fallback.",
+        "Otherwise explicitly close as not planned and retain top-level layout."
+      ],
+      "acceptance": [
+        "No third-party arbitrary HWND support claim.",
+        "Focus/DPI/modal/crash tests pass or feature stays disabled."
+      ],
+      "dependencies": [
+        "AW-004",
+        "AW-017"
+      ],
+      "labels": [
+        "windows",
+        "spike"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-030-optionally-integrate-owned-window-docking-after-go-decision.md"
+    },
+    {
+      "id": "AW-031",
+      "milestone": "v0.5.0",
+      "title": "Implement durable multi-monitor workspace layouts",
+      "summary": "Improve repeatability and desktop recovery.",
+      "tasks": [
+        "Persist layout with monitor identity and scale hints.",
+        "Clamp restored windows to visible work areas.",
+        "Test monitor removal, DPI changes and corrupted JSON."
+      ],
+      "acceptance": [
+        "Layout recovers across two tested display topologies.",
+        "No invisible/offscreen sample window after restore."
+      ],
+      "dependencies": [
+        "AW-010",
+        "AW-017"
+      ],
+      "labels": [
+        "ui",
+        "windows"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-031-implement-durable-multi-monitor-workspace-layouts.md"
+    },
+    {
+      "id": "AW-032",
+      "milestone": "v0.5.0",
+      "title": "Build Live Inspector with redacted trace timeline",
+      "summary": "Expose debugging without leaking content.",
+      "tasks": [
+        "Create WPF drawer for action timeline, IPC timings and heartbeats.",
+        "Provide drill-down by trace ID and compact histogram.",
+        "Prohibit raw sensitive payload preview by policy."
+      ],
+      "acceptance": [
+        "Reference workflow is inspectable by trace ID.",
+        "Synthetic PII does not appear in export or UI detail."
+      ],
+      "dependencies": [
+        "AW-020",
+        "AW-018",
+        "AW-031"
+      ],
+      "labels": [
+        "observability",
+        "ui"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-032-build-live-inspector-with-redacted-trace-timeline.md"
+    },
+    {
+      "id": "AW-033",
+      "milestone": "v0.5.0",
+      "title": "Add local diagnostics export and support bundle",
+      "summary": "Make reproducible incident reports possible.",
+      "tasks": [
+        "Define sanitized JSON export with user-initiated confirmation.",
+        "Add support bundle metadata and retention controls.",
+        "Test filename/path escaping and export classification."
+      ],
+      "acceptance": [
+        "Bundle includes reproducer metadata and no confidential values.",
+        "Export off by default; no telemetry uploads."
+      ],
+      "dependencies": [
+        "AW-032",
+        "AW-029"
+      ],
+      "labels": [
+        "observability",
+        "security"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-033-add-local-diagnostics-export-and-support-bundle.md"
+    },
+    {
+      "id": "AW-034",
+      "milestone": "v0.6.0",
+      "title": "Build review-only contract generation assistant",
+      "summary": "Generate bounded drafts, never executable artifacts directly.",
+      "tasks": [
+        "Create templates for proto, registry and typed client boilerplate.",
+        "Constrain prompt to documented public/synthetic schemas.",
+        "Require explicit diff review and disk write approval."
+      ],
+      "acceptance": [
+        "Draft is marked untrusted and cannot change active registry.",
+        "No auto-compilation or execution before explicit review."
+      ],
+      "dependencies": [
+        "AW-024",
+        "AW-029",
+        "AW-032"
+      ],
+      "labels": [
+        "ai",
+        "developer-tools"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-034-build-review-only-contract-generation-assistant.md"
+    },
+    {
+      "id": "AW-035",
+      "milestone": "v0.6.0",
+      "title": "Validate generated schemas before acceptance",
+      "summary": "Ensure generated artifacts are reproducible and syntactically safe.",
+      "tasks": [
+        "Run protoc/JSON schema checks in isolated build step.",
+        "Detect name collisions, breaking contract changes and forbidden paths.",
+        "Store tests and explanation with generated diff."
+      ],
+      "acceptance": [
+        "Invalid or breaking output is rejected with actionable diagnostics.",
+        "Approved generated code passes contract tests."
+      ],
+      "dependencies": [
+        "AW-034"
+      ],
+      "labels": [
+        "developer-tools",
+        "testing"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-035-validate-generated-schemas-before-acceptance.md"
+    },
+    {
+      "id": "AW-036",
+      "milestone": "v1.0.0",
+      "title": "Package reproducible Windows distribution and supply-chain evidence",
+      "summary": "Ship a verifiable public build.",
+      "tasks": [
+        "Choose distribution format and automate release artifact build.",
+        "Publish hashes, SBOM, dependency/license inventory.",
+        "Test clean Windows installation and uninstall."
+      ],
+      "acceptance": [
+        "Artifact hashes match documented release.",
+        "Clean-machine setup does not require private credentials."
+      ],
+      "dependencies": [
+        "AW-015",
+        "AW-024",
+        "AW-029",
+        "AW-033"
+      ],
+      "labels": [
+        "release",
+        "security"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-036-package-reproducible-windows-distribution-and-supply-chain-evidence.md"
+    },
+    {
+      "id": "AW-037",
+      "milestone": "v1.0.0",
+      "title": "Finalize public docs, Wiki and narrated demonstration",
+      "summary": "Present verified product claims and reproducible use.",
+      "tasks": [
+        "Write README, architecture, security, limitations, quick start, glossary and ADRs.",
+        "Record a short demo using only synthetic content.",
+        "Review usability, keyboard navigation and source/license attribution."
+      ],
+      "acceptance": [
+        "Documentation links match tagged release and commands work.",
+        "Demo contains no real confidential records or affiliation claims."
+      ],
+      "dependencies": [
+        "AW-036",
+        "AW-035"
+      ],
+      "labels": [
+        "release",
+        "documentation"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-037-finalize-public-docs-wiki-and-narrated-demonstration.md"
+    },
+    {
+      "id": "AW-038",
+      "milestone": "v1.0.0",
+      "title": "Run final release gate and publish acceptance report",
+      "summary": "Close measurable requirements before version tag.",
+      "tasks": [
+        "Run full E2E/reliability/egress suite and benchmark on reference setup.",
+        "Document deviations and remaining non-critical risks.",
+        "Create version notes and tagged-source acceptance matrix."
+      ],
+      "acceptance": [
+        "All release-blocking requirements pass with evidence.",
+        "No unverified compliance, performance or interoperability claim."
+      ],
+      "dependencies": [
+        "AW-036",
+        "AW-037"
+      ],
+      "labels": [
+        "release",
+        "testing"
+      ],
+      "mapping": [],
+      "verification": "Automated tests, review notes and a reproducible local demonstration.",
+      "file": "issues/AW-038-run-final-release-gate-and-publish-acceptance-report.md"
+    }
+  ]
+}

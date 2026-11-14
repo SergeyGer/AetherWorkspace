@@ -1,0 +1,66 @@
+{
+  "manifestVersion": "1.0",
+  "apps": [
+    {
+      "appId": "sample.watchlist",
+      "displayName": "Synthetic Watchlist (WPF)",
+      "launchable": true,
+      "executable": "{WPF_SAMPLES_EXE}",
+      "arguments": ["--app", "watchlist", "--fixtures", "{FIXTURES_DIR}"],
+      "workingDirectory": "{AETHER_HOME}",
+      "capabilities": ["context.subscribe", "context.publish", "window.report"],
+      "allowedChannels": ["default"],
+      "allowedContextTypes": ["fdc3.instrument"],
+      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "maxInstances": 1,
+      "launchTimeoutSeconds": 30
+    },
+    {
+      "appId": "sample.risk",
+      "displayName": "Synthetic Risk View (WPF)",
+      "launchable": true,
+      "executable": "{WPF_SAMPLES_EXE}",
+      "arguments": ["--app", "risk", "--fixtures", "{FIXTURES_DIR}"],
+      "workingDirectory": "{AETHER_HOME}",
+      "capabilities": ["context.subscribe", "context.publish", "window.report"],
+      "allowedChannels": ["default"],
+      "allowedContextTypes": ["fdc3.instrument"],
+      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "maxInstances": 1,
+      "launchTimeoutSeconds": 30
+    },
+    {
+      "appId": "sample.chart",
+      "displayName": "Synthetic Bond Chart (WPF)",
+      "launchable": true,
+      "executable": "{WPF_SAMPLES_EXE}",
+      "arguments": ["--app", "chart", "--fixtures", "{FIXTURES_DIR}"],
+      "workingDirectory": "{AETHER_HOME}",
+      "capabilities": ["context.subscribe", "context.publish", "window.report"],
+      "allowedChannels": ["default"],
+      "allowedContextTypes": ["fdc3.instrument"],
+      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "maxInstances": 1,
+      "launchTimeoutSeconds": 30
+    },
+    {
+      "appId": "aether.shell",
+      "displayName": "Aether Workspace Shell",
+      "launchable": false,
+      "executable": "",
+      "arguments": [],
+      "capabilities": [
+        "plan.execute",
+        "broker.launch",
+        "broker.arrange",
+        "context.publish",
+        "context.read",
+        "window.report"
+      ],
+      "allowedChannels": ["default"],
+      "allowedContextTypes": ["fdc3.instrument", "aether.exposure"],
+      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "maxInstances": 1
+    }
+  ]
+}

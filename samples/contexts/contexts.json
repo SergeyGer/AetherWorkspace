@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "1.0",
+  "contexts": [
+    {
+      "contextRef": "synthetic.instrument.northstar",
+      "contextType": "fdc3.instrument",
+      "classification": "RESTRICTED",
+      "payload": {
+        "type": "fdc3.instrument",
+        "name": "Northstar 2032 Bond",
+        "id": {
+          "ticker": "NRST",
+          "isin": "SYN00000NRST2"
+        }
+      }
+    },
+    {
+      "contextRef": "synthetic.instrument.vega",
+      "contextType": "fdc3.instrument",
+      "classification": "PUBLIC",
+      "payload": {
+        "type": "fdc3.instrument",
+        "name": "Vega Energy 2029 Note",
+        "id": {
+          "ticker": "VEGA",
+          "isin": "SYN00000VEGA9"
+        }
+      }
+    },
+    {
+      "contextRef": "synthetic.exposure.northstar",
+      "contextType": "aether.exposure",
+      "classification": "RESTRICTED",
+      "payload": {
+        "type": "aether.exposure",
+        "name": "Northstar synthetic exposure",
+        "currency": "USD",
+        "asOf": "2026-11-14",
+        "positions": [
+          {
+            "issuer": "Northstar Capital (fictitious)",
+            "instrumentId": "SYN-NRST-2032",
+            "rating": "A",
+            "notional": 24000000,
+            "marketValue": -1250000,
+            "dv01": -2160,
+            "syntheticAccountId": "ACC-00000001"
+          },
+          {
+            "issuer": "Vega Energy (fictitious)",
+            "instrumentId": "SYN-VEGA-2029",
+            "rating": "BBB",
+            "notional": 11500000,
+            "marketValue": 240000,
+            "dv01": 1035,
+            "syntheticAccountId": "ACC-00000002"
+          },
+          {
+            "issuer": "Orion Utilities (fictitious)",
+            "instrumentId": "SYN-ORIN-2031",
+            "rating": "AA",
+            "notional": 7000000,
+            "marketValue": -85000,
+            "dv01": 490,
+            "syntheticAccountId": "ACC-00000003"
+          }
+        ]
+      }
+    },
+    {
+      "contextRef": "synthetic.exposure.vega",
+      "contextType": "aether.exposure",
+      "classification": "PUBLIC",
+      "payload": {
+        "type": "aether.exposure",
+        "name": "Vega synthetic public exposure",
+        "currency": "USD",
+        "asOf": "2026-11-14",
+        "positions": [
+          {
+            "issuer": "Vega Energy (fictitious)",
+            "instrumentId": "SYN-VEGA-2029",
+            "rating": "BBB",
+            "notional": 11500000,
+            "marketValue": 240000,
+            "dv01": 1035
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+# Contracts and schemas
+
+The broker is the only owner of the wire contracts; all components reference the
+generated types and strict JSON models from `src/Aether.Contracts`.
+
+| Contract | Runtime source of truth | Documentation schema / example |
+|---|---|---|
+| Broker RPC surface (`Register`, `Heartbeat`, `PublishContext`, `Subscribe`, `ResolveContext`, `ReportWindow`, `LaunchApp`, `StopApp`, `ArrangeWindows`, `GetSnapshot`, `RestartApp`, `HealthProbe`) | `src/Aether.Contracts/Protos/aether/v1/broker.proto` | — |
+| Context envelope + window layout messages | `src/Aether.Contracts/Protos/aether/v1/envelope.proto` | `context-envelope.schema.json` (JSON projection for docs/tests) |
+| Data classification + provenance | `src/Aether.Contracts/Protos/aether/v1/common.proto`, `src/Aether.Contracts/Models/DataClassification.cs` | — |
+| ActionPlan | `src/Aether.Contracts/Models/ActionPlan.cs` (strict deserialization) | `action-plan.schema.json`, `action-plan.example.json` |
+| App manifest / registry | `src/Aether.Contracts/Models/AppManifest.cs` | `app-manifest.schema.json` |
+| Trusted policy document | `src/Aether.Security/Policy/PolicyDocument.cs` | `safe-policy.example.json` |
+| Context catalog | `src/Aether.Contracts/Models/ContextCatalog.cs` | validated by `ContextCatalog.Load` (payload typed + classification) |
+
+## Versioning rules
+
+- Contracts carry a SemVer-compatible `schemaVersion` / `manifestVersion` / catalog
+  schema version. The current build accepts **major version 1** and rejects other majors
+  (`plan.schema.version_unsupported`).
+- RPC protocol version is pinned in `AetherVersions.ProtocolVersion`; registration with
+  an unsupported major is rejected.
+- Unknown JSON members are rejected (`UnmappedMemberHandling.Disallow`). A contract
+  change that adds a field requires a schema version review and tests; never silently
+  accept unsupported directives.
+- Documents are processed with bounded depth (`AetherJson.MaxDocumentDepth = 32`) and
+  bounded payload sizes (`BrokerOptions.MaxPayloadBytes`, default 16 KiB).
+
+## Notes on the JSON schemas
+
+`docs/contracts/*.schema.json` are documentation/contract-test artefacts (validated by
+`tests/Aether.Contracts.Tests`), while the runtime enforces the same rules through strict
+typed deserialization plus deterministic validation in `Aether.Execution`. When you
+change a model, update the schema and examples in the same change. The protobuf
+definitions are the wire source of truth for the broker.

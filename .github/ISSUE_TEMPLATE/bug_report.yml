@@ -1,0 +1,22 @@
+name: Bug report
+description: Report reproducible failures using synthetic inputs only
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps and expected/actual behavior
+      description: Do not attach confidential data, raw prompts or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Windows build, .NET SDK, app version and synthetic fixture
+    validations:
+      required: true
+  - type: textarea
+    id: trace
+    attributes:
+      label: Redacted trace ID / sanitized diagnostics

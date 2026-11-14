@@ -1,0 +1,24 @@
+{
+  "policyVersion": "3.0",
+  "cloud": {
+    "enabledByDefault": false,
+    "requireExplicitConsent": true,
+    "allowSanitizedInternal": false,
+    "requestTimeoutSeconds": 30
+  },
+  "dataClasses": {
+    "PUBLIC": { "cloud": "OPT_IN" },
+    "INTERNAL": { "cloud": "DENY_BY_DEFAULT" },
+    "RESTRICTED": { "cloud": "DENY" },
+    "UNKNOWN": { "cloud": "DENY" }
+  },
+  "failureMode": "FAIL_CLOSED",
+  "audit": {
+    "rawPayloads": false,
+    "localOnly": true,
+    "retentionDays": 7
+  },
+  "patterns": {
+    "accountId": "ACC-[0-9]{8,12}"
+  }
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package aether.v1;
+
+option csharp_namespace = "Aether.Contracts.V1";
+
+// Data classification labels, ordered by sensitivity. UNKNOWN is fail-closed
+// and must be treated as the most restrictive label by every consumer.
+enum Classification {
+  CLASSIFICATION_UNSPECIFIED = 0;
+  CLASSIFICATION_PUBLIC = 1;
+  CLASSIFICATION_INTERNAL = 2;
+  CLASSIFICATION_RESTRICTED = 3;
+  CLASSIFICATION_UNKNOWN = 4;
+}
+
+// End-to-end provenance attached to every context event and execution record.
+message Provenance {
+  string source_app_id = 1;
+  string source_instance_id = 2;
+  string trace_id = 3;
+  string span_id = 4;
+  int64 created_at_unix_ms = 5;
+}
+
+// Structured, redacted error shared by broker replies.
+message ErrorInfo {
+  string code = 1;
+  string message = 2;
+  string denial_category = 3;
+}

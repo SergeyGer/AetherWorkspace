@@ -1,0 +1,209 @@
+syntax = "proto3";
+
+package aether.v1;
+
+option csharp_namespace = "Aether.Contracts.V1";
+
+import "aether/v1/common.proto";
+import "aether/v1/envelope.proto";
+
+// Local-only broker surface. Transport is a Windows named pipe or a Unix
+// domain socket; there is no network listener in the MVP.
+service BrokerService {
+  rpc Register(RegisterRequest) returns (RegisterReply);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatReply);
+  rpc PublishContext(PublishContextRequest) returns (PublishContextReply);
+  rpc Subscribe(SubscribeRequest) returns (stream ContextEnvelope);
+  rpc ResolveContext(ResolveContextRequest) returns (ResolveContextReply);
+  rpc ReportWindow(ReportWindowRequest) returns (ReportWindowReply);
+  rpc LaunchApp(LaunchAppRequest) returns (LaunchAppReply);
+  rpc ArrangeWindows(ArrangeWindowsRequest) returns (ArrangeWindowsReply);
+  rpc GetSnapshot(SnapshotRequest) returns (SnapshotReply);
+  rpc StopApp(StopAppRequest) returns (StopAppReply);
+  rpc RestartApp(RestartAppRequest) returns (RestartAppReply);
+  rpc HealthProbe(HealthProbeRequest) returns (HealthProbeReply);
+}
+
+message AppSummary {
+  string app_id = 1;
+  string display_name = 2;
+  bool launchable = 3;
+  repeated string capabilities = 4;
+  repeated string allowed_channels = 5;
+  repeated string allowed_context_types = 6;
+  repeated Classification allowed_classifications = 7;
+}
+
+message ContextSummary {
+  string context_ref = 1;
+  string context_type = 2;
+  Classification classification = 3;
+}
+
+message SnapshotRequest {
+  string trace_id = 1;
+}
+
+message SnapshotReply {
+  string broker_version = 1;
+  repeated AppSummary apps = 2;
+  repeated ContextSummary contexts = 3;
+  int64 server_time_unix_ms = 4;
+  int32 max_actions_per_plan = 5;
+  repeated string supported_layouts = 6;
+  string policy_version = 7;
+}
+
+message RegisterRequest {
+  string app_id = 1;
+  string instance_id = 2;
+  string registration_token = 3;
+  int32 process_id = 4;
+  int64 process_start_unix_ms = 5;
+  string protocol_version = 6;
+  string nonce = 7;
+}
+
+message RegisterReply {
+  string session_id = 1;
+  string session_secret = 2;
+  int64 expires_at_unix_ms = 3;
+  repeated string capabilities = 4;
+  repeated string allowed_channels = 5;
+  repeated string allowed_context_types = 6;
+  repeated Classification allowed_classifications = 7;
+  Classification max_classification = 8;
+  int32 heartbeat_interval_seconds = 9;
+  string broker_version = 10;
+}
+
+message HeartbeatRequest {
+  int64 sent_at_unix_ms = 1;
+}
+
+message HeartbeatReply {
+  int64 server_time_unix_ms = 1;
+  bool session_valid = 2;
+  string health_state = 3;
+}
+
+message PublishContextRequest {
+  string channel = 1;
+  string context_ref = 2;
+  string trace_id = 3;
+  Classification source_classification = 4;
+  string client_message_id = 5;
+  int64 deadline_unix_ms = 6;
+}
+
+message PublishContextReply {
+  bool accepted = 1;
+  string message_id = 2;
+  int32 delivered_count = 3;
+  int32 dropped_count = 4;
+  bool overflowed = 5;
+  string denial_code = 6;
+  string denial_message = 7;
+}
+
+message SubscribeRequest {
+  string channel = 1;
+  string trace_id = 2;
+}
+
+message ResolveContextRequest {
+  string context_ref = 1;
+  string trace_id = 2;
+}
+
+message ResolveContextReply {
+  bool allowed = 1;
+  string context_ref = 2;
+  string context_type = 3;
+  Classification classification = 4;
+  string payload_json = 5;
+  Provenance provenance = 6;
+  string denial_code = 7;
+  string denial_message = 8;
+}
+
+message ReportWindowRequest {
+  string window_id = 1;
+  string title = 2;
+  WindowBounds bounds = 3;
+  string monitor_id = 4;
+  bool visible = 5;
+  int64 native_handle = 6;
+  string trace_id = 7;
+}
+
+message ReportWindowReply {
+  bool accepted = 1;
+  string denial_code = 2;
+}
+
+message LaunchAppRequest {
+  string app_id = 1;
+  string trace_id = 2;
+}
+
+message LaunchAppReply {
+  bool accepted = 1;
+  string app_id = 2;
+  string instance_id = 3;
+  int32 process_id = 4;
+  bool registered = 5;
+  string denial_code = 6;
+  string denial_message = 7;
+}
+
+message ArrangeWindowsRequest {
+  string layout = 1;
+  string trace_id = 2;
+  string monitor_id = 3;
+}
+
+message ArrangeWindowsReply {
+  bool applied = 1;
+  WindowLayout layout = 2;
+  string denial_code = 3;
+  string denial_message = 4;
+}
+
+message StopAppRequest {
+  string app_id = 1;
+  string instance_id = 2;
+  string trace_id = 3;
+}
+
+message StopAppReply {
+  bool stopped = 1;
+  string denial_code = 2;
+  string denial_message = 3;
+}
+
+message RestartAppRequest {
+  string app_id = 1;
+  string trace_id = 2;
+}
+
+message RestartAppReply {
+  bool accepted = 1;
+  string instance_id = 2;
+  string denial_code = 3;
+  string denial_message = 4;
+  string failure_state = 5;
+}
+
+message HealthProbeRequest {
+  string trace_id = 1;
+}
+
+message HealthProbeReply {
+  string broker_version = 1;
+  int32 active_sessions = 2;
+  int32 registered_windows = 3;
+  repeated string app_health = 4;
+  string policy_version = 5;
+  string transport = 6;
+}

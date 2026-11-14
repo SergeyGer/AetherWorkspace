@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aether.Workflow\Aether.Workflow.csproj" />
+    <ProjectReference Include="..\..\src\Aether.AI\Aether.AI.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Execution\Aether.Execution.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Security\Aether.Security.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Contracts\Aether.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Broker.Client\Aether.Broker.Client.csproj" />
+    <ProjectReference Include="..\Aether.Testing\Aether.Testing.csproj" />
+  </ItemGroup>
+</Project>

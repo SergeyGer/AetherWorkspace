@@ -1,0 +1,45 @@
+namespace Aether.Shell.Headless;
+
+/// <summary>Structured shell result used by deterministic E2E assertions and demo scripts.</summary>
+public sealed record ShellOutput(
+    bool Success,
+    string Status,
+    string TraceId,
+    string? PlanId,
+    string Classification,
+    IReadOnlyList<string> ClassificationReasons,
+    IReadOnlyList<ShellStepOutput> Steps,
+    IReadOnlyList<string> ValidationIssues,
+    ShellSummaryOutput? Summary,
+    string? DenialCode,
+    string? DenialMessage,
+    string DenialCategory,
+    string Planner,
+    bool UsedModel,
+    long DurationMs,
+    ShellEgressOutput Egress,
+    ShellAuditOutput Audit,
+    IReadOnlyList<string> Limitations);
+
+public sealed record ShellStepOutput(
+    string Action,
+    string State,
+    string? Code,
+    IReadOnlyDictionary<string, string>? Artifacts);
+
+public sealed record ShellSummaryOutput(
+    string Text,
+    string Provider,
+    string Classification,
+    int RedactionCount);
+
+public sealed record ShellEgressOutput(
+    long Attempts,
+    long ExternalAttempts,
+    long Denied,
+    IReadOnlyDictionary<string, long> DenialsByCode);
+
+public sealed record ShellAuditOutput(
+    int EntryCount,
+    bool ChainValid,
+    string? AuditFile);

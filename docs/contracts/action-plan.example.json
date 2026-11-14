@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "planId": "example-workflow-001",
+  "description": "Synthetic, non-executable illustration only.",
+  "steps": [
+    { "action": "LaunchApp", "appId": "sample.watchlist" },
+    { "action": "LaunchApp", "appId": "sample.risk" },
+    { "action": "PublishContext", "contextRef": "synthetic.instrument.northstar" },
+    { "action": "ArrangeWindows", "layout": "side-by-side" },
+    { "action": "SummarizeContext", "contextRef": "synthetic.exposure.northstar", "mode": "private" }
+  ]
+}

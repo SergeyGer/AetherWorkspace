@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "synthetic": true,
+  "description": "Synthetic watchlist fixture. All issuers and identifiers are fictitious.",
+  "instruments": [
+    {
+      "ticker": "NRST",
+      "name": "Northstar 2032 Bond",
+      "issuer": "Northstar Capital (fictitious)",
+      "rating": "A",
+      "sector": "Financials",
+      "syntheticInstrumentId": "SYN-NRST-2032"
+    },
+    {
+      "ticker": "VEGA",
+      "name": "Vega Energy 2029 Note",
+      "issuer": "Vega Energy (fictitious)",
+      "rating": "BBB",
+      "sector": "Energy",
+      "syntheticInstrumentId": "SYN-VEGA-2029"
+    },
+    {
+      "ticker": "ORIN",
+      "name": "Orion Utilities 2031 Note",
+      "issuer": "Orion Utilities (fictitious)",
+      "rating": "AA",
+      "sector": "Utilities",
+      "syntheticInstrumentId": "SYN-ORIN-2031"
+    }
+  ]
+}
