@@ -1,68 +1,116 @@
-# FDC3 3.0 supported subset (declared, not conformance)
+# FDC3 3.0 supported subset
 
-- **Status:** in-progress v0.3 item (AW-021/AW-022). This is a declared bounded-subset
-  matrix for the implemented baseline; it must be reviewed against the official FDC3 3.0
-  standard before publication as a v0.3 deliverable.
-- **No conformance claim.** The project does not claim FDC3 compliance, Desktop Agent API
-  coverage, intents or app-directory support beyond what is listed here.
+**Status:** v0.3 work in progress (2026-11-14). This document states exactly what
+AetherWorkspace implements against the FDC3 3.0 specification. It is a **declared
+subset**, not a conformance statement: no blanket FDC3 compliance claim is made, and no
+independent FDC3 implementation or official conformance suite has been run. AW-021 is
+partial, AW-022 is partial, and AW-023/AW-024 are not started.
 
-## 1. What is implemented
+## Supported subset
 
-| Surface | Status | Notes |
+| Surface | Status | What is implemented |
 |---|---|---|
-| Context data: `fdc3.instrument` (bounded subset) | **Supported** | Payload subset: `type`, `name`, `id.ticker`, `id.isin`. Other ID fields are not accepted in the v0.1 catalog payloads (strict JSON). |
-| Additional context type used by the demo (`aether.exposure`) | **Supported (project-specific, not FDC3)** | Private synthetic exposure context used only for local summarization; never sent to providers. |
-| App (named) channel semantics — single `default` channel | **Supported** | One allowlisted channel; per-app `allowedChannels` grants; bounded per-subscriber queues; at-most-once delivery. |
-| Context broadcast with provenance | **Supported** | Envelope carries message id, trace/span ids, source app id + instance id, timestamp, schema version, classification, deadline. |
-| Channel subscribe (server-streaming subscription) | **Supported** | Capability `context.subscribe`; classification/context-type clearance filtering per subscriber. |
-| Context read/resolution for local processing | **Supported** | Capability `context.read`; clearance checked against the trusted catalog classification. |
-| Typed schema validation for context payloads | **Supported** | Catalog payloads validated against strict typed models before publication. |
+| Context type `fdc3.instrument` | **Supported (subset)** | Fields `type`, `name`, `id.ticker` and `id.isin`; class `src/Aether.Contracts/Models/Contexts/InstrumentContext.cs` |
+| Context transport | **Supported** | Typed `ContextEnvelope` published and subscribed through the broker's `default` app channel; no direct app-to-app socket |
+| Provenance | **Supported** | `sourceAppId`, `sourceInstanceId`, `traceId`, `spanId`, `createdAtUnixMs`, plus broker `messageId`, `schemaVersion`, `contextType`, `classification`, `channel`, timestamps |
+| App channel | **Supported (one only)** | The configured workspace channel is `default` (`ChannelNames.Default`); no channel discovery/creation API |
+| Context catalog | **Supported (workspace mechanism)** | Plans reference a trusted `contextRef`; the broker resolves and validates the payload from `samples/contexts/contexts.json` |
+| Classification | **Supported (workspace mechanism)** | `PUBLIC`/`INTERNAL`/`RESTRICTED`/`UNKNOWN` on the envelope; `UNKNOWN` publication is denied |
 
-## 2. Explicitly unsupported (not implemented)
+The supported context is transported on the single named `default` app channel through
+`Aether.Broker`; apps never exchange context directly. This is deliberately narrower than
+the FDC3 broadcast model: publishing is **catalog-mediated** (an app/plan references a
+trusted `contextRef`, and the broker supplies the payload), so arbitrary FDC3 context
+objects cannot be injected through the plan or an app call.
 
-- Full **Desktop Agent API** (`desktopAgent` methods, `getOrCreateChannel`, `broadcast`,
-  `addContextListener`, etc.).
-- **Intents**: `raiseIntent`, `resolveIntent`, intent listeners, standard intent names,
-  intent resolution UI. (AW-023, not started.)
-- **User channels** (`fdc3.channel.*`, colour/global channels) and arbitrary app channels
-  beyond the single `default` channel.
-- **App Directory** integration or third-party directory interop; the project registry is
-  local configuration only.
-- **Private channels**, channel joining by third-party apps, external FDC3 desktop-agent
-  interoperability, Desktop Agent Bridge.
-- Full FDC3 context type catalogue; only the bounded instrument subset is accepted, and
-  project-specific non-FDC3 contexts are used only locally.
-- Any compatibility guarantee with third-party FDC3 applications; no independent
-  implementation interop test has been executed (AW-024, not started).
+```json
+{
+  "type": "fdc3.instrument",
+  "name": "Northstar 2032 Bond",
+  "id": { "ticker": "NRST", "isin": "SYN00000NRST2" }
+}
+```
 
-## 3. Versioning and compatibility expectations
+The C# `InstrumentId` type also has optional `cusip`, `figi` and `bbg` properties. Those
+are **not** part of the declared or tested subset; only `ticker` and `isin` are exercised
+by the trusted catalog and tests. The `aether.exposure` context is a workspace-specific
+type used for private summarization; it is not claimed as an FDC3 context.
 
-- Context envelope `schemaVersion` and context payload shapes are versioned; the current
-  build accepts schema **major version 1** and rejects other majors.
-- Broker protocol version is pinned; unsupported registration protocol majors are rejected.
-- Unknown JSON fields are rejected rather than silently ignored, so adding FDC3 fields
-  requires an explicit schema change and tests.
+## Unsupported surfaces (explicit)
 
-## 4. Provenance requirements (implemented)
+- **Full FDC3 Desktop Agent API** (`window.fdc3`, the `@finos/fdc3` JavaScript API,
+  app/user channel methods and listener registration).
+- **Intents** — `raiseIntent`, `resolveIntent`, `addIntentListener`, intent metadata or
+  intent-based application resolution.
+- **User channels** — no user-channel join/leave, no user-channel context routing.
+- **App channels beyond `default`** — no creation, discovery, joining or per-app channel
+  selection. `default` is the only configured channel.
+- **Private channels** — no private-channel creation, broadcast or listener flow.
+- **Intent listeners / context listeners** in the FDC3 API sense. The project has a
+  broker `Subscribe` stream, not an FDC3 listener object.
+- **External FDC3 desktop-agent interoperability** — no bridging to any other desktop
+  agent; no cross-agent context or intent exchange.
+- **Full context type catalogue** — only the bounded `fdc3.instrument` subset above (plus
+  the non-FDC3 `aether.exposure` workspace type).
+- **FDC3 App Directory integration** — the trusted `samples/registry/apps.json` allowlist
+  is not an FDC3 App Directory record and does not declare FDC3 app metadata.
+- **FDC3 conformance/certification** — not tested, not claimed, not implied.
 
-Every context event carries:
+## Schema and version compatibility
 
-- `messageId` — unique event id;
-- `traceId` / `spanId` — end-to-end correlation including failures;
-- `sourceAppId` / `sourceInstanceId` — authenticated app identity from the broker session;
-- `createdAtUnixMs`, optional deadline;
-- `classification` — resolved from the trusted catalog, never downgraded by publishers;
-- `contextType` and validated typed payload.
+- `InstrumentContext.ContextType` is `"fdc3.instrument"` and its declared schema version
+  constant is `"1.0"`. The context payload itself is strict JSON with **unknown fields
+  rejected** (`AetherJson.Strict`, `UnmappedMemberHandling.Disallow`, max depth 32).
+- The protobuf envelope is package `aether.v1`
+  (`src/Aether.Contracts/Protos/aether/v1/envelope.proto`); the broker sets
+  `schema_version` to `"1.0"` (`AetherVersions.ContractSchemaVersion`).
+- The broker protocol version is `"1"`; registration accepts only the integer protocol
+  version 1 (`AetherVersions.ProtocolVersionMajor`). Any other value is rejected.
+- The trusted context catalog declares `schemaVersion: "1.0"`; the loader accepts major
+  version 1 and rejects unsupported majors, unknown context types, type/payload
+  mismatches and `UNKNOWN` classifications.
+- There is **no minor-version negotiation** and no FDC3 version negotiation. Unknown or
+  unsupported fields/types are rejected rather than silently ignored. A breaking context
+  or envelope change requires a new major version and a documentation/ADR update.
+- Compatibility is within this repository's broker/client and its declared subset. It
+  does not imply compatibility with other FDC3 3.0 contexts, agents or application
+  directories.
 
-## 5. Evidence and next steps
+## Delivery semantics and provenance
 
-Evidence: `src/Aether.Contracts/Models/Contexts/InstrumentContext.cs`,
-`src/Aether.Contracts/Protos/aether/v1/envelope.proto`,
-`src/Aether.Broker/Channels/ChannelRouter.cs`, contract/broker/channel tests,
-E2E provenance assertions (all three sample apps receive the same trace id).
+- `PublishContext` requires the session capability `context.publish`; `Subscribe`
+  requires `context.subscribe`; the broker checks the session's allowed channels,
+  context types and classifications.
+- The broker constructs the envelope (message id, trace/span, timestamps, provenance)
+  from the authenticated session; a publisher cannot forge `sourceAppId` or
+  `sourceInstanceId`.
+- Delivery is at-most-once per subscriber, FIFO per subscriber and bounded per channel
+  (default capacity 64). Overflow is reported as `droppedCount`/`overflowed`; retries are
+  idempotent only through the bounded client-message deduplication window.
+- `RESTRICTED`/`UNKNOWN` handling is fail-closed: `UNKNOWN` cannot be published, a
+  source classification cannot downgrade a trusted catalog classification, and
+  subscribers without matching clearance do not receive the event.
 
-Planned for v0.3 (not started): publish a reviewed subset matrix (AW-021), add remaining
-supported contexts/channel semantics with contract tests (AW-022), limited intent
-resolution + app directory mapping with capability checks (AW-023), and standards fixture
-suites with independent interop evidence where practicable (AW-024). No claim should be
-upgraded to "conformant" without that evidence.
+## Evidence
+
+| Test / path | What it demonstrates |
+|---|---|
+| `tests/Aether.Contracts.Tests/EnvelopeProtoTests.cs` | `ContextEnvelope` round-trips with channel, classification and provenance; `CLASSIFICATION_UNSPECIFIED` maps to `UNKNOWN` |
+| `tests/Aether.Broker.Tests/RegistryTests.cs` | The trusted catalog loads `fdc3.instrument` and `aether.exposure`; unknown classifications, `UNKNOWN`, type mismatches and oversized payloads are rejected |
+| `tests/Aether.Broker.Tests/ChannelRouterTests.cs` | Delivery preserves message id, trace id, source app id and classification; FIFO, clearance filtering, overflow and dedupe are covered |
+| `tests/Aether.E2E.Tests/MvpWorkflowE2ETests.cs` | Three independent sample processes receive `fdc3.instrument` with the workflow trace id from one publish |
+| `tests/Aether.Contracts.Tests/FixturePurityTests.cs` | Fixtures are marked synthetic and free of realistic PII; context classifications are explicit |
+| `src/Aether.Broker/Hosting/BrokerGrpcService.cs` | Publish/subscribe enforcement of classification, channel, context type and provenance |
+
+No external FDC3 fixtures, official schema conformance run or independent-agent interop
+test exists. AW-024 remains open.
+
+## What would change this claim
+
+Adding intents, user channels, extra app channels, the Desktop Agent API, app-directory
+mapping or external-agent interop would require new ADR/design review, dedicated tests
+and an updated matrix. Independent interoperability evidence and review against the
+official FDC3 3.0 specification are prerequisites for any broader compatibility claim.
+Until then, this document and the code are the complete statement of FDC3 support: a
+bounded, FDC3-aligned instrument context on one `default` channel through the broker,
+with provenance — and no blanket conformance claim.
