@@ -14,11 +14,13 @@ namespace Aether.Broker.Tests;
 
 public class SessionHandshakeTests
 {
+    private static readonly string TestExecutablePath = Path.Combine(Path.GetTempPath(), "aether-test-app");
+
     private static async Task<(BrokerTestContext Context, FakeProcessIdentityResolver Identity, ManualTimeProvider Time)> StartAsync()
     {
         var identity = new FakeProcessIdentityResolver();
         var time = new ManualTimeProvider(new DateTimeOffset(2026, 11, 14, 12, 0, 0, TimeSpan.Zero));
-        identity.Register(Environment.ProcessId, "/tmp/aether-test-app", time.GetUtcNow());
+        identity.Register(Environment.ProcessId, TestExecutablePath, time.GetUtcNow());
         var context = BrokerTestContext.Create(identityResolver: identity, timeProvider: time, testName: "session");
         await context.StartAsync();
         return (context, identity, time);
@@ -39,7 +41,7 @@ public class SessionHandshakeTests
             app,
             instanceId,
             token,
-            new ProcessIdentity(Environment.ProcessId, "/tmp/aether-test-app", time.GetUtcNow()),
+            new ProcessIdentity(Environment.ProcessId, TestExecutablePath, time.GetUtcNow()),
             time.GetUtcNow());
 
         await using var client = AppClient(context);
@@ -61,7 +63,7 @@ public class SessionHandshakeTests
         const string token = "replay-token";
         context.Host.Sessions.AddPendingRegistration(
             app, "inst-replay", token,
-            new ProcessIdentity(Environment.ProcessId, "/tmp/aether-test-app", time.GetUtcNow()),
+            new ProcessIdentity(Environment.ProcessId, TestExecutablePath, time.GetUtcNow()),
             time.GetUtcNow());
 
         await using (var first = AppClient(context))
@@ -96,7 +98,7 @@ public class SessionHandshakeTests
         const string token = "expired-token";
         context.Host.Sessions.AddPendingRegistration(
             app, "inst-expired", token,
-            new ProcessIdentity(Environment.ProcessId, "/tmp/aether-test-app", time.GetUtcNow()),
+            new ProcessIdentity(Environment.ProcessId, TestExecutablePath, time.GetUtcNow()),
             time.GetUtcNow()
         );
 
@@ -117,10 +119,10 @@ public class SessionHandshakeTests
         const string token = "identity-token";
         context.Host.Sessions.AddPendingRegistration(
             app, "inst-mismatch", token,
-            new ProcessIdentity(Environment.ProcessId, "/tmp/aether-test-app", time.GetUtcNow()),
+            new ProcessIdentity(Environment.ProcessId, TestExecutablePath, time.GetUtcNow()),
             time.GetUtcNow());
 
-        identity.Register(Environment.ProcessId, "/tmp/some-other-binary", time.GetUtcNow());
+        identity.Register(Environment.ProcessId, Path.Combine(Path.GetTempPath(), "some-other-binary"), time.GetUtcNow());
 
         await using var client = AppClient(context);
         var exception = await Assert.ThrowsAsync<BrokerRpcException>(() =>
@@ -168,7 +170,7 @@ public class SessionHandshakeTests
         const string token = "heartbeat-token";
         context.Host.Sessions.AddPendingRegistration(
             app, "inst-heartbeat", token,
-            new ProcessIdentity(Environment.ProcessId, "/tmp/aether-test-app", time.GetUtcNow()),
+            new ProcessIdentity(Environment.ProcessId, TestExecutablePath, time.GetUtcNow()),
             time.GetUtcNow());
 
         await using var client = AppClient(context);

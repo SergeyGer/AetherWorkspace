@@ -13,7 +13,7 @@
       "allowedContextTypes": ["fdc3.instrument"],
       "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 20
+      "launchTimeoutSeconds": 30
     },
     {
       "appId": "sample.risk",
@@ -27,7 +27,7 @@
       "allowedContextTypes": ["fdc3.instrument"],
       "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 20
+      "launchTimeoutSeconds": 30
     },
     {
       "appId": "sample.chart",
@@ -41,7 +41,7 @@
       "allowedContextTypes": ["fdc3.instrument"],
       "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 20
+      "launchTimeoutSeconds": 30
     },
     {
       "appId": "aether.shell",

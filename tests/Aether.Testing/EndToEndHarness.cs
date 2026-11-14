@@ -70,6 +70,8 @@ public sealed class EndToEndHarness : IAsyncDisposable
             RedirectStandardError = true,
         };
         startInfo.ArgumentList.Add(BrokerAppDll);
+        startInfo.ArgumentList.Add("--transport");
+        startInfo.ArgumentList.Add(Aether.Contracts.Broker.BrokerTransports.UnixDomainSocket);
         startInfo.ArgumentList.Add("--registry");
         startInfo.ArgumentList.Add(TestRepo.PathTo("samples", "registry", "apps.json"));
         startInfo.ArgumentList.Add("--contexts");

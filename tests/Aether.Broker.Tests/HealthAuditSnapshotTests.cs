@@ -57,7 +57,8 @@ public class HealthAuditSnapshotTests
     {
         var identity = new FakeProcessIdentityResolver();
         var time = new ManualTimeProvider(new DateTimeOffset(2026, 11, 14, 12, 0, 0, TimeSpan.Zero));
-        identity.Register(Environment.ProcessId, "/tmp/aether-health-app", time.GetUtcNow());
+        var healthExecutablePath = Path.Combine(Path.GetTempPath(), "aether-health-app");
+        identity.Register(Environment.ProcessId, healthExecutablePath, time.GetUtcNow());
         await using var context = BrokerTestContext.Create(identityResolver: identity, timeProvider: time, testName: "health-unresponsive");
         await context.StartAsync();
 
@@ -65,7 +66,7 @@ public class HealthAuditSnapshotTests
         const string token = "health-token";
         context.Host.Sessions.AddPendingRegistration(
             app, "inst-health", token,
-            new ProcessIdentity(Environment.ProcessId, "/tmp/aether-health-app", time.GetUtcNow()),
+            new ProcessIdentity(Environment.ProcessId, healthExecutablePath, time.GetUtcNow()),
             time.GetUtcNow());
         await using var client = context.CreateClient();
         await client.RegisterAsync("sample.watchlist", token, "inst-health");
@@ -88,7 +89,7 @@ public class HealthAuditSnapshotTests
         await using var operatorClient = await context.RegisterOperatorAsync();
 
         var launched = await operatorClient.LaunchAppAsync("sample.watchlist", TraceIdGenerator.NewTraceId());
-        Assert.True(launched.Accepted);
+        Assert.True(launched.Accepted, launched.DenialCode + ": " + launched.DenialMessage);
         await operatorClient.PublishContextAsync(
             "synthetic.instrument.northstar", Aether.Contracts.DataClassification.Restricted, TraceIdGenerator.NewTraceId());
         await operatorClient.ArrangeWindowsAsync("side-by-side", TraceIdGenerator.NewTraceId());

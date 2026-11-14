@@ -238,7 +238,7 @@ public sealed partial class AppLauncher : IAsyncDisposable
 
     private async Task<ProcessIdentity?> WaitForIdentityAsync(Process process, CancellationToken cancellationToken)
     {
-        var deadline = _options.TimeProvider.GetUtcNow() + TimeSpan.FromSeconds(5);
+        var deadline = _options.TimeProvider.GetUtcNow() + TimeSpan.FromSeconds(10);
         while (_options.TimeProvider.GetUtcNow() < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();

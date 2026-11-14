@@ -74,7 +74,7 @@ public sealed class BrokerOptions
     /// </summary>
     public bool RequireAppReadiness { get; init; } = true;
 
-    public int AppReadinessTimeoutSeconds { get; init; } = 8;
+    public int AppReadinessTimeoutSeconds { get; init; } = 20;
 
     /// <summary>Optional directory where child app stdout lines are captured for diagnostics/tests.</summary>
     public string? ChildLogDirectory { get; init; }
