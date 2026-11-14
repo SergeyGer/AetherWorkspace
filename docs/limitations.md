@@ -6,12 +6,15 @@ is not backed by a test or a measured baseline in this repository, it is not mad
 
 ## Platform and runtime
 
-- **Windows-only paths are compile-verified but not executed in this development
-  environment.** Windows named-pipe transport, Win32 top-level window placement, the WPF
-  shell and WPF sample apps build (including cross-compilation on Linux) but were not
-  runtime-tested on Windows while producing this baseline. The CI workflow in
-  `.github/workflows/ci.yml` runs the full Windows build/test/demo job; its result is the
-  evidence source for those paths.
+- **Windows split:** the Windows named-pipe transport, full test suite and the headless
+  reference-workflow demo run in the Windows CI job and are green as of commit
+  `674e2c0` (run
+  [43641011037](https://github.com/SergeyGer/AetherWorkspace/actions/runs/43641011037)).
+  The WPF shell/sample windows build on Windows CI but their interactive UI behaviour and
+  the visual result of Win32 top-level placement are not automatically verified yet and
+  need manual desktop verification (or UI automation) before a v0.5 UX claim. The Linux
+  development environment executes everything else via Unix domain sockets + headless
+  samples.
 - **Linux/headless is the CI substitute.** Unix domain sockets and headless sample
   processes exercise the same typed protocol, policy, executor, broker sessions/channels
   and audit logic; they are not the reference desktop experience.

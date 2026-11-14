@@ -52,6 +52,16 @@ release tag yet.
 - RPC-boundary retry/idempotency evidence: duplicate `clientMessageId` publishes are
   delivered once and return the original message id.
 
+### Fixed
+
+- Windows named-pipe client: `NamedPipeClientStream` transmission-mode properties were set
+  before `ConnectAsync`, throwing `InvalidOperationException` (`Pipe handle has not been
+  set`) on Windows. Connect first; the Windows CI named-pipe demo now passes. Found by the
+  Windows CI job.
+- Test portability on Windows: fake process-identity tests used non-canonical `/tmp/...`
+  paths; the E2E harness now pins the cross-platform Unix-domain-socket transport, and
+  app readiness/launch budgets were raised for cold CI runners.
+
 ### Known limitations
 
 See [`docs/limitations.md`](docs/limitations.md). Windows reference-machine benchmarks,

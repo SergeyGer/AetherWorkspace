@@ -1,5 +1,7 @@
 # AetherWorkspace
 
+[![CI](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml/badge.svg)](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml)
+
 AetherWorkspace is an independent, vendor-neutral **reference implementation** of a
 local-only desktop interoperability workspace: a policy-aware AI planner proposes a
 versioned `ActionPlan`, a deterministic executor validates and authorizes every step,
@@ -7,8 +9,9 @@ and a local broker drives three independent synthetic desktop applications over
 authenticated local IPC. All fixtures are fictitious; nothing in this repository is
 production software or a compliance certification.
 
-- **Status:** implementation baseline **v0.1.0 vertical slice** (M0 + v0.1 complete,
-  selected v0.2 reliability items implemented). No release tag yet.
+- **Status:** implementation baseline **v0.1.0 vertical slice + v0.2 reliability
+  hardening** (M0 + v0.1 complete, v0.2 implemented for the tested scope). CI is green on
+  Linux and Windows (including the Windows named-pipe demo). No release tag yet.
 - **Platform:** .NET 10 / C# 14. Windows 11 x64 is the reference desktop (WPF shell and
   WPF sample apps); cross-platform core libraries and a headless host build and run on
   Linux CI as the deterministic test double. Production IPC on Windows uses gRPC over
@@ -159,10 +162,11 @@ Report vulnerabilities as described in [`SECURITY.md`](SECURITY.md).
 
 ## Known limitations (summary)
 
-- Windows-only components (named pipes, Win32 top-level arrangement, WPF shell and WPF
-  sample apps) are implemented and compile-verified, but this development environment
-  is Linux: they are not runtime-tested here. Headless samples over Unix domain sockets
-  are the CI/E2E substitute.
+- Windows named pipes and the headless reference workflow are **runtime-verified by the
+  Windows CI job** (build, full test suite, named-pipe demo). WPF shell/sample windows are
+  build-verified; their interactive UI behaviour (and the actual Win32 window placement
+  visuals) still needs manual/automated desktop verification. This development
+  environment is Linux, where Unix domain sockets + headless samples are the substitute.
 - Cross-process window embedding/reparenting (`SetParent`/`HwndHost`) is explicitly
   excluded from the MVP and was **not** evaluated; no docking claims are made.
 - v0.2 is implemented for the tested Linux scope; the full Windows reference benchmark,

@@ -33,6 +33,20 @@ dotnet test  AetherWorkspace.slnx -c Release
 ./scripts/demo.sh
 ```
 
+## CI verification (Linux and Windows)
+
+CI run [43641011037](https://github.com/SergeyGer/AetherWorkspace/actions/runs/43641011037)
+on commit `674e2c0` is green on both jobs:
+
+- **Linux:** Release build (0 warnings), 333 tests, headless reference demo, IPC benchmark
+  smoke.
+- **Windows:** Release build including WPF projects, full test suite, and the headless
+  reference workflow over **Windows named pipes** (the demo step).
+
+Two real problems were found and fixed by the CI loop: the Windows named-pipe client set
+stream properties before connecting, and several tests assumed Unix path canonicalization.
+Earlier failing runs are retained in Actions history as evidence of the failures.
+
 ## Not evidenced here
 
 - Windows runtime behaviour: named pipes, WPF shell/windows, Win32 placement (Windows CI
