@@ -1,3 +1,7 @@
+# Local secrets and tokens (never commit)
+.git-token
+*.token
+
 # Build outputs
 bin/
 obj/
