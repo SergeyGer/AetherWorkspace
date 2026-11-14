@@ -33,6 +33,10 @@ public sealed class BrokerAppOptions
 
     public string? AuditFile { get; private set; }
 
+    public long AuditMaxFileBytes { get; private set; }
+
+    public int AuditMaxFiles { get; private set; } = 4;
+
     public string? ChildLogDirectory { get; private set; }
 
     public int? RunSeconds { get; private set; }
@@ -96,6 +100,12 @@ public sealed class BrokerAppOptions
                 case "--audit-file":
                     options.AuditFile = NextValue();
                     break;
+                case "--audit-max-bytes":
+                    options.AuditMaxFileBytes = long.Parse(NextValue(), System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                case "--audit-files":
+                    options.AuditMaxFiles = int.Parse(NextValue(), System.Globalization.CultureInfo.InvariantCulture);
+                    break;
                 case "--child-log-dir":
                     options.ChildLogDirectory = NextValue();
                     break;
@@ -157,6 +167,8 @@ public sealed class BrokerAppOptions
             WorkAreaWidth = options.WorkAreaWidth,
             WorkAreaHeight = options.WorkAreaHeight,
             AuditFile = options.AuditFile,
+            AuditMaxFileBytes = options.AuditMaxFileBytes,
+            AuditMaxFiles = options.AuditMaxFiles,
             ChildLogDirectory = options.ChildLogDirectory,
             RunSeconds = options.RunSeconds,
             RequireAppReadiness = options.RequireAppReadiness,
@@ -191,6 +203,8 @@ public sealed class BrokerAppOptions
           --max-actions <n>        Plan action budget (demo default 6; library default 5).
           --work-area WxH          Virtual work area for deterministic layout (default 1920x1080).
           --audit-file <path>      Append the tamper-evident audit chain as JSONL.
+          --audit-max-bytes <n>    Rotate the audit file at n bytes (min 4096; 0 disables).
+          --audit-files <n>        Retain at most n rotated audit files (default 4).
           --child-log-dir <path>   Capture child app stdout/stderr lines for diagnostics.
           --run-seconds <n>        Stop after n seconds (smoke tests).
           --no-readiness-check     Do not wait for app subscription/window readiness.

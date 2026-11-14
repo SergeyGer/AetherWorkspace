@@ -19,6 +19,7 @@ public sealed record ShellOutput(
     long DurationMs,
     ShellEgressOutput Egress,
     ShellAuditOutput Audit,
+    ShellProvidersOutput Providers,
     IReadOnlyList<string> Limitations);
 
 public sealed record ShellStepOutput(
@@ -42,4 +43,16 @@ public sealed record ShellEgressOutput(
 public sealed record ShellAuditOutput(
     int EntryCount,
     bool ChainValid,
-    string? AuditFile);
+    string? AuditFile,
+    int RotatedFiles,
+    bool FileChainValid);
+
+/// <summary>Provider/mode health snapshot without performing any network I/O.</summary>
+public sealed record ShellProvidersOutput(
+    string Mode,
+    bool DeterministicPlanner,
+    bool LocalDeterministicSummary,
+    bool CloudAdapterConfigured,
+    bool LocalModelAdapterConfigured,
+    bool CloudEnabled,
+    bool CloudConsentGranted);

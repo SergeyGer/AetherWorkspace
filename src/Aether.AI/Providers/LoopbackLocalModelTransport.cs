@@ -30,6 +30,10 @@ public sealed class LoopbackLocalModelTransport : ILocalModelTransport, IDisposa
 
     public string ProviderId => "local-loopback";
 
+    /// <summary>Whether a loopback local model endpoint is configured (no network call is made).</summary>
+    public static bool IsEndpointConfigured() =>
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DefaultEndpointEnvironmentVariable));
+
     public bool IsConfigured => !string.IsNullOrWhiteSpace(_endpoint);
 
     public async Task<CloudModelResponse> SendAsync(CloudModelRequest request, CancellationToken cancellationToken)

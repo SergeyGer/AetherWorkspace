@@ -33,6 +33,13 @@ public sealed class ShellOptions
 
     public bool UseLocalModel { get; private set; }
 
+    /// <summary>Offline mode: cloud adapters are not constructed and cloud flags are forced off.</summary>
+    public bool Offline { get; private set; }
+
+    public long AuditMaxFileBytes { get; private set; }
+
+    public int AuditMaxFiles { get; private set; } = 4;
+
     public static ShellOptions Parse(string[] args)
     {
         var options = new ShellOptions();
@@ -83,6 +90,12 @@ public sealed class ShellOptions
                 case "--audit-file":
                     options.AuditFile = NextValue();
                     break;
+                case "--audit-max-bytes":
+                    options.AuditMaxFileBytes = long.Parse(NextValue(), System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                case "--audit-files":
+                    options.AuditMaxFiles = int.Parse(NextValue(), System.Globalization.CultureInfo.InvariantCulture);
+                    break;
                 case "--output-file":
                     options.OutputFile = NextValue();
                     break;
@@ -97,6 +110,9 @@ public sealed class ShellOptions
                     break;
                 case "--use-local-model":
                     options.UseLocalModel = true;
+                    break;
+                case "--offline":
+                    options.Offline = true;
                     break;
                 default:
                     throw new ArgumentException($"Unknown option '{argument}'.");
@@ -133,5 +149,8 @@ public sealed class ShellOptions
           --timeout-seconds <n>     Workflow cancellation timeout.
           --text                    Human-readable output instead of JSON.
           --use-local-model         Use the optional loopback local model adapter for summaries.
+          --offline                 Offline mode: no cloud adapter is constructed and cloud flags are forced off.
+          --audit-max-bytes <n>     Rotate the audit file at n bytes (min 4096; 0 disables rotation).
+          --audit-files <n>         Retain at most n rotated audit files (default 4).
         """;
 }

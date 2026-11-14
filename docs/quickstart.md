@@ -126,6 +126,18 @@ dotnet run -c Release --project src/Aether.Shell.Headless -- \
 # exit code 3; denial code from the corpus; no app is launched
 ```
 
+Offline mode (no cloud adapter is constructed; provider health is reported in the result,
+deterministic workflow still succeeds):
+
+```bash
+dotnet run -c Release --project src/Aether.Shell.Headless -- \
+  --endpoint-file .aether/manual/broker-endpoint.json \
+  --classification RESTRICTED \
+  --command "Open Northstar bond analytics, show risk view, synchronize instrument and summarize exposure privately" \
+  --offline
+# exit code 0; result.providers.mode = "offline", egress externalAttempts = 0
+```
+
 Missing local model (no cloud fallback):
 
 ```bash
@@ -145,7 +157,21 @@ Pass `--policy <path>` to the headless shell to load a trusted policy document. 
 loader rejects invalid documents (for example a non-`FAIL_CLOSED` failure mode or an
 unknown cloud rule) instead of partially trusting them.
 
-## 7. Verification
+## 7. Audit rotation and retention
+
+Broker and headless shell support size-bounded audit rotation with bounded retention:
+
+```bash
+--audit-file .aether/manual/shell-audit.jsonl --audit-max-bytes 4096 --audit-files 3
+```
+
+The hash chain continues across process restarts (existing persisted chains are verified
+before being continued; a tampered chain is rejected fail-closed). The structured result
+reports `audit.chainValid`, `audit.fileChainValid`, and `audit.rotatedFiles`. Verification
+across retained/rotated files is covered by `AuditRotationTests`; no external anchor or
+signed append-only storage is claimed.
+
+## 8. Verification
 
 ```bash
 ./scripts/verify.sh            # build (warnings-as-errors) + full test suite + demo
@@ -166,4 +192,6 @@ IPC baseline, unsafe-plan corpus evidence and audit-tamper tests are described i
 | `auth.token.invalid` | Registration tokens are single-use and short-lived. Restart the broker or re-launch the app through `LaunchApp`. |
 | `auth.session.invalid` | The broker session expired; reconnect/register again (operator token budget is bounded per broker run). |
 | Unix socket path error on Linux | Keep the endpoint path short (Unix domain sockets are limited to ~108 bytes); the broker generates `/tmp/aether-*/b.sock` when `--endpoint` is omitted. |
+| `shell.invalid_options: --offline cannot be combined with --planner cloud` | Offline mode forbids cloud routing by design; remove `--planner cloud` or drop `--offline`. |
+| Audit verification fails on a reused file | The persisted chain was modified or does not belong to this chain; start a new audit file rather than mixing chains. Rotation keeps one continuous chain per file family. |
 | WPF shell cannot connect | Start the broker with `--endpoint-file` and set `AETHER_ENDPOINT_FILE`, or copy the handshake file to `%LOCALAPPDATA%\AetherWorkspace\broker-endpoint.json`. |

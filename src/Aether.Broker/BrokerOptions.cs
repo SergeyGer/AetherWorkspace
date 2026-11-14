@@ -83,6 +83,11 @@ public sealed class BrokerOptions
 
     public string? AuditFile { get; init; }
 
+    /// <summary>When greater than zero, the audit JSONL rotates at this size (min 4096).</summary>
+    public long AuditMaxFileBytes { get; init; }
+
+    public int AuditMaxFiles { get; init; } = 4;
+
     public IAuditSink? AuditSink { get; init; }
 
     public TimeProvider TimeProvider { get; init; } = TimeProvider.System;
@@ -125,6 +130,16 @@ public sealed class BrokerOptions
         if (ChannelQueueCapacity is < 1 or > 4096)
         {
             throw BrokerConfigurationException.Invalid("ChannelQueueCapacity is out of the supported range.");
+        }
+
+        if (AuditMaxFileBytes > 0 && AuditMaxFileBytes < 4096)
+        {
+            throw BrokerConfigurationException.Invalid("AuditMaxFileBytes must be 0 (disabled) or at least 4096.");
+        }
+
+        if (AuditMaxFiles is < 1 or > 100)
+        {
+            throw BrokerConfigurationException.Invalid("AuditMaxFiles must be between 1 and 100.");
         }
 
         if (MaxPayloadBytes is < 1024 or > 1024 * 1024)

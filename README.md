@@ -30,7 +30,7 @@ directly or transmit restricted data to a cloud provider without explicit consen
 |---|---|---|
 | M0 feasibility & foundations (AW-001…AW-006) | **Implemented** | Solution/CI skeleton, versioned Protobuf + JSON contracts, local transport prototype, deny-by-default policy, threat model/ADRs, benchmark harness |
 | v0.1.0 MVP (AW-007…AW-015) | **Implemented vertical slice** | One automated three-process synthetic workflow (launch/publish/arrange/summarize), authenticated sessions and capability checks, deterministic guarded executor, private local summary, policy denials and cloud-denial path, 100-entry unsafe-plan corpus |
-| v0.2 reliability (AW-016…AW-020) | **Partially implemented** | Bounded per-channel queues, FIFO ordering, overflow accounting, deduplication, heartbeats + bounded restart, IPC benchmark baseline, hash-chained audit with tamper detection, offline/missing-model behaviour. Full fault-injection matrix and Windows reference benchmarks remain |
+| v0.2 reliability (AW-016…AW-020) | **Implemented for the tested scope** | Bounded queues/FIFO/overflow/dedup + RPC-level idempotent retries, hang/kill/broker-disconnect fault injection, heartbeat + bounded restart, IPC benchmark baseline, offline mode with provider health, rotating/retained hash-chained audit with cross-restart chain continuation. Windows reference benchmarks and OS-level blocked-egress capture remain |
 | v0.3 bounded FDC3 (AW-021…AW-024) | **Partial / in progress** | Honest supported-subset matrix for the FDC3-aligned `fdc3.instrument` context on one default app channel; no conformance claim. Intents/user channels are not implemented |
 | v0.4+ (AW-025…AW-038) | **Not started** | Privacy detectors beyond rules, vault, model router/evaluation, inspector, contract studio, release packaging |
 
@@ -138,9 +138,10 @@ dotnet test  AetherWorkspace.slnx -c Release         # unit, contract, integrati
 
 The suites cover normal, failure and authorization-denied behaviour, including a
 committed **100-entry unsafe-plan corpus** (every entry must be denied before any side
-effect), zero-external-call regressions for `RESTRICTED`/`UNKNOWN`, audit-tamper
-detection, and multi-process E2E workflows with a real broker process. Current measured
-IPC baseline: see [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
+effect), zero-external-call regressions for `RESTRICTED`/`UNKNOWN`, audit-tamper and
+audit-rotation/continuation tests, hang/kill/broker-disconnect fault injection, and
+multi-process E2E workflows with a real broker process. Current measured IPC baseline:
+see [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
 
 ## Security and data policy
 
@@ -164,9 +165,10 @@ Report vulnerabilities as described in [`SECURITY.md`](SECURITY.md).
   are the CI/E2E substitute.
 - Cross-process window embedding/reparenting (`SetParent`/`HwndHost`) is explicitly
   excluded from the MVP and was **not** evaluated; no docking claims are made.
-- v0.2–v1.0 scope from the plan (full fault injection matrix, model router/evaluation,
-  Live Inspector, contract studio, reproducible release packaging, SBOM) is not
-  implemented yet.
+- v0.2 is implemented for the tested Linux scope; the full Windows reference benchmark,
+  OS-level blocked-egress capture and the remaining v0.3–v1.0 scope (FDC3 intents, model
+  router/evaluation, Live Inspector, contract studio, reproducible release packaging,
+  SBOM) are not implemented yet.
 - The chart sample uses WPF vector rendering rather than WebView2 in the MVP.
 
 See [`docs/limitations.md`](docs/limitations.md) for the complete list.

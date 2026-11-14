@@ -44,7 +44,15 @@ public static class Program
             return 2;
         }
 
+        if (options.Offline && options.Planner == "cloud")
+        {
+            Console.Error.WriteLine("shell.invalid_options: --offline cannot be combined with --planner cloud (offline forbids cloud routing).");
+            return 2;
+        }
+
         using var timeoutSource = new CancellationTokenSource(TimeSpan.FromSeconds(options.TimeoutSeconds));
+        var cloudEnabled = options.CloudEnabled && !options.Offline;
+        var cloudConsent = options.CloudConsent && !options.Offline;
         HashChainAuditLog? auditLog = null;
         try
         {
@@ -60,7 +68,11 @@ public static class Program
 
             auditLog = options.AuditFile is null
                 ? new HashChainAuditLog()
-                : new HashChainAuditLog(store: new JsonlAuditStore(options.AuditFile));
+                : new HashChainAuditLog(
+                    store: options.AuditMaxFileBytes > 0
+                        ? new RotatingJsonlAuditStore(options.AuditFile, options.AuditMaxFileBytes, options.AuditMaxFiles)
+                        : new JsonlAuditStore(options.AuditFile),
+                    continueExistingChain: true);
 
             var policy = options.PolicyPath is null
                 ? PolicyDocument.CreateDefault().EnsureValid()
@@ -73,13 +85,13 @@ public static class Program
 
             var deterministicPlanner = new DeterministicCommandPlanner();
             IPlanGenerator? cloudPlanner = null;
-            if (options.Planner == "cloud")
+            if (options.Planner == "cloud" && !options.Offline)
             {
                 var transport = new HttpCloudModelTransport(new EnvironmentSecretProvider());
                 cloudPlanner = new CloudPlanProvider(
                     transport,
                     egressGateway,
-                    new PlanProviderOptions(options.CloudEnabled, options.CloudConsent));
+                    new PlanProviderOptions(cloudEnabled, cloudConsent));
             }
 
             ISummaryProvider localSummary = options.UseLocalModel
@@ -132,7 +144,7 @@ public static class Program
                 SuppliedPlan: suppliedPlan);
 
             var result = await orchestrator.ExecuteAsync(request, timeoutSource.Token).ConfigureAwait(false);
-            var output = BuildOutput(result, egressGateway, auditLog, options);
+            var output = BuildOutput(result, egressGateway, auditLog, options, cloudEnabled, cloudConsent);
             return Emit(output, options);
         }
         catch (BrokerRpcException exception)
@@ -152,10 +164,17 @@ public static class Program
         }
     }
 
-    private static ShellOutput BuildOutput(WorkflowResult result, EgressGateway egress, HashChainAuditLog auditLog, ShellOptions options)
+    private static ShellOutput BuildOutput(
+        WorkflowResult result,
+        EgressGateway egress,
+        HashChainAuditLog auditLog,
+        ShellOptions options,
+        bool cloudEnabled,
+        bool cloudConsent)
     {
         var egressSnapshot = egress.Snapshot();
         var verification = auditLog.Verify();
+        var (rotatedFiles, fileChainValid) = VerifyAuditFile(options);
         var summary = result.Summary is null
             ? null
             : new ShellSummaryOutput(
@@ -192,7 +211,10 @@ public static class Program
             new ShellAuditOutput(
                 verification.EntryCount,
                 verification.Valid,
-                options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile)),
+                options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile),
+                rotatedFiles,
+                fileChainValid),
+            BuildProviders(options, cloudEnabled, cloudConsent),
             BuildLimitations());
     }
 
@@ -201,6 +223,7 @@ public static class Program
         var first = issues.Count > 0
             ? issues[0]
             : new PlanValidationIssue(AetherErrorCodes.PlanInvalidJson, "The supplied plan could not be parsed.", null);
+        var (rotatedFiles, fileChainValid) = VerifyAuditFile(options);
         return new ShellOutput(
             false,
             "denied",
@@ -218,8 +241,49 @@ public static class Program
             false,
             0,
             new ShellEgressOutput(0, 0, 0, new Dictionary<string, long>()),
-            new ShellAuditOutput(0, true, options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile)),
+            new ShellAuditOutput(0, true, options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile), rotatedFiles, fileChainValid),
+            BuildProviders(options, options.CloudEnabled && !options.Offline, options.CloudConsent && !options.Offline),
             BuildLimitations());
+    }
+
+    private static ShellProvidersOutput BuildProviders(ShellOptions options, bool cloudEnabled, bool cloudConsent)
+    {
+        var cloudConfigured = !options.Offline && HttpCloudModelTransport.IsEndpointConfigured();
+        var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured();
+        var mode = options.Offline
+            ? "offline"
+            : cloudConfigured && cloudEnabled && cloudConsent ? "cloud-enabled" : "local-private";
+        return new ShellProvidersOutput(
+            mode,
+            DeterministicPlanner: true,
+            LocalDeterministicSummary: !options.UseLocalModel,
+            CloudAdapterConfigured: cloudConfigured,
+            LocalModelAdapterConfigured: localModelConfigured,
+            CloudEnabled: cloudEnabled,
+            CloudConsentGranted: cloudConsent);
+    }
+
+    private static (int RotatedFiles, bool FileChainValid) VerifyAuditFile(ShellOptions options)
+    {
+        if (options.AuditFile is null)
+        {
+            return (0, true);
+        }
+
+        var path = Path.GetFullPath(options.AuditFile);
+        var rotated = 0;
+        for (var index = 1; index <= options.AuditMaxFiles; index++)
+        {
+            if (File.Exists(path + "." + index.ToString(CultureInfo.InvariantCulture)))
+            {
+                rotated++;
+            }
+        }
+
+        var valid = options.AuditMaxFileBytes > 0
+            ? RotatingJsonlAuditStore.VerifyFamily(path, options.AuditMaxFiles).Valid
+            : AuditChainVerifier.VerifyFile(path).Valid;
+        return (rotated, valid);
     }
 
     private static IReadOnlyList<string> BuildLimitations()

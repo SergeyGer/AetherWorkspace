@@ -103,6 +103,45 @@ public class AuditChainTests
     }
 
     [Fact]
+    public void PersistedChainContinuesAcrossLogInstances()
+    {
+        using var directory = new TempDirectory("audit-continue");
+        var path = directory.PathTo("audit.jsonl");
+        var first = new HashChainAuditLog(store: new JsonlAuditStore(path), continueExistingChain: true);
+        first.Append(Draft("trace-1"));
+        first.Append(Draft("trace-2"));
+        first.Append(Draft("trace-3"));
+
+        var second = new HashChainAuditLog(store: new JsonlAuditStore(path), continueExistingChain: true);
+        Assert.Equal(3, second.Count);
+        second.Append(Draft("trace-4"));
+        second.Append(Draft("trace-5"));
+
+        Assert.Equal([1L, 2L, 3L, 4L, 5L], second.Snapshot().Select(entry => entry.Sequence));
+        Assert.Equal(first.Snapshot()[^1].Hash, second.Snapshot()[3].PreviousHash);
+        Assert.True(second.Verify().Valid);
+        Assert.True(AuditChainVerifier.VerifyFile(path).Valid);
+    }
+
+    [Fact]
+    public void TamperedPersistedChainIsRejectedOnContinuation()
+    {
+        using var directory = new TempDirectory("audit-continue-tamper");
+        var path = directory.PathTo("audit.jsonl");
+        var log = new HashChainAuditLog(store: new JsonlAuditStore(path));
+        log.Append(Draft("trace-1"));
+        log.Append(Draft("trace-2"));
+
+        var lines = File.ReadAllLines(path);
+        lines[0] = lines[0].Replace("\"outcome\":\"succeeded\"", "\"outcome\":\"denied\"");
+        File.WriteAllLines(path, lines);
+
+        var exception = Assert.Throws<Aether.Contracts.Errors.AetherContractException>(() =>
+            new HashChainAuditLog(store: new JsonlAuditStore(path), continueExistingChain: true));
+        Assert.Equal(Aether.Contracts.Errors.AetherErrorCodes.AuditChainInvalid, exception.Code);
+    }
+
+    [Fact]
     public void AuditEventsContainMetadataOnlyNoRawPayloads()
     {
         var log = new HashChainAuditLog();

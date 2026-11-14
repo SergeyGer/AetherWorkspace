@@ -57,8 +57,9 @@ is not backed by a test or a measured baseline in this repository, it is not mad
   threat model.
 - The **audit chain is tamper-evident, not immutable.** A local administrator can delete
   or truncate log files; verification detects modification/deletion of entries within a
-  provided chain, not an attacker with full control of the machine. Retention/rotation
-  settings are configuration placeholders; rotation is not implemented.
+  retained chain (including across rotated files), but not an attacker with full control
+  of the machine. Rotation and bounded retention are implemented; signed append-only
+  storage, an external anchor and an operator runbook are not.
 - Operator handshake files use current-user permissions on Unix; on Windows the file is
   written with default user ACLs. Secrets for cloud providers come from environment
   variables (Credential Manager integration is a production item, not implemented).
@@ -69,8 +70,9 @@ is not backed by a test or a measured baseline in this repository, it is not mad
 
 - **No unbounded-queue or crash-safety guarantee under adversarial budgets.** Queues are
   bounded with explicit overflow reporting; message size limits, action budgets and
-  deadlines exist. Full fault-injection matrices (hangs, broker disconnects, disk-full,
-  clock changes) are v0.2 work and are not complete.
+  deadlines exist. Hang/kill/broker-disconnect fault injection is covered on Linux; a
+  complete matrix (disk-full, clock changes, Windows runtime hangs) and OS-level
+  network-egress-blocked capture are not complete.
 - Retry semantics are at-most-once with deduplication keys for explicitly idempotent
   publish retries; there is no general transaction or exactly-once delivery.
 - Window arrangement is deterministic for the configured virtual/monitor work area; it

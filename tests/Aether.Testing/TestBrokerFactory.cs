@@ -12,7 +12,9 @@ public static class TestBrokerFactory
         string? auditFile = null,
         string? childLogDirectory = null,
         IProcessIdentityResolver? identityResolver = null,
-        TimeProvider? timeProvider = null) => new()
+        TimeProvider? timeProvider = null,
+        int heartbeatIntervalSeconds = 5,
+        int missedHeartbeatsBeforeUnresponsive = 3) => new()
     {
         Registry = TestData.CreateRegistry(),
         Contexts = TestData.CreateContextCatalog(),
@@ -26,5 +28,7 @@ public static class TestBrokerFactory
         ChildLogDirectory = childLogDirectory,
         TimeProvider = timeProvider ?? TimeProvider.System,
         ProcessIdentityResolver = identityResolver,
+        HeartbeatIntervalSeconds = heartbeatIntervalSeconds,
+        MissedHeartbeatsBeforeUnresponsive = missedHeartbeatsBeforeUnresponsive,
     };
 }

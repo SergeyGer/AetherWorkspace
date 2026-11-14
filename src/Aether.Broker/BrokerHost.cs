@@ -103,8 +103,13 @@ public sealed class BrokerHost : IAsyncDisposable
 
         var auditSink = validated.AuditSink ?? new HashChainAuditLog(
             hmacKey: null,
-            store: validated.AuditFile is null ? null : new JsonlAuditStore(validated.AuditFile),
-            timeProvider: validated.TimeProvider);
+            store: validated.AuditFile is null
+                ? null
+                : validated.AuditMaxFileBytes > 0
+                    ? new RotatingJsonlAuditStore(validated.AuditFile, validated.AuditMaxFileBytes, validated.AuditMaxFiles)
+                    : new JsonlAuditStore(validated.AuditFile),
+            timeProvider: validated.TimeProvider,
+            continueExistingChain: validated.AuditFile is not null);
 
         var endpoint = new BrokerEndpoint(
             validated.Transport ?? BrokerEndpoint.DefaultTransport(),

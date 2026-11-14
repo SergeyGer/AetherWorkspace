@@ -58,6 +58,8 @@ public static class Program
                 WorkAreaWidth = parsed.WorkAreaWidth,
                 WorkAreaHeight = parsed.WorkAreaHeight,
                 AuditFile = parsed.AuditFile,
+                AuditMaxFileBytes = parsed.AuditMaxFileBytes,
+                AuditMaxFiles = parsed.AuditMaxFiles,
                 ChildLogDirectory = parsed.ChildLogDirectory,
                 RequireAppReadiness = parsed.RequireAppReadiness,
                 EnableWin32WindowArrangement = parsed.EnableWin32WindowArrangement,
@@ -93,6 +95,8 @@ public static class Program
                 operatorAppId = options.OperatorAppId,
                 endpointFile = parsed.EndpointFile,
                 auditFile = parsed.AuditFile,
+                auditMaxFileBytes = parsed.AuditMaxFileBytes,
+                auditMaxFiles = parsed.AuditMaxFiles,
                 childLogDirectory = parsed.ChildLogDirectory,
                 maxActionsPerPlan = options.MaxActionsPerPlan,
             };

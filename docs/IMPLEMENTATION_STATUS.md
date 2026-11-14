@@ -34,11 +34,11 @@ exists yet.
 
 | Issue | Status | Evidence / remaining work |
 |---|---|---|
-| AW-016 Bounded queues, ordering, backpressure, deduplication | **Partial** | Implemented: per-channel capacity, explicit overflow result, FIFO, bounded dedupe window, cancellation. Verified by `ChannelRouterTests`. Remaining: full retry-eligibility policy documentation/tests and overload benchmarks |
-| AW-017 Heartbeat, fault isolation, controlled restart | **Partial** | Implemented: heartbeat RPC, missed-heartbeat health states, bounded restart RPC, crash recovery E2E (broker/shell survive a sample-app crash). Remaining: hang/disconnect injection matrix, UI restart affordance execution on Windows |
-| AW-018 Measure IPC, UI responsiveness, resources | **Partial** | IPC latency harness + measured p50/p95/p99 and microbenchmark allocations in `docs/BENCHMARKS.md`. Remaining: Windows reference-machine run, UI thread responsiveness measurement under WPF, GC/CPU resource profile |
-| AW-019 Offline mode and failure behaviour | **Partial** | Deterministic private path tested without model/cloud; missing-model failure has no cloud fallback; cloud disabled by default. Remaining: explicit network-egress-blocked environment test at OS level, provider-health UI status |
-| AW-020 Tamper-evident local audit chain | **Partial** | Implemented: metadata-only hash-chained audit (+ optional HMAC), JSONL persistence, tamper/gap detection tests, no raw payload assertions. Remaining: rotation/retention configuration, documented operational runbook, audit verification CLI |
+| AW-016 Bounded queues, ordering, backpressure, deduplication | **Done** | Per-channel bounded queues with explicit overflow reporting, FIFO per subscriber, clearance filtering, bounded dedupe window and cancellation (`ChannelRouterTests`); RPC-level idempotent retry evidence: same `clientMessageId` is delivered once and returns the original `messageId` (`FaultInjectionTests.DuplicateClientMessageIdIsDeliveredOnlyOnceAtTheRpcBoundary`). Retry eligibility is documented in [`docs/contracts/README.md`](contracts/README.md) |
+| AW-017 Heartbeat, fault isolation, controlled restart | **Done (Linux fault injection; Windows runtime via CI)** | Heartbeat RPC, missed-heartbeat states, process-exit detection and bounded `RestartApp`; fault injection: `SIGSTOP`-hung app becomes `UNRESPONSIVE` and bounded restart recovers to `HEALTHY`; `SIGKILL`ed app is reported `EXITED` and restarts; broker/shell survive sample-app crash (`FaultInjectionTests`, `FaultInjectionE2ETests`); shell fails fast with a structured error when the broker process dies. Hang injection is Unix-only (documented) |
+| AW-018 Measure IPC, UI responsiveness, resources | **Partial** | IPC latency harness + measured p50/p95/p99 and microbenchmark allocations in [`BENCHMARKS.md`](BENCHMARKS.md). Remaining: Windows reference-machine run, WPF UI responsiveness measurement, CPU/GC resource profile |
+| AW-019 Offline mode and failure behaviour | **Done for the tested scope** | `--offline` headless mode: no cloud adapter is constructed, cloud flags are forced off, cloud planner combination is rejected as a usage error; deterministic private workflow succeeds offline; provider health (`mode`, configured adapters, cloud flags) is reported without network I/O; missing local model yields a safe error with zero external attempts (`OfflineModeE2ETests`). Not performed here: OS-level network-egress-blocked capture on a reference Windows machine |
+| AW-020 Tamper-evident local audit chain | **Done** | Metadata-only hash chain (+ optional HMAC), JSONL persistence, size-bounded rotation with bounded retention, verification across retained/rotated files, continuation of the same chain across process restarts (invalid persisted chains rejected fail-closed), tamper/gap detection; no raw payload assertions (`AuditChainTests`, `AuditRotationTests`, `HealthAuditSnapshotTests`, E2E). Remaining (v0.5/v1.0): signed/anchor-based append-only storage and an operator runbook |
 
 ## v0.3.0 — bounded FDC3 interoperability (AW-021…AW-024)
 
@@ -65,10 +65,10 @@ dotnet test  AetherWorkspace.slnx -c Release
 dotnet run -c Release --project benchmarks/Aether.IpcBench -- --samples 1000 --warmup 100
 ```
 
-Recorded baseline totals for this tree: 316+ automated tests across 7 test projects
-(contract 41, security 38, execution 140 incl. 100 unsafe-plan cases, AI 27, broker 52,
-workflow 9, E2E 9) plus the measured IPC baseline. Counts grow as work continues; run
-`dotnet test` for the authoritative current number.
+Recorded baseline totals for this tree after the v0.2 reliability-hardening step: 333
+automated tests across 7 test projects (contract 41, security 45, execution 140 incl. 100
+unsafe-plan cases, AI 27, broker 56, workflow 9, E2E 15) plus the measured IPC baseline.
+Counts grow as work continues; run `dotnet test` for the authoritative current number.
 
 ## Deliberate deviations and decisions
 

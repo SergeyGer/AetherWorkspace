@@ -33,3 +33,20 @@ generated types and strict JSON models from `src/Aether.Contracts`.
 typed deserialization plus deterministic validation in `Aether.Execution`. When you
 change a model, update the schema and examples in the same change. The protobuf
 definitions are the wire source of truth for the broker.
+
+## Delivery and retry semantics
+
+- Context delivery is **at-most-once** per subscriber; the broker reports explicit
+  `deliveredCount`/`droppedCount`/`overflowed` accounting instead of retrying silently.
+- Retries are allowed only for explicitly idempotent operations. The supported pattern is
+  a `PublishContext` retry carrying the same client-supplied `clientMessageId` within the
+  bounded dedupe window: the broker returns the original `messageId` and does not deliver
+  the duplicate again. This is verified at the RPC boundary in
+  `tests/Aether.Broker.Tests/FaultInjectionTests.cs`.
+- `LaunchApp` is idempotent per app instance: an already-running allowlisted app is reused
+  rather than spawned twice. `StopApp`/`RestartApp` are bounded operations with structured
+  denials.
+- Side effects are never retried automatically by the executor. A failed step stops the
+  plan and triggers best-effort compensation for reversible steps; callers must re-run a
+  new pipeline instance with a new trace id (the plan id remains deterministic for the same
+  command).

@@ -33,7 +33,27 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.2 reliability hardening (2026-11-14)
+
+### Added
+
+- Offline headless mode (`--offline`): no cloud adapter is constructed, cloud flags are
+  forced off, `--offline` + `--planner cloud` is rejected as a usage error, and provider
+  health (`mode`, deterministic/local/cloud adapter availability, cloud flags) is reported
+  in the structured result without any network I/O.
+- Audit file rotation/retention for broker and shell (`--audit-max-bytes`, `--audit-files`):
+  size-bounded JSONL rotation, bounded retention, verification across retained/rotated
+  files, and continuation of the same hash chain across process restarts (invalid
+  persisted chains are rejected fail-closed).
+- Fault-injection coverage: `SIGSTOP`-hung sample app becomes `UNRESPONSIVE` and bounded
+  restart recovers to `HEALTHY`; `SIGKILL`ed app is reported `EXITED` and restarts;
+  shell fails fast with a structured error when the broker process dies; restart after
+  crash keeps the reference workflow green.
+- RPC-boundary retry/idempotency evidence: duplicate `clientMessageId` publishes are
+  delivered once and return the original message id.
+
 ### Known limitations
 
-See [`docs/limitations.md`](docs/limitations.md). No release artifacts, SBOM, model
-evaluation or docking support are included.
+See [`docs/limitations.md`](docs/limitations.md). Windows reference-machine benchmarks,
+OS-level blocked-egress capture, release artifacts, SBOM, model evaluation and docking
+support are not included.

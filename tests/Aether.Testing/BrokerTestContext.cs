@@ -25,7 +25,9 @@ public sealed class BrokerTestContext : IAsyncDisposable
     public static BrokerTestContext Create(
         IProcessIdentityResolver? identityResolver = null,
         TimeProvider? timeProvider = null,
-        string? testName = null)
+        string? testName = null,
+        int heartbeatIntervalSeconds = 5,
+        int missedHeartbeatsBeforeUnresponsive = 3)
     {
         var directory = Path.Combine(Path.GetTempPath(), "aether-" + (testName ?? "t") + "-" + Guid.NewGuid().ToString("n")[..6]);
         System.IO.Directory.CreateDirectory(directory);
@@ -35,7 +37,9 @@ public sealed class BrokerTestContext : IAsyncDisposable
             auditFile: Path.Combine(directory, "audit.jsonl"),
             childLogDirectory: Path.Combine(directory, "child-logs"),
             identityResolver: identityResolver,
-            timeProvider: timeProvider);
+            timeProvider: timeProvider,
+            heartbeatIntervalSeconds: heartbeatIntervalSeconds,
+            missedHeartbeatsBeforeUnresponsive: missedHeartbeatsBeforeUnresponsive);
         return new BrokerTestContext(BrokerHost.Create(options), directory);
     }
 

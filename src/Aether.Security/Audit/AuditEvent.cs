@@ -105,3 +105,9 @@ public interface IAuditEventStore
 {
     void Append(AuditEvent auditEvent);
 }
+
+/// <summary>A durable audit store that can be read back to continue an existing chain.</summary>
+public interface IAuditEventReader
+{
+    IReadOnlyList<AuditEvent> ReadAllRotated();
+}

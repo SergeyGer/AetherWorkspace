@@ -19,11 +19,38 @@ public sealed class HashChainAuditLog : IAuditSink
     private readonly IAuditEventStore? _store;
     private readonly TimeProvider _timeProvider;
 
-    public HashChainAuditLog(byte[]? hmacKey = null, IAuditEventStore? store = null, TimeProvider? timeProvider = null)
+    /// <param name="continueExistingChain">
+    /// When true and the store is readable, existing persisted events are loaded and
+    /// verified, and the new log continues the same hash chain (sequence + previous hash).
+    /// This keeps a stable file across process restarts. An invalid existing chain is
+    /// rejected (fail-closed) instead of silently starting a new one.
+    /// </param>
+    public HashChainAuditLog(
+        byte[]? hmacKey = null,
+        IAuditEventStore? store = null,
+        TimeProvider? timeProvider = null,
+        bool continueExistingChain = false)
     {
         _hmacKey = hmacKey;
         _store = store;
         _timeProvider = timeProvider ?? TimeProvider.System;
+
+        if (continueExistingChain && store is IAuditEventReader reader)
+        {
+            var existing = reader.ReadAllRotated();
+            if (existing.Count > 0)
+            {
+                var verification = AuditChainVerifier.Verify(existing, hmacKey, existing[0].Sequence);
+                if (!verification.Valid)
+                {
+                    throw new Aether.Contracts.Errors.AetherContractException(
+                        Aether.Contracts.Errors.AetherErrorCodes.AuditChainInvalid,
+                        $"Existing audit chain failed verification: {verification.Reason}");
+                }
+
+                _events.AddRange(existing);
+            }
+        }
     }
 
     public int Count
@@ -81,7 +108,10 @@ public sealed class HashChainAuditLog : IAuditSink
     {
         lock (_gate)
         {
-            return AuditChainVerifier.Verify(_events, _hmacKey);
+            return AuditChainVerifier.Verify(
+                _events,
+                _hmacKey,
+                _events.Count > 0 ? _events[0].Sequence : 1);
         }
     }
 }
@@ -89,7 +119,7 @@ public sealed class HashChainAuditLog : IAuditSink
 public sealed record AuditVerificationResult(bool Valid, int EntryCount, long? FirstInvalidSequence, string? Reason);
 
 /// <summary>Serialises audit events to a local JSONL file (metadata only).</summary>
-public sealed class JsonlAuditStore : IAuditEventStore
+public sealed class JsonlAuditStore : IAuditEventStore, IAuditEventReader
 {
     private readonly object _gate = new();
     private readonly string _path;
@@ -97,6 +127,8 @@ public sealed class JsonlAuditStore : IAuditEventStore
     public JsonlAuditStore(string path) => _path = Path.GetFullPath(path);
 
     public string FilePath => _path;
+
+    public IReadOnlyList<AuditEvent> ReadAllRotated() => ReadAll(_path);
 
     public void Append(AuditEvent auditEvent)
     {
@@ -137,12 +169,20 @@ public sealed class JsonlAuditStore : IAuditEventStore
 
 public static class AuditChainVerifier
 {
-    public static AuditVerificationResult Verify(IReadOnlyList<AuditEvent> entries, byte[]? hmacKey = null)
+    /// <summary>
+    /// Verifies a (possibly retained-prefix) audit chain. When <paramref name="expectedStartSequence"/>
+    /// is greater than 1, the oldest retained entry is accepted with an unverifiable
+    /// predecessor (rotation removed it); every subsequent link and hash is still checked.
+    /// </summary>
+    public static AuditVerificationResult Verify(
+        IReadOnlyList<AuditEvent> entries,
+        byte[]? hmacKey = null,
+        long expectedStartSequence = 1)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
-        var previousHash = "";
-        var expectedSequence = 1L;
+        string? previousHash = expectedStartSequence > 1 ? null : "";
+        var expectedSequence = expectedStartSequence;
 
         foreach (var entry in entries)
         {
@@ -151,7 +191,7 @@ public static class AuditChainVerifier
                 return new AuditVerificationResult(false, entries.Count, entry.Sequence, "Audit sequence gap detected.");
             }
 
-            if (!string.Equals(entry.PreviousHash, previousHash, StringComparison.Ordinal))
+            if (previousHash is not null && !string.Equals(entry.PreviousHash, previousHash, StringComparison.Ordinal))
             {
                 return new AuditVerificationResult(false, entries.Count, entry.Sequence, "Audit previous-hash link mismatch.");
             }

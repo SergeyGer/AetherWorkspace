@@ -182,7 +182,8 @@ public sealed class EndToEndHarness : IAsyncDisposable
         IEnumerable<string> extraArguments,
         string? outputFile = null,
         TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, string>? environment = null)
     {
         var resultPath = outputFile ?? Path.Combine(RunDirectory, "shell-result-" + Guid.NewGuid().ToString("n")[..8] + ".json");
         var arguments = new List<string>
@@ -206,6 +207,14 @@ public sealed class EndToEndHarness : IAsyncDisposable
         foreach (var argument in arguments)
         {
             startInfo.ArgumentList.Add(argument);
+        }
+
+        if (environment is not null)
+        {
+            foreach (var pair in environment)
+            {
+                startInfo.Environment[pair.Key] = pair.Value;
+            }
         }
 
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Could not start the shell process.");
@@ -235,6 +244,73 @@ public sealed class EndToEndHarness : IAsyncDisposable
         var stderr = await stderrTask.ConfigureAwait(false);
         var resultJson = File.Exists(resultPath) ? await File.ReadAllTextAsync(resultPath, cancellationToken).ConfigureAwait(false) : null;
         return new ShellRun(process.ExitCode, resultJson, stdout, stderr);
+    }
+
+    /// <summary>Kills the broker process without graceful shutdown (fault injection).</summary>
+    public async Task KillBrokerAsync()
+    {
+        try
+        {
+            if (!_brokerProcess.HasExited)
+            {
+                _brokerProcess.Kill(entireProcessTree: true);
+                await _brokerProcess.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            }
+        }
+        catch (InvalidOperationException)
+        {
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    /// <summary>Kills orphaned headless sample processes left behind after a broker crash.</summary>
+    public static void KillOrphanSampleApps()
+    {
+        if (!OperatingSystem.IsLinux())
+        {
+            return;
+        }
+
+        var marker = TestData.SamplesDllPath;
+        foreach (var processDirectory in Directory.EnumerateDirectories("/proc"))
+        {
+            var name = Path.GetFileName(processDirectory);
+            if (!int.TryParse(name, out var pid) || pid == Environment.ProcessId)
+            {
+                continue;
+            }
+
+            string? commandLine = null;
+            try
+            {
+                commandLine = File.ReadAllText(Path.Combine(processDirectory, "cmdline")).Replace('\0', ' ');
+            }
+            catch (IOException)
+            {
+                continue;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            if (commandLine is not null && commandLine.Contains(marker, StringComparison.Ordinal))
+            {
+                try
+                {
+                    using var process = Process.GetProcessById(pid);
+                    process.Kill(entireProcessTree: true);
+                }
+                catch (ArgumentException)
+                {
+                }
+                catch (InvalidOperationException)
+                {
+                }
+            }
+        }
     }
 
     public IReadOnlyList<string> ReadChildLogLines(string appId)

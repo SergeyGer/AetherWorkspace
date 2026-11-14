@@ -41,6 +41,10 @@ public sealed class HttpCloudModelTransport : ICloudModelTransport, IDisposable
 
     public string ProviderId => "cloud-openai-compatible";
 
+    /// <summary>Whether a cloud endpoint is configured (no network call is made).</summary>
+    public static bool IsEndpointConfigured() =>
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DefaultEndpointEnvironmentVariable));
+
     public bool IsConfigured => !string.IsNullOrWhiteSpace(_endpoint);
 
     public async Task<CloudModelResponse> SendAsync(CloudModelRequest request, CancellationToken cancellationToken)
