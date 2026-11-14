@@ -36,7 +36,8 @@ public static class BrokerChannelFactory
                     endpoint,
                     System.IO.Pipes.PipeDirection.InOut,
                     System.IO.Pipes.PipeOptions.Asynchronous);
-                pipe.ReadMode = System.IO.Pipes.PipeTransmissionMode.Byte;
+                // The pipe handle only exists after connecting; setting transmission-mode
+                // properties earlier throws InvalidOperationException on Windows.
                 await pipe.ConnectAsync(5000, cancellationToken).ConfigureAwait(false);
                 return pipe;
             };
