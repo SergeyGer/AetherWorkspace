@@ -7,7 +7,8 @@
 | URL | <https://github.com/SergeyGer/AetherWorkspace> |
 | Visibility | Public |
 | Default branch | `main` |
-| Initial code publication commit | `81d22c6` (`chore: ignore local .git-token credentials file`), followed by the v0.2 reliability-hardening commit |
+| Publication commits | `81d22c6` (credential ignore + initial published tree) → `38f0338` (v0.2 reliability hardening) → `0b66e12` (Windows CI test portability) → `674e2c0` (Windows named-pipe client fix; first fully green CI) → `ca747d4` (CI evidence docs) → latest docs commit on `main` |
+| CI status | Green on **both** jobs for run [43641011037](https://github.com/SergeyGer/AetherWorkspace/actions/runs/43641011037) (commit `674e2c0`): Linux build + 333 tests + headless demo + IPC benchmark smoke; Windows build incl. WPF + full tests + named-pipe demo. GitHub default CodeQL setup is green. Two earlier failed runs are retained in Actions history (Windows test portability, then named-pipe client bug) |
 | Description | Local-only, policy-aware desktop interoperability reference implementation (.NET 10, gRPC IPC, deterministic ActionPlan execution, FDC3-aligned context subset) |
 | Topics | aetherworkspace, dotnet, wpf, grpc, named-pipes, desktop, interoperability, fdc3, ai-safety, policy-engine, reference-implementation |
 
@@ -19,7 +20,8 @@
 | Labels | 31 | Project planning labels plus GitHub defaults |
 | Issues | 38 | AW-001…AW-038 in order; issue #1 = AW-001 … #38 = AW-038 |
 | Wiki pages | 7 | Home, Roadmap (with issue links), Architecture, Development-Guide, Release-Criteria, Decision-Log, `_Sidebar`; pushed to the wiki git repository |
-| Repository documentation | committed tree | README, quickstart, architecture, ADRs, threat model, contracts/schemas, benchmarks, limitations, implementation status, planning baseline |
+| Repository documentation | committed tree | README (with CI badge), quickstart, architecture, ADRs, threat model, contracts/schemas, benchmarks, limitations, implementation status, evidence records, planning baseline |
+| CI workflows | 3 | `CI` (Linux + Windows), `Benchmarks` (manual dispatch), GitHub default CodeQL setup auto-enabled |
 
 ## Credential handling (`.git-token`)
 
