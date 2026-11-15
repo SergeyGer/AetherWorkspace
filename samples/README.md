@@ -8,8 +8,8 @@ customer data and no external service connectivity.
 | `fixtures/watchlist.json` | Three synthetic instruments used by the Watchlist sample |
 | `fixtures/risk.json` | Synthetic exposures/positions used by the Risk View sample |
 | `fixtures/chart.json` | Deterministic synthetic yield series for the Chart sample |
-| `contexts/contexts.json` | Trusted context catalog: `fdc3.instrument` and `aether.exposure` payloads with explicit classifications (`PUBLIC`/`RESTRICTED`) |
-| `registry/apps.json` | Allowlisted app manifest for the headless sample processes (Linux CI/E2E) |
+| `contexts/contexts.json` | Trusted context catalog: `fdc3.instrument`, `fdc3.organization` and `aether.exposure` payloads with explicit classifications (`PUBLIC`/`INTERNAL`/`RESTRICTED`) |
+| `registry/apps.json` | Allowlisted app manifest for the headless sample processes (Linux CI/E2E), including bounded FDC3 `intents` declarations |
 | `registry/apps.windows.json` | Allowlisted app manifest that launches the WPF sample windows on Windows |
 
 ## Launch templates and tokens

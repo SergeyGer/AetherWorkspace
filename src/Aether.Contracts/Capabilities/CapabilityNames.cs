@@ -27,6 +27,9 @@ public static class CapabilityNames
     /// <summary>Submit a validated plan for deterministic execution.</summary>
     public const string PlanExecute = "plan.execute";
 
+    /// <summary>Resolve a bounded FDC3 intent to a registered target app.</summary>
+    public const string IntentResolve = "intent.resolve";
+
     public static readonly IReadOnlyList<string> All =
     [
         ContextPublish,
@@ -36,5 +39,6 @@ public static class CapabilityNames
         BrokerLaunch,
         BrokerArrange,
         PlanExecute,
+        IntentResolve,
     ];
 }

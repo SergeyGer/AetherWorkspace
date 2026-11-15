@@ -12,6 +12,8 @@ generated types and strict JSON models from `src/Aether.Contracts`.
 | App manifest / registry | `src/Aether.Contracts/Models/AppManifest.cs` | `app-manifest.schema.json` |
 | Trusted policy document | `src/Aether.Security/Policy/PolicyDocument.cs` | `safe-policy.example.json` |
 | Context catalog | `src/Aether.Contracts/Models/ContextCatalog.cs` | validated by `ContextCatalog.Load` (payload typed + classification) |
+| FDC3 bounded context subset | `src/Aether.Contracts/Fdc3/*`, `Models/Contexts/*` | `fdc3.instrument`, `fdc3.organization` payloads validated by the catalog |
+| FDC3 bounded intent subset | `src/Aether.Broker/Intents/IntentRouter.cs`, resolved via `ResolveIntent` RPC | declared in app manifest `intents`, validated against `Fdc3Intents.Supported` |
 
 ## Versioning rules
 

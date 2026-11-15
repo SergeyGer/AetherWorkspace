@@ -6,42 +6,105 @@
       "displayName": "Synthetic Watchlist (WPF)",
       "launchable": true,
       "executable": "{WPF_SAMPLES_EXE}",
-      "arguments": ["--app", "watchlist", "--fixtures", "{FIXTURES_DIR}"],
+      "arguments": [
+        "--app",
+        "watchlist",
+        "--fixtures",
+        "{FIXTURES_DIR}"
+      ],
       "workingDirectory": "{AETHER_HOME}",
-      "capabilities": ["context.subscribe", "context.publish", "window.report"],
-      "allowedChannels": ["default"],
-      "allowedContextTypes": ["fdc3.instrument"],
-      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "capabilities": [
+        "context.subscribe",
+        "context.publish",
+        "window.report"
+      ],
+      "allowedChannels": [
+        "default"
+      ],
+      "allowedContextTypes": [
+        "fdc3.instrument",
+        "fdc3.organization"
+      ],
+      "allowedClassifications": [
+        "PUBLIC",
+        "INTERNAL",
+        "RESTRICTED"
+      ],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 30
+      "launchTimeoutSeconds": 30,
+      "intents": [
+        "ViewInstrument"
+      ]
     },
     {
       "appId": "sample.risk",
       "displayName": "Synthetic Risk View (WPF)",
       "launchable": true,
       "executable": "{WPF_SAMPLES_EXE}",
-      "arguments": ["--app", "risk", "--fixtures", "{FIXTURES_DIR}"],
+      "arguments": [
+        "--app",
+        "risk",
+        "--fixtures",
+        "{FIXTURES_DIR}"
+      ],
       "workingDirectory": "{AETHER_HOME}",
-      "capabilities": ["context.subscribe", "context.publish", "window.report"],
-      "allowedChannels": ["default"],
-      "allowedContextTypes": ["fdc3.instrument"],
-      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "capabilities": [
+        "context.subscribe",
+        "context.publish",
+        "window.report"
+      ],
+      "allowedChannels": [
+        "default"
+      ],
+      "allowedContextTypes": [
+        "fdc3.instrument",
+        "fdc3.organization"
+      ],
+      "allowedClassifications": [
+        "PUBLIC",
+        "INTERNAL",
+        "RESTRICTED"
+      ],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 30
+      "launchTimeoutSeconds": 30,
+      "intents": [
+        "ViewAnalysis"
+      ]
     },
     {
       "appId": "sample.chart",
       "displayName": "Synthetic Bond Chart (WPF)",
       "launchable": true,
       "executable": "{WPF_SAMPLES_EXE}",
-      "arguments": ["--app", "chart", "--fixtures", "{FIXTURES_DIR}"],
+      "arguments": [
+        "--app",
+        "chart",
+        "--fixtures",
+        "{FIXTURES_DIR}"
+      ],
       "workingDirectory": "{AETHER_HOME}",
-      "capabilities": ["context.subscribe", "context.publish", "window.report"],
-      "allowedChannels": ["default"],
-      "allowedContextTypes": ["fdc3.instrument"],
-      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "capabilities": [
+        "context.subscribe",
+        "context.publish",
+        "window.report"
+      ],
+      "allowedChannels": [
+        "default"
+      ],
+      "allowedContextTypes": [
+        "fdc3.instrument",
+        "fdc3.organization"
+      ],
+      "allowedClassifications": [
+        "PUBLIC",
+        "INTERNAL",
+        "RESTRICTED"
+      ],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 30
+      "launchTimeoutSeconds": 30,
+      "intents": [
+        "ViewChart"
+      ]
     },
     {
       "appId": "aether.shell",
@@ -55,11 +118,22 @@
         "broker.arrange",
         "context.publish",
         "context.read",
-        "window.report"
+        "window.report",
+        "intent.resolve"
       ],
-      "allowedChannels": ["default"],
-      "allowedContextTypes": ["fdc3.instrument", "aether.exposure"],
-      "allowedClassifications": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+      "allowedChannels": [
+        "default"
+      ],
+      "allowedContextTypes": [
+        "fdc3.instrument",
+        "aether.exposure",
+        "fdc3.organization"
+      ],
+      "allowedClassifications": [
+        "PUBLIC",
+        "INTERNAL",
+        "RESTRICTED"
+      ],
       "maxInstances": 1
     }
   ]

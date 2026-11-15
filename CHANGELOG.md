@@ -33,6 +33,32 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.3.0 bounded FDC3 interoperability + reliability closure (2026-11-15)
+
+### Added
+
+- FDC3-aligned bounded subset: `fdc3.organization` context type alongside
+  `fdc3.instrument` (typed payloads, catalog validation, protobuf envelope, provenance).
+- Bounded intent resolution (`ViewInstrument`, `ViewAnalysis`, `ViewChart`) through a new
+  broker RPC and capability (`intent.resolve`): target apps must declare the intent and
+  accept the required context type; unknown intents, context mismatches and unapproved
+  explicit targets produce structured denials. App-directory subset exposed via snapshot.
+- Contract fixtures (`tests/fixtures/fdc3/`), dedicated `Aether.Fdc3.Tests` suite and a
+  multi-process FDC3 E2E test (organization context to all three apps + intent resolution).
+- OS-level blocked-egress evidence: Linux isolated-network-namespace script and Windows
+  Firewall-based check wired into CI; both must keep the reference workflow green with zero
+  external egress attempts.
+- Windows named-pipe IPC benchmark in Windows CI; WPF UI automation tests (FlaUI) in
+  Windows CI; SBOM (SPDX) generation in CI and attached to releases.
+- GitHub Releases per milestone, release workflow (`v*` tags) with binaries/source/SBOM/
+  checksums, branch protection ruleset, issue dependency links/assignees and a Kanban project.
+- `.env.example` template for OpenAI/Gemini/local model providers (local `.env` is
+  git-ignored and only loaded explicitly with `--env-file`).
+
+### Fixed
+
+- README/limits/status updated for bounded FDC3 subset and reliability-closure evidence.
+
 ## [Unreleased] — v0.2 reliability hardening (2026-11-14)
 
 ### Added

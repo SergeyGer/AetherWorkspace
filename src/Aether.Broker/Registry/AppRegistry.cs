@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Aether.Contracts;
 using Aether.Contracts.Capabilities;
+using Aether.Contracts.Fdc3;
 using Aether.Contracts.Models;
 
 namespace Aether.Broker.Registry;
@@ -119,6 +120,14 @@ public sealed partial class AppRegistry
             {
                 throw BrokerConfigurationException.Invalid(
                     $"App '{entry.AppId}' declares unsupported classification '{classification}'.");
+            }
+        }
+
+        foreach (var intent in entry.Intents)
+        {
+            if (!Fdc3Intents.Supported.Contains(intent))
+            {
+                throw BrokerConfigurationException.Invalid($"App '{entry.AppId}' declares unsupported FDC3 intent '{intent}'.");
             }
         }
 

@@ -42,8 +42,17 @@ public sealed class HttpCloudModelTransport : ICloudModelTransport, IDisposable
     public string ProviderId => "cloud-openai-compatible";
 
     /// <summary>Whether a cloud endpoint is configured (no network call is made).</summary>
-    public static bool IsEndpointConfigured() =>
-        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DefaultEndpointEnvironmentVariable));
+    public static bool IsEndpointConfigured(IReadOnlyDictionary<string, string>? overrides = null)
+    {
+        if (overrides is not null &&
+            overrides.TryGetValue(DefaultEndpointEnvironmentVariable, out var overridden) &&
+            !string.IsNullOrWhiteSpace(overridden))
+        {
+            return true;
+        }
+
+        return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DefaultEndpointEnvironmentVariable));
+    }
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(_endpoint);
 

@@ -1,0 +1,13 @@
+{
+  "description": "Bounded FDC3 intent resolution scenarios (synthetic). expectedCode empty means success.",
+  "scenarios": [
+    { "name": "view-instrument-default", "intent": "ViewInstrument", "contextRef": "synthetic.instrument.northstar", "preferredAppId": null, "expectedAppId": "sample.watchlist", "expectedCode": "" },
+    { "name": "view-analysis-default", "intent": "ViewAnalysis", "contextRef": "synthetic.instrument.northstar", "preferredAppId": null, "expectedAppId": "sample.risk", "expectedCode": "" },
+    { "name": "view-chart-default", "intent": "ViewChart", "contextRef": "synthetic.instrument.northstar", "preferredAppId": null, "expectedAppId": "sample.chart", "expectedCode": "" },
+    { "name": "view-chart-preferred-approved", "intent": "ViewChart", "contextRef": "synthetic.instrument.northstar", "preferredAppId": "sample.chart", "expectedAppId": "sample.chart", "expectedCode": "" },
+    { "name": "unknown-intent", "intent": "TakeOverWorkspace", "contextRef": "synthetic.instrument.northstar", "preferredAppId": null, "expectedAppId": null, "expectedCode": "fdc3.intent.unsupported" },
+    { "name": "unapproved-preferred-target", "intent": "ViewInstrument", "contextRef": "synthetic.instrument.northstar", "preferredAppId": "sample.chart", "expectedAppId": null, "expectedCode": "fdc3.intent.target_not_approved" },
+    { "name": "context-type-mismatch", "intent": "ViewInstrument", "contextRef": "synthetic.organization.northstar", "preferredAppId": null, "expectedAppId": null, "expectedCode": "fdc3.intent.context_mismatch" },
+    { "name": "unknown-context", "intent": "ViewInstrument", "contextRef": "synthetic.unknown.ctx", "preferredAppId": null, "expectedAppId": null, "expectedCode": "broker.context.not_found" }
+  ]
+}

@@ -18,6 +18,9 @@ is not backed by a test or a measured baseline in this repository, it is not mad
 - **Linux/headless is the CI substitute.** Unix domain sockets and headless sample
   processes exercise the same typed protocol, policy, executor, broker sessions/channels
   and audit logic; they are not the reference desktop experience.
+- **WPF UI automation (FlaUI) covers the shell smoke + restricted reference workflow in
+  Windows CI**; visual correctness of Win32 top-level arrangement (multi-monitor, DPI,
+  focus, accessibility) still needs manual desktop verification or a broader UI suite.
 - **No cross-process window embedding.** `SetParent`/`HwndHost` docking is excluded from
   the MVP; no feasibility spike was executed and no claim is made. Only ordinary
   top-level placement (never reparenting) is implemented.
@@ -71,6 +74,9 @@ is not backed by a test or a measured baseline in this repository, it is not mad
 
 ## Correctness and reliability
 
+- **FDC3 scope is a declared bounded subset:** `fdc3.instrument`/`fdc3.organization`
+  contexts and three intents only; no user channels, intent listeners, app-directory
+  federation or external FDC3 desktop-agent interop; no conformance claim.
 - **No unbounded-queue or crash-safety guarantee under adversarial budgets.** Queues are
   bounded with explicit overflow reporting; message size limits, action budgets and
   deadlines exist. Hang/kill/broker-disconnect fault injection is covered on Linux; a
@@ -90,8 +96,10 @@ is not backed by a test or a measured baseline in this repository, it is not mad
 
 ## Documentation and process
 
-- No release artifacts, SBOM, signing or reproducible Windows distribution are produced
-  yet (v1.0 scope). This tree is a development baseline, not a release.
+- GitHub Releases are produced per milestone with framework-dependent build archives,
+  source archives, SHA-256 checksums and an SPDX SBOM. There is **no signed installer, no
+  reproducible-build guarantee and no Windows code signing** yet (v1.0 scope). These
+  releases are development baselines, not production distributions.
 - No calendar commitments, compliance certifications, DORA/GDPR statements, or claims
   of universal third-party application compatibility.
 - The planning issue pack under `docs/planning/` is a planning baseline; not every issue

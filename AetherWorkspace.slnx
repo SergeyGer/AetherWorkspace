@@ -23,6 +23,7 @@
     <Project Path="tests/Aether.Contracts.Tests/Aether.Contracts.Tests.csproj" />
     <Project Path="tests/Aether.E2E.Tests/Aether.E2E.Tests.csproj" />
     <Project Path="tests/Aether.Execution.Tests/Aether.Execution.Tests.csproj" />
+    <Project Path="tests/Aether.Fdc3.Tests/Aether.Fdc3.Tests.csproj" />
     <Project Path="tests/Aether.Security.Tests/Aether.Security.Tests.csproj" />
     <Project Path="tests/Aether.Testing/Aether.Testing.csproj" />
     <Project Path="tests/Aether.Workflow.Tests/Aether.Workflow.Tests.csproj" />

@@ -5,28 +5,95 @@
   "description": "JSON projection of the protobuf ContextEnvelope for documentation and contract tests. The protobuf message is the wire contract.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["messageId", "traceId", "spanId", "schemaVersion", "contextType", "classification", "createdAtUnixMs", "provenance", "payloadJson", "channel"],
+  "required": [
+    "messageId",
+    "traceId",
+    "spanId",
+    "schemaVersion",
+    "contextType",
+    "classification",
+    "createdAtUnixMs",
+    "provenance",
+    "payloadJson",
+    "channel"
+  ],
   "properties": {
-    "messageId": { "type": "string", "minLength": 1 },
-    "traceId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
-    "spanId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
-    "schemaVersion": { "type": "string", "pattern": "^1\\." },
-    "contextType": { "enum": ["fdc3.instrument", "aether.exposure"] },
-    "classification": { "enum": ["CLASSIFICATION_UNSPECIFIED", "CLASSIFICATION_PUBLIC", "CLASSIFICATION_INTERNAL", "CLASSIFICATION_RESTRICTED", "CLASSIFICATION_UNKNOWN"] },
-    "createdAtUnixMs": { "type": "integer", "minimum": 0 },
-    "deadlineUnixMs": { "type": "integer", "minimum": 0 },
-    "payloadJson": { "type": "string" },
-    "channel": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" },
+    "messageId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "traceId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "spanId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\."
+    },
+    "contextType": {
+      "enum": [
+        "fdc3.instrument",
+        "fdc3.organization",
+        "aether.exposure"
+      ]
+    },
+    "classification": {
+      "enum": [
+        "CLASSIFICATION_UNSPECIFIED",
+        "CLASSIFICATION_PUBLIC",
+        "CLASSIFICATION_INTERNAL",
+        "CLASSIFICATION_RESTRICTED",
+        "CLASSIFICATION_UNKNOWN"
+      ]
+    },
+    "createdAtUnixMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "deadlineUnixMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "payloadJson": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+    },
     "provenance": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["sourceAppId", "sourceInstanceId", "traceId", "spanId", "createdAtUnixMs"],
+      "required": [
+        "sourceAppId",
+        "sourceInstanceId",
+        "traceId",
+        "spanId",
+        "createdAtUnixMs"
+      ],
       "properties": {
-        "sourceAppId": { "type": "string" },
-        "sourceInstanceId": { "type": "string" },
-        "traceId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
-        "spanId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
-        "createdAtUnixMs": { "type": "integer", "minimum": 0 }
+        "sourceAppId": {
+          "type": "string"
+        },
+        "sourceInstanceId": {
+          "type": "string"
+        },
+        "traceId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$"
+        },
+        "spanId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "createdAtUnixMs": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     }
   }

@@ -75,6 +75,15 @@ public static class AetherErrorCodes
     public const string ExecutionDeadlineExceeded = "execution.deadline_exceeded";
     public const string ExecutionInternalError = "execution.internal_error";
 
+    // FDC3 bounded subset
+    public const string Fdc3IntentUnsupported = "fdc3.intent.unsupported";
+    public const string Fdc3IntentContextMismatch = "fdc3.intent.context_mismatch";
+    public const string Fdc3IntentTargetNotApproved = "fdc3.intent.target_not_approved";
+    public const string Fdc3ContextUnsupported = "fdc3.context.unsupported";
+
+    // Configuration
+    public const string ConfigInvalidEnvFile = "config.invalid_env_file";
+
     // Workflow
     public const string WorkflowDenied = "workflow.denied";
     public const string WorkflowFailed = "workflow.failed";
@@ -117,6 +126,12 @@ public static class AetherErrorCodes
                 _ => DenialCategory.PolicyDenied,
             },
             "broker" => DenialCategory.PolicyDenied,
+            "fdc3" => code switch
+            {
+                Fdc3IntentTargetNotApproved => DenialCategory.UnauthorizedApp,
+                Fdc3IntentUnsupported => DenialCategory.UnsupportedAction,
+                _ => DenialCategory.InputRejected,
+            },
             "ai" => DenialCategory.ProviderUnavailable,
             "execution" => DenialCategory.InternalError,
             "workflow" => DenialCategory.InternalError,

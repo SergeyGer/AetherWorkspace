@@ -137,6 +137,12 @@ public static class Program
         {
             await foreach (var envelope in client.SubscribeAsync(ChannelNames.Default, TraceIdGenerator.NewTraceId(), cancellationToken).ConfigureAwait(false))
             {
+                if (envelope.ContextType == OrganizationContext.ContextType)
+                {
+                    HandleOrganization(envelope, appId, instanceId, fixtures);
+                    continue;
+                }
+
                 if (envelope.ContextType != InstrumentContext.ContextType)
                 {
                     continue;
@@ -186,6 +192,49 @@ public static class Program
         catch (BrokerRpcException exception) when (exception.StatusCode == Grpc.Core.StatusCode.Cancelled)
         {
         }
+    }
+
+    private static void HandleOrganization(ContextEnvelope envelope, string appId, string instanceId, SampleFixtures fixtures)
+    {
+        OrganizationContext organization;
+        try
+        {
+            organization = AetherJson.DeserializeStrict<OrganizationContext>(envelope.PayloadJson);
+        }
+        catch (Contracts.Errors.AetherContractException)
+        {
+            return;
+        }
+
+        Console.Out.WriteLine(AetherJson.Serialize(new
+        {
+            @event = "context",
+            appId,
+            instanceId,
+            traceId = envelope.TraceId,
+            messageId = envelope.MessageId,
+            contextType = envelope.ContextType,
+            classification = envelope.Classification.FromProto().ToWireName(),
+            provenance = new
+            {
+                sourceAppId = envelope.Provenance?.SourceAppId,
+                sourceInstanceId = envelope.Provenance?.SourceInstanceId,
+                traceId = envelope.Provenance?.TraceId,
+                spanId = envelope.Provenance?.SpanId,
+            },
+            organization = new
+            {
+                name = organization.Name,
+                lei = organization.Id.Lei,
+            },
+            view = new
+            {
+                kind = "organization",
+                app = fixtures.App,
+                name = organization.Name,
+            },
+        }));
+        Console.Out.Flush();
     }
 
     private static object Render(SampleFixtures fixtures, InstrumentContext instrument)

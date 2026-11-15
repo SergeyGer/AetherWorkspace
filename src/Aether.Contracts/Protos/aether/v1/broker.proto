@@ -19,6 +19,7 @@ service BrokerService {
   rpc LaunchApp(LaunchAppRequest) returns (LaunchAppReply);
   rpc ArrangeWindows(ArrangeWindowsRequest) returns (ArrangeWindowsReply);
   rpc GetSnapshot(SnapshotRequest) returns (SnapshotReply);
+  rpc ResolveIntent(ResolveIntentRequest) returns (ResolveIntentReply);
   rpc StopApp(StopAppRequest) returns (StopAppReply);
   rpc RestartApp(RestartAppRequest) returns (RestartAppReply);
   rpc HealthProbe(HealthProbeRequest) returns (HealthProbeReply);
@@ -32,12 +33,32 @@ message AppSummary {
   repeated string allowed_channels = 5;
   repeated string allowed_context_types = 6;
   repeated Classification allowed_classifications = 7;
+  repeated string intents = 8;
 }
 
 message ContextSummary {
   string context_ref = 1;
   string context_type = 2;
   Classification classification = 3;
+}
+
+message ResolveIntentRequest {
+  string intent = 1;
+  string context_ref = 2;
+  string trace_id = 3;
+  string preferred_app_id = 4;
+}
+
+message ResolveIntentReply {
+  bool resolved = 1;
+  string intent = 2;
+  string app_id = 3;
+  string display_name = 4;
+  string context_ref = 5;
+  string context_type = 6;
+  string denial_code = 7;
+  string denial_message = 8;
+  Provenance provenance = 9;
 }
 
 message SnapshotRequest {

@@ -37,6 +37,9 @@ public sealed class AppManifestEntry
 
     public IReadOnlyList<string> AllowedContextTypes { get; init; } = [];
 
+    /// <summary>Declared FDC3-aligned intents this app can handle (bounded subset).</summary>
+    public IReadOnlyList<string> Intents { get; init; } = [];
+
     /// <summary>Wire names, for example PUBLIC / INTERNAL / RESTRICTED / UNKNOWN.</summary>
     public IReadOnlyList<string> AllowedClassifications { get; init; } = [];
 

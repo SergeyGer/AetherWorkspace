@@ -1,6 +1,7 @@
 using Aether.Broker.Catalog;
 using Aether.Broker.Channels;
 using Aether.Broker.Health;
+using Aether.Broker.Intents;
 using Aether.Broker.Hosting;
 using Aether.Broker.Launching;
 using Aether.Broker.Registry;
@@ -130,6 +131,7 @@ public sealed class BrokerHost : IAsyncDisposable
             ? (IWindowArranger)new Win32WindowArranger()
             : new VirtualWindowArranger();
         var health = new HealthMonitor(validated, sessions, launcher);
+        var intentRouter = new IntentRouter(validated.Registry, validated.Contexts);
 
         var builder = WebApplication.CreateSlimBuilder(new WebApplicationOptions
         {
@@ -152,6 +154,7 @@ public sealed class BrokerHost : IAsyncDisposable
             arranger,
             health,
             auditSink,
+            intentRouter,
             endpoint.Transport));
 
         builder.WebHost.ConfigureKestrel(kestrel =>

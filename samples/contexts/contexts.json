@@ -87,6 +87,30 @@
           }
         ]
       }
+    },
+    {
+      "contextRef": "synthetic.organization.northstar",
+      "contextType": "fdc3.organization",
+      "classification": "INTERNAL",
+      "payload": {
+        "type": "fdc3.organization",
+        "name": "Northstar Capital (fictitious)",
+        "id": {
+          "lei": "SYN0000NORTHSTAR01"
+        }
+      }
+    },
+    {
+      "contextRef": "synthetic.organization.vega",
+      "contextType": "fdc3.organization",
+      "classification": "PUBLIC",
+      "payload": {
+        "type": "fdc3.organization",
+        "name": "Vega Energy (fictitious)",
+        "id": {
+          "lei": "SYN00000VEGAENERGY"
+        }
+      }
     }
   ]
 }

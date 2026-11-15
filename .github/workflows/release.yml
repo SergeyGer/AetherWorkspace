@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, for example v0.3.0'
+        required: true
+        default: 'v0.3.0'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, verify, package and publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build and test
+        run: |
+          dotnet build AetherWorkspace.slnx -c Release
+          dotnet test AetherWorkspace.slnx -c Release --no-build
+      - name: Package framework-dependent apps and source
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          mkdir -p artifacts
+          dotnet publish src/Aether.BrokerApp -c Release -o "artifacts/publish/$VERSION/broker" -v q
+          dotnet publish src/Aether.Shell.Headless -c Release -o "artifacts/publish/$VERSION/shell" -v q
+          dotnet publish src/Aether.SampleApps.Headless -c Release -o "artifacts/publish/$VERSION/samples" -v q
+          (cd "artifacts/publish/$VERSION" && zip -qr "../../AetherWorkspace-$VERSION-binaries.zip" .)
+          git archive --format=zip --output="artifacts/AetherWorkspace-$VERSION-source.zip" HEAD
+      - name: Generate SBOM (SPDX)
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          dotnet tool install --tool-path .tools/sbom Microsoft.Sbom.DotNetTool --version 4.1.13
+          DOTNET_ROLL_FORWARD=Major .tools/sbom/sbom-tool generate \
+            -b "artifacts/publish/$VERSION" -bc . -pn AetherWorkspace -pv "$VERSION" \
+            -ps "AetherWorkspace contributors" -m artifacts/sbom
+          find artifacts/sbom -name '*.json' -exec cp {} artifacts/ \;
+      - name: Checksums
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd artifacts
+          sha256sum "AetherWorkspace-$VERSION-binaries.zip" "AetherWorkspace-$VERSION-source.zip" *.json > "SHA256SUMS-$VERSION.txt"
+          cat "SHA256SUMS-$VERSION.txt"
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          NOTES="docs/releases/$VERSION.md"
+          if [ ! -f "$NOTES" ]; then
+            printf '# %s\n\nSee CHANGELOG.md and docs/IMPLEMENTATION_STATUS.md for evidence.\n' "$VERSION" > "/tmp/release-notes.md"
+            NOTES="/tmp/release-notes.md"
+          fi
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" artifacts/*.zip artifacts/*.json "artifacts/SHA256SUMS-$VERSION.txt" --clobber
+          else
+            gh release create "$VERSION" \
+              --title "AetherWorkspace $VERSION" \
+              --notes-file "$NOTES" \
+              artifacts/*.zip artifacts/*.json "artifacts/SHA256SUMS-$VERSION.txt"
+          fi

@@ -1,4 +1,8 @@
 # Local secrets and tokens (never commit)
+.env
+.env.*
+!.env.example
+
 .git-token
 *.token
 

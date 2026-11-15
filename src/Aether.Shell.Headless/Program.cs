@@ -57,6 +57,8 @@ public static class Program
         try
         {
             var endpointInfo = BrokerEndpointInfo.Read(options.EndpointFile!);
+            var envOverrides = options.EnvFile is null ? null : DotEnvFile.Load(options.EnvFile);
+            var secretProvider = new EnvironmentSecretProvider(envOverrides);
             using var channel = BrokerChannelFactory.CreateChannel(endpointInfo.Transport, endpointInfo.Endpoint);
             await using var client = new BrokerClient(channel);
 
@@ -87,7 +89,10 @@ public static class Program
             IPlanGenerator? cloudPlanner = null;
             if (options.Planner == "cloud" && !options.Offline)
             {
-                var transport = new HttpCloudModelTransport(new EnvironmentSecretProvider());
+                var transport = new HttpCloudModelTransport(
+                    secretProvider,
+                    endpoint: GetOverride(envOverrides, HttpCloudModelTransport.DefaultEndpointEnvironmentVariable),
+                    modelId: GetOverride(envOverrides, HttpCloudModelTransport.DefaultModelEnvironmentVariable));
                 cloudPlanner = new CloudPlanProvider(
                     transport,
                     egressGateway,
@@ -95,7 +100,11 @@ public static class Program
             }
 
             ISummaryProvider localSummary = options.UseLocalModel
-                ? new LocalModelSummaryProvider(new LoopbackLocalModelTransport(), egressGateway)
+                ? new LocalModelSummaryProvider(
+                    new LoopbackLocalModelTransport(
+                        endpoint: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultEndpointEnvironmentVariable),
+                        modelId: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultModelEnvironmentVariable)),
+                    egressGateway)
                 : new LocalDeterministicSummaryProvider(detector);
             var summaryService = new SummaryService(localSummary, cloudProvider: null, SummaryServiceOptions.LocalOnly);
 
@@ -132,7 +141,7 @@ public static class Program
                 (suppliedPlan, suppliedPlanIssues) = ActionPlanParser.Parse(planJson);
                 if (suppliedPlan is null)
                 {
-                    var invalidOutput = BuildParseFailureOutput(options, suppliedPlanIssues);
+                    var invalidOutput = BuildParseFailureOutput(options, suppliedPlanIssues, envOverrides);
                     return Emit(invalidOutput, options);
                 }
             }
@@ -144,7 +153,7 @@ public static class Program
                 SuppliedPlan: suppliedPlan);
 
             var result = await orchestrator.ExecuteAsync(request, timeoutSource.Token).ConfigureAwait(false);
-            var output = BuildOutput(result, egressGateway, auditLog, options, cloudEnabled, cloudConsent);
+            var output = BuildOutput(result, egressGateway, auditLog, options, cloudEnabled, cloudConsent, envOverrides);
             return Emit(output, options);
         }
         catch (BrokerRpcException exception)
@@ -170,7 +179,8 @@ public static class Program
         HashChainAuditLog auditLog,
         ShellOptions options,
         bool cloudEnabled,
-        bool cloudConsent)
+        bool cloudConsent,
+        IReadOnlyDictionary<string, string>? envOverrides)
     {
         var egressSnapshot = egress.Snapshot();
         var verification = auditLog.Verify();
@@ -214,11 +224,11 @@ public static class Program
                 options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile),
                 rotatedFiles,
                 fileChainValid),
-            BuildProviders(options, cloudEnabled, cloudConsent),
+            BuildProviders(options, cloudEnabled, cloudConsent, envOverrides),
             BuildLimitations());
     }
 
-    private static ShellOutput BuildParseFailureOutput(ShellOptions options, IReadOnlyList<PlanValidationIssue> issues)
+    private static ShellOutput BuildParseFailureOutput(ShellOptions options, IReadOnlyList<PlanValidationIssue> issues, IReadOnlyDictionary<string, string>? envOverrides)
     {
         var first = issues.Count > 0
             ? issues[0]
@@ -242,14 +252,21 @@ public static class Program
             0,
             new ShellEgressOutput(0, 0, 0, new Dictionary<string, long>()),
             new ShellAuditOutput(0, true, options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile), rotatedFiles, fileChainValid),
-            BuildProviders(options, options.CloudEnabled && !options.Offline, options.CloudConsent && !options.Offline),
+            BuildProviders(options, options.CloudEnabled && !options.Offline, options.CloudConsent && !options.Offline, envOverrides),
             BuildLimitations());
     }
 
-    private static ShellProvidersOutput BuildProviders(ShellOptions options, bool cloudEnabled, bool cloudConsent)
+    private static string? GetOverride(IReadOnlyDictionary<string, string>? values, string key) =>
+        values is not null && values.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value) ? value : null;
+
+    private static ShellProvidersOutput BuildProviders(
+        ShellOptions options,
+        bool cloudEnabled,
+        bool cloudConsent,
+        IReadOnlyDictionary<string, string>? envOverrides)
     {
-        var cloudConfigured = !options.Offline && HttpCloudModelTransport.IsEndpointConfigured();
-        var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured();
+        var cloudConfigured = !options.Offline && HttpCloudModelTransport.IsEndpointConfigured(envOverrides);
+        var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured(envOverrides);
         var mode = options.Offline
             ? "offline"
             : cloudConfigured && cloudEnabled && cloudConsent ? "cloud-enabled" : "local-private";

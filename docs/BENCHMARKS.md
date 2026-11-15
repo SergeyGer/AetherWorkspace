@@ -60,6 +60,18 @@ Interpretation, scoped to this environment:
   and duplicate behaviour is covered by `ChannelRouterTests` and the deduplication
   design note in ADR/architecture docs.
 
+## Windows named-pipe baseline (CI)
+
+The Windows CI job (`CI` workflow, `windows` job) runs:
+`dotnet run -c Release --project benchmarks/Aether.IpcBench -- --samples 300 --warmup 50`
+over the Windows named-pipe transport and uploads the raw output as the
+`windows-evidence` artifact (`.aether/windows-ipc-benchmark.txt`). The reference workflow
+demo is also executed over named pipes in the same job. Results are machine-specific raw
+measurements from the GitHub-hosted Windows runner; they are recorded per run rather than
+treated as a universal guarantee. The first green run's numbers are recorded below.
+
+<!-- WINDOWS_BENCHMARK_TABLE -->
+
 ## Microbenchmarks (measured, ShortRun: 3 iterations, 3 warmup)
 
 | Benchmark | Mean | Allocated | Notes |

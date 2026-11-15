@@ -216,6 +216,31 @@ public sealed class BrokerClient : IAsyncDisposable
         }
     }
 
+    public async Task<ResolveIntentReply> ResolveIntentAsync(
+        string intent,
+        string contextRef,
+        string? preferredAppId = null,
+        string? traceId = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _service.ResolveIntentAsync(
+                new ResolveIntentRequest
+                {
+                    Intent = intent,
+                    ContextRef = contextRef,
+                    PreferredAppId = preferredAppId ?? "",
+                    TraceId = traceId ?? "",
+                },
+                Options(traceId, cancellationToken)).ConfigureAwait(false);
+        }
+        catch (RpcException exception)
+        {
+            throw BrokerRpcException.From(exception);
+        }
+    }
+
     public async Task<HealthProbeReply> HealthProbeAsync(CancellationToken cancellationToken = default)
     {
         try

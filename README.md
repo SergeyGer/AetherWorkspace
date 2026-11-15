@@ -9,9 +9,11 @@ and a local broker drives three independent synthetic desktop applications over
 authenticated local IPC. All fixtures are fictitious; nothing in this repository is
 production software or a compliance certification.
 
-- **Status:** implementation baseline **v0.1.0 vertical slice + v0.2 reliability
-  hardening** (M0 + v0.1 complete, v0.2 implemented for the tested scope). CI is green on
-  Linux and Windows (including the Windows named-pipe demo). No release tag yet.
+- **Status:** **v0.3.0** — bounded FDC3 interoperability and v0.2 reliability closure.
+  Milestones M0/v0.1/v0.2 complete for the tested scope; v0.3 implemented for the declared
+  bounded subset. CI is green on Linux and Windows (including named-pipe demo, blocked-egress
+  checks, Windows IPC benchmark and WPF UI automation). GitHub releases are published per
+  milestone. This remains a reference implementation, not production software.
 - **Platform:** .NET 10 / C# 14. Windows 11 x64 is the reference desktop (WPF shell and
   WPF sample apps); cross-platform core libraries and a headless host build and run on
   Linux CI as the deterministic test double. Production IPC on Windows uses gRPC over
@@ -34,7 +36,7 @@ directly or transmit restricted data to a cloud provider without explicit consen
 | M0 feasibility & foundations (AW-001…AW-006) | **Implemented** | Solution/CI skeleton, versioned Protobuf + JSON contracts, local transport prototype, deny-by-default policy, threat model/ADRs, benchmark harness |
 | v0.1.0 MVP (AW-007…AW-015) | **Implemented vertical slice** | One automated three-process synthetic workflow (launch/publish/arrange/summarize), authenticated sessions and capability checks, deterministic guarded executor, private local summary, policy denials and cloud-denial path, 100-entry unsafe-plan corpus |
 | v0.2 reliability (AW-016…AW-020) | **Implemented for the tested scope** | Bounded queues/FIFO/overflow/dedup + RPC-level idempotent retries, hang/kill/broker-disconnect fault injection, heartbeat + bounded restart, IPC benchmark baseline, offline mode with provider health, rotating/retained hash-chained audit with cross-restart chain continuation. Windows reference benchmarks and OS-level blocked-egress capture remain |
-| v0.3 bounded FDC3 (AW-021…AW-024) | **Partial / in progress** | Honest supported-subset matrix for the FDC3-aligned `fdc3.instrument` context on one default app channel; no conformance claim. Intents/user channels are not implemented |
+| v0.3 bounded FDC3 (AW-021…AW-024) | **Implemented for the tested bounded subset** | `fdc3.instrument` + `fdc3.organization` contexts on the `default` channel with provenance, bounded intent resolution (`ViewInstrument`/`ViewAnalysis`/`ViewChart`), app-directory subset via broker snapshot, contract fixtures + dedicated test suite + multi-process E2E. Declared subset, no conformance claim; user channels and external FDC3 interop remain unsupported |
 | v0.4+ (AW-025…AW-038) | **Not started** | Privacy detectors beyond rules, vault, model router/evaluation, inspector, contract studio, release packaging |
 
 Automated evidence lives in `tests/` (contract, security, execution, AI, broker,
@@ -183,7 +185,7 @@ See [`docs/limitations.md`](docs/limitations.md) for the complete list.
 - [Threat model](docs/security/threat-model.md) · [ADRs](docs/adr/)
 - [Contracts and schemas](docs/contracts/) · [Benchmarks](docs/BENCHMARKS.md)
 - [Limitations](docs/limitations.md) · [Implementation status](docs/IMPLEMENTATION_STATUS.md)
-- [FDC3 supported subset](docs/fdc3/supported-subset.md)
+- [FDC3 supported subset](docs/fdc3/supported-subset.md) · [.env example](.env.example) · [Release notes](docs/releases/)
 - [Planning baseline (spec v3.0 + release plan + issue pack)](docs/planning/)
 
 ## Contributing

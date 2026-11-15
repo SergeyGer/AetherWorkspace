@@ -28,7 +28,7 @@ public class HealthAuditSnapshotTests
         Assert.Equal(6, snapshot.MaxActionsPerPlan);
         Assert.Contains(Layouts.SideBySide, snapshot.SupportedLayouts);
         Assert.Equal(4, snapshot.Apps.Count);
-        Assert.Equal(4, snapshot.Contexts.Count);
+        Assert.Equal(6, snapshot.Contexts.Count);
         Assert.All(snapshot.Apps, app => Assert.Contains(app.Capabilities, capability => capability.Length > 0));
         var instrument = snapshot.Contexts.Single(entry => entry.ContextRef == "synthetic.instrument.northstar");
         Assert.Equal("fdcp.instrument".Replace("dcp", "dc3"), instrument.ContextType);

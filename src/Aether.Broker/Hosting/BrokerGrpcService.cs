@@ -1,6 +1,7 @@
 using Aether.Broker.Catalog;
 using Aether.Broker.Channels;
 using Aether.Broker.Health;
+using Aether.Broker.Intents;
 using Aether.Broker.Launching;
 using Aether.Broker.Registry;
 using Aether.Broker.Sessions;
@@ -38,6 +39,7 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
     private readonly HealthMonitor _health;
     private readonly IAuditSink _auditSink;
     private readonly ISensitiveEntityDetector _detector;
+    private readonly IntentRouter _intentRouter;
     private readonly string _transport;
 
     public BrokerGrpcService(
@@ -51,6 +53,7 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
         IWindowArranger arranger,
         HealthMonitor health,
         IAuditSink auditSink,
+        IntentRouter intentRouter,
         string transport)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -63,6 +66,7 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
         _arranger = arranger ?? throw new ArgumentNullException(nameof(arranger));
         _health = health ?? throw new ArgumentNullException(nameof(health));
         _auditSink = auditSink ?? throw new ArgumentNullException(nameof(auditSink));
+        _intentRouter = intentRouter ?? throw new ArgumentNullException(nameof(intentRouter));
         _detector = new RuleBasedSensitiveEntityDetector();
         _transport = transport;
     }
@@ -524,6 +528,7 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
             summary.AllowedChannels.AddRange(app.AllowedChannels);
             summary.AllowedContextTypes.AddRange(app.AllowedContextTypes);
             summary.AllowedClassifications.AddRange(app.AllowedClassifications.Select(classification => classification.ToProto()));
+            summary.Intents.AddRange(app.Intents);
             reply.Apps.Add(summary);
         }
 
@@ -535,6 +540,45 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
 
         _ = session;
         return Task.FromResult(reply);
+    }
+
+    public override Task<ResolveIntentReply> ResolveIntent(ResolveIntentRequest request, ServerCallContext context)
+    {
+        var session = RequireSession(context);
+        RequireCapability(session, CapabilityNames.IntentResolve);
+        var traceId = ResolveTraceId(request.TraceId, context);
+
+        var resolution = _intentRouter.Resolve(request.Intent, request.ContextRef, request.PreferredAppId);
+        _auditSink.Append(new AuditEventDraft
+        {
+            TraceId = traceId,
+            EventType = AuditEventTypes.IntentResolve,
+            Outcome = resolution.Resolved ? AuditOutcomes.Succeeded : AuditOutcomes.Denied,
+            Code = resolution.DenialCode,
+            Classification = resolution.ContextType.Length == 0 ? null : null,
+            BrokeredAppId = resolution.AppId ?? request.PreferredAppId,
+        });
+
+        var now = _options.TimeProvider.GetUtcNow();
+        return Task.FromResult(new ResolveIntentReply
+        {
+            Resolved = resolution.Resolved,
+            Intent = resolution.Intent,
+            ContextRef = resolution.ContextRef,
+            ContextType = resolution.ContextType,
+            AppId = resolution.AppId ?? "",
+            DisplayName = resolution.DisplayName ?? "",
+            DenialCode = resolution.DenialCode ?? "",
+            DenialMessage = resolution.DenialMessage ?? "",
+            Provenance = new Provenance
+            {
+                SourceAppId = "aether.broker",
+                SourceInstanceId = "broker",
+                TraceId = traceId,
+                SpanId = TraceIdGenerator.NewSpanId(),
+                CreatedAtUnixMs = now.ToUnixTimeMilliseconds(),
+            },
+        });
     }
 
     public override Task<HealthProbeReply> HealthProbe(HealthProbeRequest request, ServerCallContext context)

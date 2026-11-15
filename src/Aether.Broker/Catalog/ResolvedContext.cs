@@ -135,6 +135,18 @@ public sealed class ContextCatalog
                     break;
                 }
 
+                case OrganizationContext.ContextType:
+                {
+                    var organization = AetherJson.DeserializeStrict<OrganizationContext>(payloadJson);
+                    if (organization.Type != OrganizationContext.ContextType)
+                    {
+                        throw BrokerConfigurationException.Invalid(
+                            $"Context '{contextRef}' declares type '{contextType}' but the payload type does not match.");
+                    }
+
+                    break;
+                }
+
                 default:
                     throw BrokerConfigurationException.Invalid(
                         $"Context '{contextRef}' declares unsupported context type '{contextType}'.");

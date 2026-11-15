@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+env:
+  DOTNET_NOLOGO: '1'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
 jobs:
   linux:
     name: Linux build, tests and headless demo
@@ -24,8 +28,19 @@ jobs:
         run: dotnet test AetherWorkspace.slnx -c Release --no-build --logger "trx;LogFileName=linux-tests.trx"
       - name: Headless reference workflow demo (Unix domain sockets)
         run: SKIP_BUILD=1 ./scripts/demo.sh
+      - name: OS-level blocked-egress check (isolated network namespace)
+        run: ./scripts/egress-blocked-check.sh
       - name: IPC benchmark smoke
         run: dotnet run -c Release --no-build --project benchmarks/Aether.IpcBench -- --samples 200 --warmup 50
+      - name: Publish framework-dependent apps and generate SBOM
+        run: |
+          dotnet publish src/Aether.BrokerApp -c Release -o artifacts/publish/broker -v q
+          dotnet publish src/Aether.Shell.Headless -c Release -o artifacts/publish/shell -v q
+          dotnet publish src/Aether.SampleApps.Headless -c Release -o artifacts/publish/samples -v q
+          dotnet tool install --tool-path .tools/sbom Microsoft.Sbom.DotNetTool --version 4.1.13
+          DOTNET_ROLL_FORWARD=Major .tools/sbom/sbom-tool generate \
+            -b artifacts/publish -bc . -pn AetherWorkspace -pv 0.3.0 -ps "AetherWorkspace contributors" -m artifacts/sbom
+          find artifacts/sbom -name '*.json' -exec cp {} artifacts/ \; || true
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -35,6 +50,7 @@ jobs:
             .aether/
             TestResults/
             BenchmarkDotNet.Artifacts/
+            artifacts/
           if-no-files-found: warn
 
   windows:
@@ -49,8 +65,18 @@ jobs:
         run: dotnet build AetherWorkspace.slnx -c Release
       - name: Run full test suite
         run: dotnet test AetherWorkspace.slnx -c Release --no-build --logger "trx;LogFileName=windows-tests.trx"
+      - name: Windows named-pipe IPC benchmark
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .aether -Force | Out-Null
+          dotnet run -c Release --no-build --project benchmarks/Aether.IpcBench -- --samples 300 --warmup 50 |
+            Tee-Object -FilePath .aether/windows-ipc-benchmark.txt
       - name: Headless reference workflow demo (Windows named pipes)
         run: pwsh -NoProfile ./scripts/demo.ps1
+        env:
+          SKIP_BUILD: '1'
+      - name: OS-level blocked-egress check (Windows Firewall outbound block)
+        run: pwsh -NoProfile ./scripts/egress-blocked-check.ps1
         env:
           SKIP_BUILD: '1'
       - name: Upload evidence
@@ -61,4 +87,40 @@ jobs:
           path: |
             .aether/
             TestResults/
+          if-no-files-found: warn
+
+  windows-ui:
+    name: Windows WPF UI automation (FlaUI)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Detect UI test project
+        id: ui
+        shell: pwsh
+        run: |
+          if (Test-Path 'tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj') {
+            "present=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            "present=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            Write-Host 'UI test project not present in this revision; skipping.'
+          }
+      - name: Build solution and UI test project
+        if: steps.ui.outputs.present == 'true'
+        run: |
+          dotnet build AetherWorkspace.slnx -c Release
+          dotnet build tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release
+      - name: Run WPF UI automation tests
+        if: steps.ui.outputs.present == 'true'
+        run: dotnet test tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release --no-build --logger "trx;LogFileName=windows-ui-tests.trx"
+      - name: Upload UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-ui-evidence
+          path: |
+            .aether/
+            tests/Aether.Shell.UiTests/TestResults/
           if-no-files-found: warn

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <UseWPF>false</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RootNamespace>Aether.Shell.UiTests</RootNamespace>
+    <AssemblyName>Aether.Shell.UiTests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Required at runtime by the Aether.Testing / broker helper assemblies. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Versions are pinned centrally in Directory.Packages.props (Windows CI only). -->
+    <PackageReference Include="FlaUI.Core" />
+    <PackageReference Include="FlaUI.UIA3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      tests/Directory.Build.props only injects the test stack for projects whose name
+      ends with ".Tests". This project is named "...UiTests" (deliberately excluded from
+      the solution and Linux CI), so it declares the same test stack explicitly.
+    -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Testing\Aether.Testing.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Contracts\Aether.Contracts.csproj" />
+    <!-- Build dependency only: the test launches the compiled WPF shell as a separate process. -->
+    <ProjectReference Include="..\..\src\Aether.Shell\Aether.Shell.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+{
+  "description": "Synthetic FDC3-aligned context fixtures for the bounded subset (instrument, organization).",
+  "instrument": {
+    "type": "fdc3.instrument",
+    "name": "Northstar 2032 Bond",
+    "id": { "ticker": "NRST", "isin": "SYN00000NRST2" }
+  },
+  "organization": {
+    "type": "fdc3.organization",
+    "name": "Northstar Capital (fictitious)",
+    "id": { "lei": "SYN0000NORTHSTAR01" }
+  }
+}

@@ -15,6 +15,7 @@ public static class AuditEventTypes
     public const string WindowArrange = "window.arrange";
     public const string WorkflowResult = "workflow.result";
     public const string AuditChain = "audit.chain";
+    public const string IntentResolve = "fdc3.intent.resolve";
 }
 
 public static class AuditOutcomes

@@ -36,18 +36,13 @@ exists yet.
 |---|---|---|
 | AW-016 Bounded queues, ordering, backpressure, deduplication | **Done** | Per-channel bounded queues with explicit overflow reporting, FIFO per subscriber, clearance filtering, bounded dedupe window and cancellation (`ChannelRouterTests`); RPC-level idempotent retry evidence: same `clientMessageId` is delivered once and returns the original `messageId` (`FaultInjectionTests.DuplicateClientMessageIdIsDeliveredOnlyOnceAtTheRpcBoundary`). Retry eligibility is documented in [`docs/contracts/README.md`](contracts/README.md) |
 | AW-017 Heartbeat, fault isolation, controlled restart | **Done (Linux fault injection; Windows runtime tests + demo green in CI)** | Heartbeat RPC, missed-heartbeat states, process-exit detection and bounded `RestartApp`; fault injection: `SIGSTOP`-hung app becomes `UNRESPONSIVE` and bounded restart recovers to `HEALTHY`; `SIGKILL`ed app is reported `EXITED` and restarts; broker/shell survive sample-app crash (`FaultInjectionTests`, `FaultInjectionE2ETests`); shell fails fast with a structured error when the broker process dies. Hang injection is Unix-only (documented) |
-| AW-018 Measure IPC, UI responsiveness, resources | **Partial** | IPC latency harness + measured p50/p95/p99 and microbenchmark allocations in [`BENCHMARKS.md`](BENCHMARKS.md). Remaining: Windows reference-machine run, WPF UI responsiveness measurement, CPU/GC resource profile |
-| AW-019 Offline mode and failure behaviour | **Done for the tested scope** | `--offline` headless mode: no cloud adapter is constructed, cloud flags are forced off, cloud planner combination is rejected as a usage error; deterministic private workflow succeeds offline; provider health (`mode`, configured adapters, cloud flags) is reported without network I/O; missing local model yields a safe error with zero external attempts (`OfflineModeE2ETests`). Not performed here: OS-level network-egress-blocked capture on a reference Windows machine |
-| AW-020 Tamper-evident local audit chain | **Done** | Metadata-only hash chain (+ optional HMAC), JSONL persistence, size-bounded rotation with bounded retention, verification across retained/rotated files, continuation of the same chain across process restarts (invalid persisted chains rejected fail-closed), tamper/gap detection; no raw payload assertions (`AuditChainTests`, `AuditRotationTests`, `HealthAuditSnapshotTests`, E2E). Remaining (v0.5/v1.0): signed/anchor-based append-only storage and an operator runbook |
-
-## v0.3.0 — bounded FDC3 interoperability (AW-021…AW-024)
-
-| Issue | Status | Evidence / remaining work |
-|---|---|---|
-| AW-021 Supported-subset matrix | **Partial** | `docs/fdc3/supported-subset.md` documents the implemented subset and unsupported surfaces honestly; review against the official standard is pending |
-| AW-022 Supported FDC3 contexts and channels | **Partial** | Implemented: `fdc3.instrument` context subset on the single `default` app channel with provenance. Remaining: additional contexts and user/app channel semantics |
-| AW-023 Limited intent resolution and app directory | **Not started** | No raise/resolve intent flow yet |
-| AW-024 Contract and external interop evidence | **Not started** | No independent FDC3 implementation interop test yet |
+| AW-018 Measure IPC, UI responsiveness, resources | **Done for the tested scope** | IPC latency harness + measured Linux p50/p95/p99 and microbenchmark allocations in [`BENCHMARKS.md`](BENCHMARKS.md); Windows named-pipe IPC benchmark runs in Windows CI (results in the CI artifact `windows-evidence/.aether/windows-ipc-benchmark.txt`). WPF UI responsiveness under load is not separately profiled yet |
+| AW-019 Offline mode and failure behaviour | **Done for the tested scope** | `--offline` mode + provider health (no network I/O); missing local model safe error with zero cloud fallback; OS-level blocked-egress checks: Linux reference workflow inside an isolated network namespace with no external connectivity, Windows named-pipe demo under a Windows Firewall outbound block for the .NET host (`scripts/egress-blocked-check.*`, run in CI) |
+| AW-020 Tamper-evident local audit chain | **Done** | Metadata-only hash chain (+ optional HMAC), JSONL persistence, size-bounded rotation with retention, verification across retained/rotated files, chain continuation across process restarts, tamper/gap detection (`AuditChainTests`, `AuditRotationTests`, E2E). Signed/anchor-based storage remains future work |
+| AW-021 Supported-subset matrix | **Done for the declared subset** | [`docs/fdc3/supported-subset.md`](fdc3/supported-subset.md) documents contexts, bounded intents, resolution rules, app-directory projection, unsupported surfaces, versioning and evidence. Official-standard review remains a review checklist item |
+| AW-022 Supported FDC3 contexts and channels | **Done for the declared subset** | `fdc3.instrument` and `fdc3.organization` typed payloads, strict validation, single `default` app channel, provenance preserved; contract fixtures + broker channel tests + multi-process E2E (`Fdc3E2ETests`). User channels/other contexts not implemented |
+| AW-023 Limited intent resolution and app directory | **Done for the declared subset** | `ResolveIntent` RPC + `intent.resolve` capability, `ViewInstrument`/`ViewAnalysis`/`ViewChart` mapping to apps declaring the intent and required context type, preferred-target approval, structured denials; app-directory subset via `GetSnapshot` intents; capability/negative tests |
+| AW-024 Contract and external interop evidence | **Partial** | Fixtures, version/denial contract tests and multi-process E2E are implemented; **no independent FDC3 implementation or official conformance suite has been run**. External interop remains required before any "conformant" wording |
 
 ## v0.4.0…v1.0.0 — not started
 
@@ -65,7 +60,7 @@ dotnet test  AetherWorkspace.slnx -c Release
 dotnet run -c Release --project benchmarks/Aether.IpcBench -- --samples 1000 --warmup 100
 ```
 
-CI evidence: commit `674e2c0` run
+CI evidence (v0.2): commit `674e2c0` run
 [43641011037](https://github.com/SergeyGer/AetherWorkspace/actions/runs/43641011037) is green
 on **both** Linux (build + 333 tests + demo + IPC benchmark smoke) and Windows (build
 including WPF, full test suite, named-pipe demo); GitHub's default CodeQL setup is also
@@ -73,10 +68,11 @@ green. The named-pipe demo initially exposed a real client bug (`NamedPipeClient
 properties set before `ConnectAsync`), which is fixed and regression-covered by the CI
 demo.
 
-Recorded baseline totals for this tree after the v0.2 reliability-hardening step: 333
-automated tests across 7 test projects (contract 41, security 45, execution 140 incl. 100
-unsafe-plan cases, AI 27, broker 56, workflow 9, E2E 15) plus the measured IPC baseline.
-Counts grow as work continues; run `dotnet test` for the authoritative current number.
+Recorded baseline totals after the v0.3 step: **354 automated tests** across 8 test
+projects (contract 41, security 50, execution 140 incl. 100 unsafe-plan cases, AI 27,
+broker 56, workflow 9, FDC3 15, E2E 16) plus **2 Windows-only WPF UI automation tests**
+(FlaUI, separate project not run on Linux) and the measured IPC baselines. Counts grow as
+work continues; run `dotnet test` for the authoritative current number.
 
 ## Deliberate deviations and decisions
 

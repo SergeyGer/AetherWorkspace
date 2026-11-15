@@ -157,7 +157,15 @@ Pass `--policy <path>` to the headless shell to load a trusted policy document. 
 loader rejects invalid documents (for example a non-`FAIL_CLOSED` failure mode or an
 unknown cloud rule) instead of partially trusting them.
 
-## 7. Audit rotation and retention
+## 7. Model provider configuration (v0.4 preparation)
+
+Copy [`.env.example`](../.env.example) to a local `.env`, fill your own keys, and load it
+explicitly with `--env-file .env` (never commit `.env`; it is git-ignored). Cloud use stays
+disabled by default and requires explicit consent plus an allowed classification. The
+template lists OpenAI, Google Gemini and local loopback variables; real provider evaluation
+is v0.4 work.
+
+## 8. FDC3 demo, blocked-egress and audit rotation
 
 Broker and headless shell support size-bounded audit rotation with bounded retention:
 
@@ -171,7 +179,7 @@ reports `audit.chainValid`, `audit.fileChainValid`, and `audit.rotatedFiles`. Ve
 across retained/rotated files is covered by `AuditRotationTests`; no external anchor or
 signed append-only storage is claimed.
 
-## 8. Verification
+## 9. Verification
 
 ```bash
 ./scripts/verify.sh            # build (warnings-as-errors) + full test suite + demo

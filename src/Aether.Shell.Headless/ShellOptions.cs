@@ -36,6 +36,9 @@ public sealed class ShellOptions
     /// <summary>Offline mode: cloud adapters are not constructed and cloud flags are forced off.</summary>
     public bool Offline { get; private set; }
 
+    /// <summary>Optional `.env`-style file loaded into an in-memory secret provider.</summary>
+    public string? EnvFile { get; private set; }
+
     public long AuditMaxFileBytes { get; private set; }
 
     public int AuditMaxFiles { get; private set; } = 4;
@@ -114,6 +117,9 @@ public sealed class ShellOptions
                 case "--offline":
                     options.Offline = true;
                     break;
+                case "--env-file":
+                    options.EnvFile = NextValue();
+                    break;
                 default:
                     throw new ArgumentException($"Unknown option '{argument}'.");
             }
@@ -150,6 +156,7 @@ public sealed class ShellOptions
           --text                    Human-readable output instead of JSON.
           --use-local-model         Use the optional loopback local model adapter for summaries.
           --offline                 Offline mode: no cloud adapter is constructed and cloud flags are forced off.
+          --env-file <path>         Load provider configuration/secrets from a local .env file (git-ignored).
           --audit-max-bytes <n>     Rotate the audit file at n bytes (min 4096; 0 disables rotation).
           --audit-files <n>         Retain at most n rotated audit files (default 4).
         """;
