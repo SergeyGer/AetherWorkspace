@@ -24,6 +24,9 @@ rm -rf "$RUN_DIR"
 mkdir -p "$RUN_DIR"
 
 DOTNET_BIN="$(command -v dotnet)"
+# Canonicalize: CI images often expose /usr/bin/dotnet as a symlink; the broker
+# allowlist checks the resolved executable path, so both must agree.
+DOTNET_BIN="$(readlink -f "$DOTNET_BIN")"
 SAMPLES_DLL="$ROOT/src/Aether.SampleApps.Headless/bin/$CONFIG/net10.0/Aether.SampleApps.Headless.dll"
 BROKER_DLL="$ROOT/src/Aether.BrokerApp/bin/$CONFIG/net10.0/Aether.BrokerApp.dll"
 SHELL_DLL="$ROOT/src/Aether.Shell.Headless/bin/$CONFIG/net10.0/Aether.Shell.Headless.dll"

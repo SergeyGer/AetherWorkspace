@@ -70,7 +70,16 @@ demo is also executed over named pipes in the same job. Results are machine-spec
 measurements from the GitHub-hosted Windows runner; they are recorded per run rather than
 treated as a universal guarantee. The first green run's numbers are recorded below.
 
-<!-- WINDOWS_BENCHMARK_TABLE -->
+First measured run (GitHub-hosted `windows-latest`, .NET 10, named-pipe transport,
+300 samples + 50 warmup, 3 subscribers, commit `1c6629d`, CI run 43688971501):
+
+| Metric | p50 (ms) | p95 (ms) | p99 (ms) | max (ms) |
+|---|---:|---:|---:|---:|
+| Publish 1 KB context round-trip (3 subscribers) | **1.141** | **1.556** | **3.241** | 7.425 |
+| Health probe round-trip | **0.567** | **0.654** | **0.806** | 12.087 |
+
+These are raw shared-runner measurements (not a performance guarantee); rerun the Windows
+CI job or `Aether.IpcBench` locally on the target machine for a reference baseline.
 
 ## Microbenchmarks (measured, ShortRun: 3 iterations, 3 warmup)
 

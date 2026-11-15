@@ -12,20 +12,21 @@ if ! command -v unshare >/dev/null 2>&1; then
   exit 0
 fi
 
-if [ "$(id -u)" -ne 0 ]; then
-  SUDO="sudo -n"
-  if ! $SUDO true 2>/dev/null; then
+if [ "$(id -u)" -eq 0 ]; then
+  UN=(unshare -n)
+else
+  if ! sudo -n true 2>/dev/null; then
     echo "egress-blocked-check: SKIP (passwordless sudo not available for unshare)."
     exit 0
   fi
-else
-  SUDO=""
+  UN=(sudo -n -E unshare -n)
 fi
 
 echo "== OS-level blocked-egress check: isolated network namespace =="
-$SUDO unshare -n -- bash -c '
+"${UN[@]}" -- bash -c '
   set -euo pipefail
   cd "'"$ROOT"'"
+  ip link set lo up 2>/dev/null || true
   echo "network interfaces inside namespace:"; ip -brief addr 2>/dev/null || true
   # Any outbound TCP/DNS attempt must fail; local IPC must still work.
   if command -v curl >/dev/null 2>&1; then

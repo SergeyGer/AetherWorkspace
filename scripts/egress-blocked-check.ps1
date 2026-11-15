@@ -6,10 +6,12 @@ $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $ruleName = 'AetherWorkspace-EgressBlock'
 $dotnet = (Get-Command dotnet).Source
+$pwsh = (Get-Process -Id $PID).Path
 $ruleCreated = $false
 try {
     try {
-        New-NetFirewallRule -DisplayName $ruleName -Direction Outbound -Action Block -Program $dotnet -Profile Any | Out-Null
+        New-NetFirewallRule -DisplayName "$ruleName-dotnet" -Direction Outbound -Action Block -Program $dotnet -Profile Any | Out-Null
+        New-NetFirewallRule -DisplayName "$ruleName-pwsh" -Direction Outbound -Action Block -Program $pwsh -Profile Any | Out-Null
         $ruleCreated = $true
     } catch {
         Write-Warning "egress-blocked-check: SKIP (cannot create firewall rule: $($_.Exception.Message))"
@@ -35,6 +37,7 @@ try {
 }
 finally {
     if ($ruleCreated) {
-        Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+        Remove-NetFirewallRule -DisplayName "$ruleName-dotnet" -ErrorAction SilentlyContinue
+        Remove-NetFirewallRule -DisplayName "$ruleName-pwsh" -ErrorAction SilentlyContinue
     }
 }
