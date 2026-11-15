@@ -32,3 +32,9 @@ _source/
 # OS
 .DS_Store
 Thumbs.db
+
+# FDC3 interop harness build artifacts
+.tools/npm-cache/
+tools/fdc3-interop/node_modules/
+tools/fdc3-interop/.dacp-interop.bundle.mjs
+tools/fdc3-interop/*.bundle.mjs

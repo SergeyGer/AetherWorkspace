@@ -33,6 +33,19 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.3.2 AW-024 DACP runtime interop with FINOS Sail (2026-11-15)
+
+### Added
+
+- Test-only DACP interoperability harness (`tools/fdc3-interop/`) driving the declared
+  FDC3 subset through `@finos/sail-headless-agent` 3.0.0-beta.1 (independent implementation,
+  Apache-2.0): instrument/organization broadcasts with provenance-preserving metadata,
+  ViewInstrument intent resolution and intent-result return — 5/5 checks.
+- CI runs the pinned Node interop harness on every Linux build; machine-readable report
+  uploaded as an artifact.
+- AW-024 marked done for the practicable scope; issue #24 closed with evidence. v1.0
+  distribution policy confirmed (public MIT, unsigned portable archives + SBOM + checksums).
+
 ## [Unreleased] — v0.3.1 AW-024 external FDC3 interop increment (2026-11-15)
 
 ### Added
