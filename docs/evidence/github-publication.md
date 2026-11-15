@@ -51,3 +51,26 @@ The supplied planning kit archive was extracted into
 The two docx design documents were converted to Markdown under `docs/planning/` with their
 source SHA-256 values recorded in the baseline evidence record. Attachment originals
 remain in the read-only attachment store and are not committed.
+
+## Milestone releases and repository governance (2026-11-15)
+
+| Item | State |
+|---|---|
+| Releases | `v0.1.0` (M0 + MVP vertical slice), `v0.2.0` (reliability hardening) published with release notes and source archives + SHA-256 checksums; `v0.3.0` published by the `Release` workflow on tag push with framework-dependent binaries, source archive, SPDX SBOM and `SHA256SUMS-v0.3.0.txt` |
+| Release automation | `.github/workflows/release.yml` (tags `v*`, manual dispatch): build + full test suite, package broker/shell/samples, SPDX SBOM via `Microsoft.Sbom.DotNetTool`, checksums, GitHub release assets |
+| Branch protection | Classic protection on `main` (via API): required status checks are `Linux build, tests and headless demo`, `Windows build, tests and named-pipe demo`, `Windows WPF UI automation (FlaUI)`; force pushes and deletions disabled; admins not enforced (direct maintenance pushes remain possible) |
+| Issue dependencies | Planning-kit `AW-0xx` references on `**Dependencies:**` lines replaced with live `#N` issue links (37 issues had dependencies; one had none) |
+| Assignees | All 38 issues assigned to `SergeyGer` |
+| Kanban project | **Not created** — the credential lacks the GitHub `project` scope (`createProjectV2` resource not accessible by personal access token). Requires a token with Projects read/write permission (or the project created manually in the UI); all issue/milestone/label data is ready to add |
+| Wiki | Synced from the planning kit and updated for implemented milestones and CI status |
+
+### CI evidence for the v0.3.0 milestone
+
+- `CI` workflow: Linux job (build, 354 tests, headless demo, isolated-network-namespace
+  blocked-egress check, IPC benchmark smoke, publish + SPDX SBOM) and Windows job (build
+  incl. WPF, full test suite, named-pipe demo, named-pipe IPC benchmark, Firewall
+  blocked-egress check) plus a dedicated Windows WPF UI automation job (FlaUI).
+- UI automation found and fixed a real WPF defect: the shell never opened `MainWindow`
+  (missing `StartupUri`); both UI tests pass in Windows CI.
+- Any red runs are retained in Actions history as evidence of the failures and the
+  corresponding fixes.
