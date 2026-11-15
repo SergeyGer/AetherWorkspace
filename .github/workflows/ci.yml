@@ -37,6 +37,8 @@ jobs:
           dotnet publish src/Aether.BrokerApp -c Release -o artifacts/publish/broker -v q
           dotnet publish src/Aether.Shell.Headless -c Release -o artifacts/publish/shell -v q
           dotnet publish src/Aether.SampleApps.Headless -c Release -o artifacts/publish/samples -v q
+          mkdir -p artifacts/sbom
+          mkdir -p artifacts/sbom
           dotnet tool install --tool-path .tools/sbom Microsoft.Sbom.DotNetTool --version 4.1.13
           DOTNET_ROLL_FORWARD=Major .tools/sbom/sbom-tool generate \
             -b artifacts/publish -bc . -pn AetherWorkspace -pv 0.3.0 -ps "AetherWorkspace contributors" -m artifacts/sbom

@@ -51,6 +51,8 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          mkdir -p artifacts/sbom
+          mkdir -p artifacts/sbom
           dotnet tool install --tool-path .tools/sbom Microsoft.Sbom.DotNetTool --version 4.1.13
           DOTNET_ROLL_FORWARD=Major .tools/sbom/sbom-tool generate \
             -b "artifacts/publish/$VERSION" -bc . -pn AetherWorkspace -pv "$VERSION" \
