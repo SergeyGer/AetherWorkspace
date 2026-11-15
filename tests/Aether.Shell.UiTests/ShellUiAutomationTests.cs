@@ -47,8 +47,8 @@ public sealed partial class ShellUiAutomationTests
 
     private static readonly TimeSpan ElementTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan WindowTimeout = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan ConnectionTimeout = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan ConnectionTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan WorkflowTimeout = TimeSpan.FromSeconds(150);
     private static readonly TimeSpan SummaryTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
@@ -168,7 +168,7 @@ public sealed partial class ShellUiAutomationTests
                 traceMatch.Success,
                 "The success status did not contain a trace id." + Environment.NewLine + workflowStatus);
             var traceId = traceMatch.Groups["trace"].Value;
-            Assert.Matches("^[0-9a-f]{32}$", traceId);
+            Assert.Matches("^[0-9a-fA-F]{32}$", traceId);
             Assert.True(TraceContext.IsValidTraceId(traceId), $"'{traceId}' is not a valid 128-bit trace id.");
 
             // The rendered trace/audit tab must carry the same trace id. Selecting the tab
@@ -203,7 +203,8 @@ public sealed partial class ShellUiAutomationTests
                 $"Could not attach to the WPF shell main window within {WindowTimeout.TotalSeconds:0}s. "
                 + (application.HasExited
                     ? "The shell process exited."
-                    : "The shell process is running but did not expose a main window."));
+                    : "The shell process is running but did not expose a main window. "
+                        + "Verify that src/Aether.Shell/App.xaml opens MainWindow (StartupUri=\"MainWindow.xaml\")."));
 
         var titleDeadline = DateTime.UtcNow + ElementTimeout;
         while (!string.Equals(window.Title, WindowTitle, StringComparison.Ordinal)

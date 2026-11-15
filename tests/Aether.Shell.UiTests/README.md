@@ -54,9 +54,9 @@ $env:AETHER_SHELL_EXE = 'C:\build\Aether.Shell.exe'
 dotnet test tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release --no-build
 ```
 
-The tests wait up to 30 s for the main window and broker registration, up to 150 s for
-the workflow status, and use a 300 s xUnit timeout for the workflow fact. Broker
-stdout/stderr are included in failure messages.
+The tests wait up to 30 s for the main window, 20 s for the broker registration and
+backend, up to 150 s for the workflow status, and use a 300 s xUnit timeout for the
+workflow fact. Broker stdout/stderr are included in failure messages.
 
 ## CI
 
@@ -73,6 +73,9 @@ dotnet test tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release --
 
 ## Notes and risks
 
+- The shell must open `MainWindow` on startup (`StartupUri` in `src/Aether.Shell/App.xaml`
+  or equivalent `OnStartup` code). If `Aether.Shell.exe` only starts a message loop,
+  window attachment times out after 30 s even though the process is healthy.
 - FlaUI/UIA3 requires a real Windows desktop. On `windows-latest` the runner has an
   interactive session, but a locked or headless session will make window attachment
   fail with a clear timeout message rather than silently pass.
