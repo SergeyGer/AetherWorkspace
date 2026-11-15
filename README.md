@@ -9,7 +9,8 @@ and a local broker drives three independent synthetic desktop applications over
 authenticated local IPC. All fixtures are fictitious; nothing in this repository is
 production software or a compliance certification.
 
-- **Status:** **v0.3.0** — bounded FDC3 interoperability and v0.2 reliability closure.
+- **Status:** **v0.3.1** — bounded FDC3 interoperability, AW-024 external standards interop
+  increment and v0.2 reliability closure.
   Milestones M0/v0.1/v0.2 complete for the tested scope; v0.3 implemented for the declared
   bounded subset. CI is green on Linux and Windows (including named-pipe demo, blocked-egress
   checks, Windows IPC benchmark and WPF UI automation). GitHub releases are published per
@@ -36,7 +37,7 @@ directly or transmit restricted data to a cloud provider without explicit consen
 | M0 feasibility & foundations (AW-001…AW-006) | **Implemented** | Solution/CI skeleton, versioned Protobuf + JSON contracts, local transport prototype, deny-by-default policy, threat model/ADRs, benchmark harness |
 | v0.1.0 MVP (AW-007…AW-015) | **Implemented vertical slice** | One automated three-process synthetic workflow (launch/publish/arrange/summarize), authenticated sessions and capability checks, deterministic guarded executor, private local summary, policy denials and cloud-denial path, 100-entry unsafe-plan corpus |
 | v0.2 reliability (AW-016…AW-020) | **Implemented for the tested scope** | Bounded queues/FIFO/overflow/dedup + RPC-level idempotent retries, hang/kill/broker-disconnect fault injection, heartbeat + bounded restart, IPC benchmark baseline, offline mode with provider health, rotating/retained hash-chained audit with cross-restart chain continuation. Windows reference benchmarks and OS-level blocked-egress capture remain |
-| v0.3 bounded FDC3 (AW-021…AW-024) | **Implemented for the tested bounded subset** | `fdc3.instrument` + `fdc3.organization` contexts on the `default` channel with provenance, bounded intent resolution (`ViewInstrument`/`ViewAnalysis`/`ViewChart`), app-directory subset via broker snapshot, contract fixtures + dedicated test suite + multi-process E2E. Declared subset, no conformance claim; user channels and external FDC3 interop remain unsupported |
+| v0.3 bounded FDC3 (AW-021…AW-024) | **Implemented for the tested bounded subset** | `fdc3.instrument` + `fdc3.organization` contexts on the `default` channel with provenance, bounded intent resolution (`ViewInstrument`/`ViewAnalysis`/`ViewChart`), app-directory subset via broker snapshot, contract fixtures + dedicated test suite + multi-process E2E. Declared subset, no conformance claim; AW-024 external increment: official FDC3 3.0 JSON Schemas validated by an independent Python validator + .NET tests (7/7 payloads) with a deviation register; user channels and third-party Desktop-Agent runtime interop remain unsupported |
 | v0.4+ (AW-025…AW-038) | **Not started** | Privacy detectors beyond rules, vault, model router/evaluation, inspector, contract studio, release packaging |
 
 Automated evidence lives in `tests/` (contract, security, execution, AI, broker,
