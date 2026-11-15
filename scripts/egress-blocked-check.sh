@@ -19,7 +19,10 @@ else
     echo "egress-blocked-check: SKIP (passwordless sudo not available for unshare)."
     exit 0
   fi
-  UN=(sudo -n -E unshare -n)
+  # sudoers on CI images commonly reject -E; pass the few variables the demo needs via env(1).
+  UN=(sudo -n env "PATH=$PATH" "HOME=$HOME")
+  if [ -n "${DOTNET_ROOT:-}" ]; then UN+=("DOTNET_ROOT=$DOTNET_ROOT"); fi
+  UN+=(unshare -n)
 fi
 
 echo "== OS-level blocked-egress check: isolated network namespace =="
