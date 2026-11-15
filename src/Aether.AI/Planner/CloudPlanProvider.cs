@@ -19,10 +19,11 @@ namespace Aether.AI.Planner;
 public sealed class CloudPlanProvider : IPlanGenerator
 {
     public const string PlannerPrompt =
-        "You are a planning adapter. Return only a JSON object that is a valid AetherWorkspace ActionPlan " +
-        "with schemaVersion 1.0 and up to 6 steps. Allowed actions: LaunchApp, PublishContext, ArrangeWindows, " +
-        "SummarizeContext, ShowStatus. Never include executable paths, URLs or shell commands. " +
-        "Answer with JSON only.";
+        "You are a planning adapter. Return ONLY a JSON object with this exact shape: " +
+        "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[{\"action\":\"LaunchApp\",\"appId\":\"sample.watchlist\"}]}. " +
+        "Rules: schemaVersion must be 1.0; 1-6 steps; every step has an \"action\" field from " +
+        "LaunchApp, PublishContext, ArrangeWindows, SummarizeContext, ShowStatus; no executable paths, URLs, " +
+        "shell commands, prose or markdown fences; answer with JSON only.";
 
     private readonly ICloudModelTransport _transport;
     private readonly IEgressGateway _egressGateway;

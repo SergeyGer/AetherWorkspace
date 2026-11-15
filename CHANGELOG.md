@@ -33,6 +33,34 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.4.0 privacy, model routing/evaluation and Windows 11 test infrastructure (2026-11-15)
+
+### Added
+
+- Real provider configuration and adapters: `AETHER_MODEL_PROVIDER` selection, OpenAI-compatible
+  and native **Google Gemini** `generateContent` transports; credentials only from the
+  git-ignored `.env` (in-memory provider, never logged).
+- Explicit **capability-based model router**: PUBLIC-only cloud path requiring enabled cloud +
+  recorded consent + configured provider; INTERNAL/RESTRICTED/UNKNOWN never attempt cloud and
+  fall back to local model/deterministic. Router/provider/model/reason exposed in shell output.
+- **Model evaluation harness** (`tools/Aether.ModelEval`) + synthetic command corpus; first real
+  smoke run: OpenAI `gpt-4o-mini` and Gemini `gemini-3.1-flash-lite` — 6/6 responses and 6/6
+  syntactically valid plan shapes each; sanitized evidence committed.
+- **Detector escalation** (AW-025): account/IBAN/email/phone/LEI/ISIN patterns,
+  `ClassificationEscalator` never downgrades, detector failure ⇒ UNKNOWN fail-closed.
+- **Session token vault** (AW-026): masking/de-masking, TTL, capacity/eviction, cancellation,
+  thread safety, audit snapshots without raw tokens.
+- **Windows 11 reference-desktop testing infrastructure** (AW-039–AW-042 scaffolding):
+  published Reference Desktop run diagram, testing strategy docs, local PowerShell orchestrator,
+  Windows Named Pipes GUI E2E project, CI Windows UI lane integration.
+- v1.0 distribution policy recorded: public MIT sources, unsigned portable archives + SPDX SBOM +
+  SHA-256 checksums; no installer/code signing planned.
+
+### Fixed
+
+- `.env` parser strips trailing `# comment` from unquoted values while preserving URL fragments.
+- Gemini default model updated to an available cost-optimized tier after provider availability check.
+
 ## [Unreleased] — v0.3.2 AW-024 DACP runtime interop with FINOS Sail (2026-11-15)
 
 ### Added

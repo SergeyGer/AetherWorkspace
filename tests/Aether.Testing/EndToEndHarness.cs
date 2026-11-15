@@ -325,7 +325,40 @@ public sealed class EndToEndHarness : IAsyncDisposable
         var lines = new List<string>();
         foreach (var path in Directory.EnumerateFiles(ChildLogDirectory, appId + "-*.log", SearchOption.TopDirectoryOnly))
         {
-            lines.AddRange(File.ReadAllLines(path));
+            try
+            {
+                // Child processes keep their log handles open while running; Windows enforces
+                // sharing here, so read with explicit share flags and retry briefly if needed.
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                while (reader.ReadLine() is { } line)
+                {
+                    lines.Add(line);
+                }
+            }
+            catch (IOException)
+            {
+                // A child may be mid-write/rotating; a bounded retry is enough for evidence reads.
+                for (var attempt = 0; attempt < 5; attempt++)
+                {
+                    Thread.Sleep(100);
+                    try
+                    {
+                        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                        using var reader = new StreamReader(stream);
+                        while (reader.ReadLine() is { } line)
+                        {
+                            lines.Add(line);
+                        }
+
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        // keep retrying; the caller's assertions report a missing trace if it never appears.
+                    }
+                }
+            }
         }
 
         return lines;

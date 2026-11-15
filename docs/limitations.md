@@ -74,6 +74,16 @@ is not backed by a test or a measured baseline in this repository, it is not mad
 
 ## Correctness and reliability
 
+- **v0.4 model/privacy boundaries:** cloud attempts are limited to PUBLIC data with explicit
+  cloud enablement + consent + configured provider; INTERNAL/RESTRICTED/UNKNOWN never attempt
+  cloud. The evaluation smoke covers 6 synthetic commands only (no quality ranking). The
+  session token vault is volatile/in-memory and not yet applied to every prompt path. No local
+  model was installed in this environment, so local-inference behaviour is reported
+  unavailable rather than validated.
+- **Windows 11 physical-desktop evidence is not yet recorded:** the reference-desktop
+  orchestrator and Named-Pipes GUI E2E suite are implemented; executing them on the laptop and
+  publishing curated evidence is the remaining AW-039–AW-042 step. GitHub-hosted Windows CI is
+  a Windows Server VM and its UI evidence is non-authoritative for desktop support claims.
 - **FDC3 scope is a declared bounded subset:** `fdc3.instrument`/`fdc3.organization`
   contexts and three intents only; no user channels, intent listeners, app-directory
   federation or external FDC3 desktop-agent interop; no conformance claim.

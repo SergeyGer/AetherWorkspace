@@ -54,7 +54,9 @@ public sealed class SourceFirstClassifier : IDataClassifier
             reasons.Add($"detector:{detector.DetectorId}:{string.Join("+", detection.Findings.Select(f => $"{f.Category}:{f.Count}"))}");
             if (_escalateOnAnyFinding)
             {
-                classification = classification.Max(DataClassification.Restricted);
+                var escalation = ClassificationEscalator.Evaluate(classification, detection.Findings);
+                reasons.AddRange(escalation.ReasonCodes.Select(reason => $"detector:{detector.DetectorId}:{reason}"));
+                classification = escalation.ResultingClassification;
             }
         }
 

@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Windows-only reference-desktop end-to-end tests (v0.4 Addendum A01, WT-04-01/02/07).
+
+    One helper starts the real Aether.BrokerApp over the Windows named-pipe transport, the
+    tests launch the real WPF shell (Aether.Shell.exe) and drive it through FlaUI/UIA3, and
+    an operator BrokerClient verifies the three sample apps and the workflow trace.
+
+    This project is deliberately NOT part of AetherWorkspace.slnx, so the Linux CI job never
+    builds or runs it. It cross-compiles on Linux (EnableWindowsTargeting) but every test
+    returns early on a non-Windows host: a cross-build is compilation evidence only.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <!-- FlaUI drives the separately built WPF shell process; this assembly has no UI. -->
+    <UseWPF>false</UseWPF>
+    <RootNamespace>Aether.Desktop.E2E.Tests</RootNamespace>
+    <AssemblyName>Aether.Desktop.E2E.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Required at runtime by the Aether.Testing / broker helper assemblies. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Versions are pinned centrally in Directory.Packages.props (Windows reference desktop
+      only). This project declares its Windows-only test stack explicitly; the local
+      Directory.Build.props next to this file opts it out of the shared tests/ convention so
+      the same packages are not injected twice.
+    -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FlaUI.Core" />
+    <PackageReference Include="FlaUI.UIA3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Testing\Aether.Testing.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Contracts\Aether.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Broker.Client\Aether.Broker.Client.csproj" />
+    <!-- Build dependencies only: the tests launch these as separate processes. -->
+    <ProjectReference Include="..\..\src\Aether.Shell\Aether.Shell.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Aether.BrokerApp\Aether.BrokerApp.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Aether.SampleApps.Headless\Aether.SampleApps.Headless.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

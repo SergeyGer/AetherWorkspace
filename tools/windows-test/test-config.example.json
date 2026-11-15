@@ -1,0 +1,67 @@
+{
+  "$comment": "AetherWorkspace Windows 11 reference-desktop test configuration (v3.0 Addendum A01, section 8.3 shape). Copy to test-config.json next to Run-AetherTests.ps1 or pass -ConfigPath. Paths default to the trusted local layout under C:\\AetherWorkspace; never point trustedRoot at a GitHub runner or a network share.",
+  "configVersion": "1.0",
+  "addendum": "v3.0 Addendum A01 (Windows 11 reference desktop, automated run)",
+  "release": {
+    "target": "v0.4.0",
+    "approvedRevisionFile": "C:\\AetherWorkspace\\trusted\\approved-revision.txt",
+    "requireFullSha": true
+  },
+  "paths": {
+    "installRoot": "C:\\AetherWorkspace",
+    "trustedRoot": "C:\\AetherWorkspace\\trusted",
+    "automationRoot": "C:\\AetherWorkspace\\automation",
+    "runsRoot": "C:\\AetherWorkspace\\runs",
+    "resultsRoot": "C:\\AetherWorkspace\\results"
+  },
+  "preflight": {
+    "requireInteractiveUnlockedSession": true,
+    "singleInstanceMutexName": "Local\\AetherWorkspace.ReferenceDesktop.Run",
+    "allowBatteryPower": false,
+    "minimumMemoryGB": 16,
+    "minimumLogicalProcessors": 4,
+    "minimumFreeDiskGB": 25,
+    "display": {
+      "minimumMonitors": 1,
+      "minimumWidth": 1280,
+      "minimumHeight": 720
+    }
+  },
+  "build": {
+    "configuration": "Release",
+    "buildTimeoutMinutes": 60
+  },
+  "profiles": {
+    "developer-smoke": {
+      "description": "Fast local developer loop: reference-desktop GUI E2E only.",
+      "suites": [ "desktop-e2e" ],
+      "suiteTimeoutMinutes": 30
+    },
+    "daily-smoke": {
+      "description": "Daily reference-desktop check: existing WPF UI automation plus the named-pipe reference-desktop suite.",
+      "suites": [ "windows-ui", "desktop-e2e" ],
+      "suiteTimeoutMinutes": 60
+    },
+    "release-full": {
+      "description": "Release gate: portable solution suites, Windows WPF UI automation and reference-desktop GUI E2E.",
+      "suites": [ "portable", "windows-ui", "desktop-e2e" ],
+      "suiteTimeoutMinutes": 120
+    }
+  },
+  "artifacts": {
+    "trx": true,
+    "windowImages": false,
+    "maximumLogLines": 4000,
+    "retentionDays": 30
+  },
+  "privacy": {
+    "syntheticDataOnly": true,
+    "persistRawPayloads": false,
+    "requireRedactedLogs": true,
+    "externalProviderCallsExpected": 0,
+    "network": {
+      "allowInboundListeners": false,
+      "packageRestoreTransport": "TLS"
+    }
+  }
+}
