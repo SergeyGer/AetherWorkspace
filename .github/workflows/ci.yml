@@ -30,6 +30,10 @@ jobs:
         run: |
           python3 -m pip install --quiet 'jsonschema==4.23.0'
           python3 tools/fdc3-interop/validate_fdc3.py --report .aether/fdc3-interop-report.json
+      - name: FDC3 DACP runtime interop with Sail headless agent
+        run: |
+          npm --prefix tools/fdc3-interop ci --no-audit --no-fund
+          npm --prefix tools/fdc3-interop run interop -- --report "$PWD/.aether/dacp-interop-report.json"
       - name: Headless reference workflow demo (Unix domain sockets)
         run: SKIP_BUILD=1 ./scripts/demo.sh
       - name: OS-level blocked-egress check (isolated network namespace)

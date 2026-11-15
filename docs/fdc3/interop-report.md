@@ -67,12 +67,44 @@ dotnet test tests/Aether.Fdc3.Tests/Aether.Fdc3.Tests.csproj
 | Context metadata | Broker-authenticated source/timestamp/traceId mapped to the FDC3 `ContextMetadata` shape | We keep authoritative broker-authored metadata; app-provided metadata is not accepted from untrusted plans |
 | Security & Identity (experimental) | Not implemented | Future work; explicitly experimental in the standard |
 
-## Next increment to fully close AW-024
+## Increment 3 — DACP runtime interop with FINOS Sail headless (done)
 
-1. Implement a test-only **DACP adapter** (JSON messages; experimental protocol) exposing
-   the bounded surface, or a Desktop Agent Bridge adapter.
-2. Run `@finos/sail-headless-agent` (or another independent FDC3 implementation) as the
-   counterpart and record an interaction: external app broadcasts context / raises a
-   bounded intent that reaches our synthetic apps and back.
-3. Re-run the deviation register; only then consider closing AW-024. Any "conformant"
-   wording remains prohibited without the official conformance program.
+A test-only **DACP interoperability harness** now drives the declared subset through an
+**independent FDC3 implementation**: [`@finos/sail-headless-agent`](https://www.npmjs.com/package/@finos/sail-headless-agent)
+3.0.0-beta.1 (FINOS FDC3-Sail, Apache-2.0) acts as the DACP Desktop Agent, while
+`tools/fdc3-interop/dacp-interop.mjs` simulates our bounded app side with the exact payloads
+and intent declarations shipped in `tests/fixtures/fdc3/` and `samples/registry/`.
+
+It exercises official FDC3 3.0 DACP wire messages (`broadcastRequest`/`broadcastEvent`,
+`addContextListenerRequest`, `addIntentListenerRequest`/`raiseIntentRequest`/`intentEvent`/
+`intentResultRequest`/`raiseIntentResultResponse`) and verifies, against Sail:
+
+1. our `fdc3.instrument` context is broadcast on the `default` app channel and delivered
+   with Sail-enriched metadata (`source.appId = aether.shell`, authoritative timestamp,
+   our app-provided `traceId` preserved);
+2. our `fdc3.organization` catalog context is broadcast and delivered as well;
+3. the bounded `ViewInstrument` intent resolves to `sample.watchlist`, the app that declares
+   the intent and accepts `fdc3.instrument`;
+4. the resolving app can return an intent result that Sail routes back to the raising app.
+
+Measured result: **5/5 interop checks passed, 0 failures, 6 DACP exchanges** (see
+`.aether/dacp-interop-report.json` in CI artifacts; generated with the pinned Sail package).
+This is runtime interoperability evidence with a third-party implementation — not an FDC3
+conformance test and not a certification.
+
+Reproduce (Node 20+):
+
+```bash
+npm --prefix tools/fdc3-interop ci --no-audit --no-fund
+npm --prefix tools/fdc3-interop run interop -- --report .aether/dacp-interop-report.json
+```
+
+## Remaining AW-024 items
+
+1. Optional: implement a **production DACP server wrapper** around the .NET broker (the
+   current harness simulates the app side; a wrapper would let real DACP apps connect
+   directly to AetherWorkspace apps), or a Desktop Agent Bridge adapter.
+2. Run the **official FDC3 conformance runner** only if a JS Desktop Agent API surface is
+   added; it is not applicable to this broker architecture today.
+3. Keep the deviation register in sync with the standard. Any "conformant" wording stays
+   prohibited without the official conformance program.

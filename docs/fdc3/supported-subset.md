@@ -93,8 +93,10 @@ trace/span id, timestamp).
 - **External standards interoperability (AW-024 increment):** payloads are validated
   against the vendored official FDC3 3.0 JSON Schemas with an independent Python
   validator and with .NET contract tests; provenance maps to the FDC3 3.0
-  `ContextMetadata` shape. See [interop-report.md](interop-report.md). Still no
-  third-party Desktop-Agent runtime interop and no conformance claim.
+  `ContextMetadata` shape. Runtime interop: the declared contexts/intents are exercised
+  through the independent FINOS **Sail headless** DACP Desktop Agent in
+  `tools/fdc3-interop/` (5/5 checks, official DACP messages). See
+  [interop-report.md](interop-report.md). Still **no FDC3 conformance claim**.
 
 ## Next steps (v0.3 gate closure / later)
 
