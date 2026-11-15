@@ -26,6 +26,10 @@ jobs:
         run: dotnet build AetherWorkspace.slnx -c Release
       - name: Run full test suite
         run: dotnet test AetherWorkspace.slnx -c Release --no-build --logger "trx;LogFileName=linux-tests.trx"
+      - name: FDC3 official-schema interop check (independent Python validator)
+        run: |
+          python3 -m pip install --quiet 'jsonschema==4.23.0'
+          python3 tools/fdc3-interop/validate_fdc3.py --report .aether/fdc3-interop-report.json
       - name: Headless reference workflow demo (Unix domain sockets)
         run: SKIP_BUILD=1 ./scripts/demo.sh
       - name: OS-level blocked-egress check (isolated network namespace)

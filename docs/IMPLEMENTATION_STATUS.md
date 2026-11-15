@@ -42,7 +42,7 @@ exists yet.
 | AW-021 Supported-subset matrix | **Done for the declared subset** | [`docs/fdc3/supported-subset.md`](fdc3/supported-subset.md) documents contexts, bounded intents, resolution rules, app-directory projection, unsupported surfaces, versioning and evidence. Official-standard review remains a review checklist item |
 | AW-022 Supported FDC3 contexts and channels | **Done for the declared subset** | `fdc3.instrument` and `fdc3.organization` typed payloads, strict validation, single `default` app channel, provenance preserved; contract fixtures + broker channel tests + multi-process E2E (`Fdc3E2ETests`). User channels/other contexts not implemented |
 | AW-023 Limited intent resolution and app directory | **Done for the declared subset** | `ResolveIntent` RPC + `intent.resolve` capability, `ViewInstrument`/`ViewAnalysis`/`ViewChart` mapping to apps declaring the intent and required context type, preferred-target approval, structured denials; app-directory subset via `GetSnapshot` intents; capability/negative tests |
-| AW-024 Contract and external interop evidence | **Partial** | Fixtures, version/denial contract tests and multi-process E2E are implemented; **no independent FDC3 implementation or official conformance suite has been run**. External interop remains required before any "conformant" wording |
+| AW-024 Contract and external interop evidence | **Partial (first external increment done)** | Fixtures, version/denial contract tests and multi-process E2E are implemented. External standards interop: official FDC3 3.0 JSON Schemas (pinned upstream commit, Apache-2.0) validated by an independent Python `jsonschema` validator and .NET tests (7/7 payloads), plus a documented deviation register. **No third-party Desktop-Agent runtime (DACP) interop and no conformance suite run** — required before any "conformant" wording |
 
 ## v0.4.0…v1.0.0 — not started
 
@@ -68,9 +68,10 @@ green. The named-pipe demo initially exposed a real client bug (`NamedPipeClient
 properties set before `ConnectAsync`), which is fixed and regression-covered by the CI
 demo.
 
-Recorded baseline totals after the v0.3 step: **354 automated tests** across 8 test
-projects (contract 41, security 50, execution 140 incl. 100 unsafe-plan cases, AI 27,
-broker 56, workflow 9, FDC3 15, E2E 16) plus **2 Windows-only WPF UI automation tests**
+Recorded baseline totals after the v0.3.1 interop increment: **359 automated tests** across
+8 test projects (contract 41, security 50, execution 140 incl. 100 unsafe-plan cases, AI 27,
+broker 56, workflow 9, FDC3 20 incl. official-schema interop, E2E 16) plus **2 Windows-only
+WPF UI automation tests**
 (FlaUI, separate project not run on Linux) and the measured IPC baselines. Counts grow as
 work continues; run `dotnet test` for the authoritative current number.
 

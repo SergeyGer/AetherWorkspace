@@ -33,6 +33,21 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.3.1 AW-024 external FDC3 interop increment (2026-11-15)
+
+### Added
+
+- Official FDC3 3.0 context JSON Schemas vendored as pinned test fixtures (Apache-2.0,
+  upstream commit `c6adda7a1f66d97d03809343852a4bfc0806f859`).
+- Independent Python `jsonschema` validator (`tools/fdc3-interop/validate_fdc3.py`) and
+  `.NET` contract tests validating all supported context payloads against the official
+  schemas (7/7 payloads), plus provenance → FDC3 3.0 `ContextMetadata` projection.
+- `docs/fdc3/interop-report.md`: conformance landscape, deviation register and the
+  DACP/Sail headless agent plan for the next AW-024 increment.
+- Model-selection rationale with cost-optimized defaults (OpenAI `gpt-4o-mini`,
+  Gemini `gemini-2.5-flash-lite`, local `qwen2.5:3b`) in `.env.example` and
+  `docs/evaluation/model-selection.md`.
+
 ## [Unreleased] — v0.3.0 bounded FDC3 interoperability + reliability closure (2026-11-15)
 
 ### Added

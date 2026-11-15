@@ -3,6 +3,9 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Aether.Contracts\Aether.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Aether.Security\Aether.Security.csproj" />
     <ProjectReference Include="..\..\src\Aether.Broker\Aether.Broker.csproj" />

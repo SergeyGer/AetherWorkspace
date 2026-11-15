@@ -90,6 +90,11 @@ trace/span id, timestamp).
   against a real broker process): `tests/Aether.E2E.Tests/Fdc3E2ETests.cs`.
 - Broker-side implementation: `src/Aether.Broker/Intents/IntentRouter.cs`,
   `src/Aether.Broker/Hosting/BrokerGrpcService.cs`, `src/Aether.Contracts/Fdc3/*`.
+- **External standards interoperability (AW-024 increment):** payloads are validated
+  against the vendored official FDC3 3.0 JSON Schemas with an independent Python
+  validator and with .NET contract tests; provenance maps to the FDC3 3.0
+  `ContextMetadata` shape. See [interop-report.md](interop-report.md). Still no
+  third-party Desktop-Agent runtime interop and no conformance claim.
 
 ## Next steps (v0.3 gate closure / later)
 
