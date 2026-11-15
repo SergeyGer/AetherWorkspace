@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Aether.AI.Planner;
 using Aether.AI.Providers;
+using Aether.AI.Routing;
 using Aether.AI.Summarization;
 using Aether.Broker.Client;
 using Aether.Contracts;
@@ -86,13 +87,14 @@ public static class Program
             var classifier = new SourceFirstClassifier([detector]);
 
             var deterministicPlanner = new DeterministicCommandPlanner();
+            var providerSettings = ModelProviderSettings.FromEnvironment(envOverrides);
+            var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured(envOverrides);
+            var requestedRoute = ModelRouter.Decide(
+                options.Classification, cloudEnabled, cloudConsent, providerSettings.IsConfigured, localModelConfigured, providerSettings);
             IPlanGenerator? cloudPlanner = null;
-            if (options.Planner == "cloud" && !options.Offline)
+            if (options.Planner == "cloud" && !options.Offline && providerSettings.IsCloud)
             {
-                var transport = new HttpCloudModelTransport(
-                    secretProvider,
-                    endpoint: GetOverride(envOverrides, HttpCloudModelTransport.DefaultEndpointEnvironmentVariable),
-                    modelId: GetOverride(envOverrides, HttpCloudModelTransport.DefaultModelEnvironmentVariable));
+                var transport = CreateCloudTransport(providerSettings, secretProvider, envOverrides);
                 cloudPlanner = new CloudPlanProvider(
                     transport,
                     egressGateway,
@@ -224,7 +226,7 @@ public static class Program
                 options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile),
                 rotatedFiles,
                 fileChainValid),
-            BuildProviders(options, cloudEnabled, cloudConsent, envOverrides),
+            BuildProviders(options, cloudEnabled, cloudConsent, envOverrides, result.Classification),
             BuildLimitations());
     }
 
@@ -252,24 +254,49 @@ public static class Program
             0,
             new ShellEgressOutput(0, 0, 0, new Dictionary<string, long>()),
             new ShellAuditOutput(0, true, options.AuditFile is null ? null : Path.GetFullPath(options.AuditFile), rotatedFiles, fileChainValid),
-            BuildProviders(options, options.CloudEnabled && !options.Offline, options.CloudConsent && !options.Offline, envOverrides),
+            BuildProviders(options, options.CloudEnabled && !options.Offline, options.CloudConsent && !options.Offline, envOverrides, options.Classification),
             BuildLimitations());
     }
 
     private static string? GetOverride(IReadOnlyDictionary<string, string>? values, string key) =>
         values is not null && values.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value) ? value : null;
 
+    private static ICloudModelTransport CreateCloudTransport(
+        ModelProviderSettings settings,
+        Aether.Security.Secrets.ISecretProvider secretProvider,
+        IReadOnlyDictionary<string, string>? envOverrides) =>
+        settings.ProviderId == "gemini"
+            ? new GeminiCloudModelTransport(
+                secretProvider,
+                baseUrl: settings.ReadEndpoint(envOverrides),
+                model: settings.Model,
+                apiKeyEnvironmentVariable: settings.ApiKeyEnvironmentVariable)
+            : new HttpCloudModelTransport(
+                secretProvider,
+                endpoint: settings.ReadEndpoint(envOverrides),
+                modelId: settings.Model,
+                apiKeyEnvironmentVariable: settings.ApiKeyEnvironmentVariable);
+
     private static ShellProvidersOutput BuildProviders(
         ShellOptions options,
         bool cloudEnabled,
         bool cloudConsent,
-        IReadOnlyDictionary<string, string>? envOverrides)
+        IReadOnlyDictionary<string, string>? envOverrides,
+        DataClassification classification)
     {
-        var cloudConfigured = !options.Offline && HttpCloudModelTransport.IsEndpointConfigured(envOverrides);
+        var providerSettings = ModelProviderSettings.FromEnvironment(envOverrides);
+        var genericCloudConfigured = !options.Offline && HttpCloudModelTransport.IsEndpointConfigured(envOverrides);
+        var cloudConfigured = !options.Offline && ((providerSettings.IsCloud && providerSettings.IsConfigured) || genericCloudConfigured);
         var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured(envOverrides);
+        var route = ModelRouter.Decide(classification, cloudEnabled, cloudConsent, cloudConfigured, localModelConfigured, providerSettings);
         var mode = options.Offline
             ? "offline"
-            : cloudConfigured && cloudEnabled && cloudConsent ? "cloud-enabled" : "local-private";
+            : route.Kind switch
+            {
+                ModelRouteKind.Cloud => "cloud-enabled",
+                ModelRouteKind.LocalModel => "local-model",
+                _ => "local-private",
+            };
         return new ShellProvidersOutput(
             mode,
             DeterministicPlanner: true,
@@ -277,7 +304,12 @@ public static class Program
             CloudAdapterConfigured: cloudConfigured,
             LocalModelAdapterConfigured: localModelConfigured,
             CloudEnabled: cloudEnabled,
-            CloudConsentGranted: cloudConsent);
+            CloudConsentGranted: cloudConsent,
+            ModelProvider: providerSettings.ProviderId,
+            ModelName: providerSettings.Model,
+            RouteKind: route.Kind.ToString(),
+            RouteReason: route.ReasonCode,
+            CloudAttemptAllowed: route.CloudAttemptAllowed);
     }
 
     private static (int RotatedFiles, bool FileChainValid) VerifyAuditFile(ShellOptions options)
@@ -308,6 +340,7 @@ public static class Program
         var limitations = new List<string>
         {
             "Cloud and local-model adapters are optional and disabled unless explicitly configured.",
+            "Cloud routing is allowed only for PUBLIC data with cloud enabled and recorded consent; INTERNAL/RESTRICTED/UNKNOWN never attempt a cloud call.",
             "Win32 top-level arrangement and WPF shell rendering are exercised only on Windows.",
         };
         if (!OperatingSystem.IsWindows())

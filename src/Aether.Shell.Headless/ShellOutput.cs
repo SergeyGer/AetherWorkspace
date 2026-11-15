@@ -55,4 +55,9 @@ public sealed record ShellProvidersOutput(
     bool CloudAdapterConfigured,
     bool LocalModelAdapterConfigured,
     bool CloudEnabled,
-    bool CloudConsentGranted);
+    bool CloudConsentGranted,
+    string? ModelProvider = null,
+    string? ModelName = null,
+    string RouteKind = "DeterministicLocal",
+    string? RouteReason = null,
+    bool CloudAttemptAllowed = false);

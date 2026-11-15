@@ -44,12 +44,27 @@ exists yet.
 | AW-023 Limited intent resolution and app directory | **Done for the declared subset** | `ResolveIntent` RPC + `intent.resolve` capability, `ViewInstrument`/`ViewAnalysis`/`ViewChart` mapping to apps declaring the intent and required context type, preferred-target approval, structured denials; app-directory subset via `GetSnapshot` intents; capability/negative tests |
 | AW-024 Contract and external interop evidence | **Done for the practicable scope** | Fixtures, version/denial contract tests and multi-process E2E. External interop: (1) official FDC3 3.0 JSON Schemas validated by an independent Python validator + .NET tests (7/7 payloads) with deviation register; (2) **runtime DACP interop with the independent FINOS Sail headless Desktop Agent** — contexts/intents exchanged in official DACP messages, 5/5 checks. The official JS Desktop Agent conformance runner is not applicable to this broker architecture, and **no conformance/certification claim** is made |
 
-## v0.4.0…v1.0.0 — not started
+## v0.4.0 — privacy, model routing/evaluation and Windows 11 test infrastructure
 
-AW-025…AW-038 (local entity detection, token vault, model router, model evaluation,
-egress adversarial regression, docking decision, multi-monitor layouts, Live Inspector,
-diagnostics export, contract studio, reproducible Windows distribution/SBOM, public docs
-and final release gate) are planned only. See `docs/planning/implementation-release-plan-v3.0.md`.
+| Item | Status | Evidence |
+|---|---|---|
+| AW-025 Local entity detection and escalation | **Implemented for the tested scope** | `SensitivePatterns` now detects account/IBAN/email/phone/LEI/ISIN shapes; `ClassificationEscalator` never downgrades, strong categories ⇒ RESTRICTED, unknown categories ⇒ INTERNAL, detector failure/malformed findings ⇒ UNKNOWN (fail-closed); supervised by `SourceFirstClassifier`. 47 escalation tests. Shape detectors are not validators; no precision/recall claim without a labelled corpus |
+| AW-026 Session token vault | **Implemented for the tested scope** | `SessionTokenVault` (session-scoped, capacity/TTL/eviction/cancel, thread-safe, reversible masking `[TOKEN:N]`, content masking/unmasking, audit snapshot without raw tokens). 29 vault tests. Not wired into every AI call path yet; adapter integration is the remaining step for full prompt masking |
+| AW-027 Capability-based model router | **Implemented for the tested scope** | `ModelRouter` + `ModelProviderSettings`: cloud only for PUBLIC + enabled + consent + configured provider; INTERNAL/RESTRICTED/UNKNOWN never attempt cloud and fall back to local model/deterministic. New native Gemini transport + OpenAI-compatible adapter. Shell JSON exposes route/provider/model/reason. 10 router/transport tests; existing egress regression tests remain green |
+| AW-028 Model evaluation | **Done for the smoke scope** | `tools/Aether.ModelEval` + synthetic corpus; first real-provider smoke on 2026-11-15: `gpt-4o-mini` 6/6 responses and 6/6 syntactically valid bounded plans, `gemini-3.1-flash-lite` 6/6 and 6/6, avg latency ~1.3–1.4 s, estimated cost < $0.01; sanitized evidence in `docs/evaluation/results-2026-11-15.md`. No quality ranking or statistical claim; larger corpus/TTFT scoring remains |
+| AW-029 Adversarial egress regression | **Implemented for the tested scope** | Router + egress tests prove non-PUBLIC data never reaches a cloud transport; CI OS-level blocked-egress checks (Linux network namespace, Windows firewall) remain; evaluation harness never executes model output |
+| AW-039 Windows 11 reference baseline | **In progress** | Published reference-desktop diagram and testing strategy docs; hardware manifest/preflight/run-result contracts in `tools/windows-test/` (proposed, not yet executed on the laptop) |
+| AW-040 Local PowerShell orchestrator | **In progress (not executed on Windows 11 yet)** | `tools/windows-test/Run-AetherTests.ps1`: reviewed full-SHA approval, unlocked-session preflight, mutex, detached worktree, environment manifest, run-result, owned-PID cleanup, SKIPPED taxonomy. Not yet run on the reference laptop |
+| AW-041 WPF GUI E2E over Windows Named Pipes | **In progress (CI compile; Windows run pending)** | New `tests/Aether.Desktop.E2E.Tests` (real broker over named pipes + WPF shell + three sample processes, FlaUI semantic locators, trace/privacy assertions); runs in the dedicated Windows UI lane, not in the portable suite |
+| AW-042 WT-04 regression suite on reference desktop | **Planned** | WT-04-01/02/07 scenarios scaffolded in the desktop E2E project; full WT-04-01…08 physical run with evidence collection is pending hardware execution |
+
+## v0.5.0…v1.0.0 — planned
+
+AW-030…AW-038 (docking decision, multi-monitor layouts, Live Inspector, diagnostics export,
+contract studio, reproducible Windows distribution/SBOM, public docs and final release gate)
+are planned only. Windows 11 physical-desktop evidence for v0.4/v0.5 follows
+[`docs/testing/windows11-reference.md`](testing/windows11-reference.md) and the published
+[`reference-desktop run lifecycle`](testing/reference-desktop.md).
 
 ## Verification commands
 

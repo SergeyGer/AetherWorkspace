@@ -107,24 +107,21 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Detect UI test project
-        id: ui
-        shell: pwsh
+      - name: Build solution and Windows UI test projects
         run: |
-          if (Test-Path 'tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj') {
-            "present=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          } else {
-            "present=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-            Write-Host 'UI test project not present in this revision; skipping.'
+          if (-not (Test-Path 'tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj')) {
+            throw 'Required UI test project tests/Aether.Shell.UiTests is missing; the windows-ui lane must fail rather than silently skip.'
           }
-      - name: Build solution and UI test project
-        if: steps.ui.outputs.present == 'true'
-        run: |
+          if (-not (Test-Path 'tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj')) {
+            throw 'Required reference-desktop E2E project tests/Aether.Desktop.E2E.Tests is missing; the windows-ui lane must fail rather than silently skip.'
+          }
           dotnet build AetherWorkspace.slnx -c Release
           dotnet build tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release
-      - name: Run WPF UI automation tests
-        if: steps.ui.outputs.present == 'true'
+          dotnet build tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj -c Release
+      - name: Run WPF shell UI automation tests
         run: dotnet test tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release --no-build --logger "trx;LogFileName=windows-ui-tests.trx"
+      - name: Run reference-desktop Named-Pipes GUI E2E tests
+        run: dotnet test tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj -c Release --no-build --filter "Category=ReferenceDesktop|Category=Privacy04" --logger "trx;LogFileName=windows-desktop-e2e.trx"
       - name: Upload UI evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -133,4 +130,5 @@ jobs:
           path: |
             .aether/
             tests/Aether.Shell.UiTests/TestResults/
+            tests/Aether.Desktop.E2E.Tests/TestResults/
           if-no-files-found: warn

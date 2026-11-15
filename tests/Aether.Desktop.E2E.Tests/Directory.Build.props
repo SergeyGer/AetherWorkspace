@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    This Windows-only test project declares its complete test stack explicitly in its
+    .csproj (xunit, test SDK, runner, FlaUI). Importing the repository-root build properties
+    directly opts the project out of tests/Directory.Build.props, which would otherwise
+    inject the same test packages for every project whose name ends with ".Tests" and cause
+    duplicate PackageReference items. Warnings-as-errors, central package management,
+    nullable and EnableWindowsTargeting still come from the root Directory.Build.props.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)../../Directory.Build.props" />
+</Project>

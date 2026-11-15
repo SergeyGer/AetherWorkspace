@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Aether.ModelEval</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aether.Contracts\Aether.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Aether.Security\Aether.Security.csproj" />
+    <ProjectReference Include="..\..\src\Aether.AI\Aether.AI.csproj" />
+  </ItemGroup>
+</Project>

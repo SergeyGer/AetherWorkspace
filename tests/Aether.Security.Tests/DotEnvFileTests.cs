@@ -18,12 +18,17 @@ public class DotEnvFileTests
             "export GEMINI_MODEL = \"gemini-test\"",
             "AETHER_LOCAL_MODEL='local-test'",
             "AETHER_CLOUD_ENDPOINT=https://example.invalid/v1?x=1&y=2",
+            "GEMINI_COMMENTED_MODEL=gemini-2.5-flash-lite  # cheapest tier",
+            "AETHER_LOCAL_MODEL_ENDPOINT=http://127.0.0.1:11434/v1/chat/completions#fragment",
         });
 
         Assert.Equal("sk-synthetic-not-real", values["OPENAI_API_KEY"]);
         Assert.Equal("gemini-test", values["GEMINI_MODEL"]);
         Assert.Equal("local-test", values["AETHER_LOCAL_MODEL"]);
         Assert.Equal("https://example.invalid/v1?x=1&y=2", values["AETHER_CLOUD_ENDPOINT"]);
+        Assert.Equal("gemini-test", values["GEMINI_MODEL"]);
+        Assert.Equal("gemini-2.5-flash-lite", values["GEMINI_COMMENTED_MODEL"]);
+        Assert.Equal("http://127.0.0.1:11434/v1/chat/completions#fragment", values["AETHER_LOCAL_MODEL_ENDPOINT"]);
     }
 
     [Fact]

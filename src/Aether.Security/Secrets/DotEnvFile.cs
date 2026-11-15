@@ -59,9 +59,20 @@ public static class DotEnvFile
             }
 
             var value = line[(separator + 1)..].Trim();
-            if (value.Length >= 2 && ((value[0] == '"' && value[^1] == '"') || (value[0] == '\'' && value[^1] == '\'')))
+            var quoted = value.Length >= 2 &&
+                         ((value[0] == '"' && value[^1] == '"') || (value[0] == '\'' && value[^1] == '\''));
+            if (quoted)
             {
                 value = value[1..^1];
+            }
+            else
+            {
+                // Support the common "VALUE  # comment" form without treating URL fragments as comments.
+                var commentStart = value.IndexOf(" #", StringComparison.Ordinal);
+                if (commentStart > 0)
+                {
+                    value = value[..commentStart].TrimEnd();
+                }
             }
 
             values[key] = value;
