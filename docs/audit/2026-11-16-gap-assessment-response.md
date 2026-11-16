@@ -23,6 +23,20 @@ source-and-evidence inspection of `main` @ `c67c3eb` / release v1.0.0 (13 findin
 | G-12 R1 artifacts curated, not independently replayable | P2 | **Fixed in v1.0.1 evidence transparency** | machine-readable acceptance manifest with run/suite/counter/environment/provenance and evidence-file hashes (raw TRX/logs remain local by privacy policy) |
 | G-13 GitHub Project board omitted | P2 | **Accepted process deviation** | Issues are the work-unit source of truth; all completed milestone issues were closed with evidence; board remains optional |
 
+## Clean-machine verification update (v1.0.1 bundle, 2026-11-16)
+
+Operator verification on the physical Windows 11 reference machine:
+
+- the published **Windows x64 desktop ZIP** downloaded with a matching SHA-256;
+- **full-asset verification** (`Verify-Release.ps1` over desktop, headless, source and SPDX SBOM)
+  returned **VERIFY PASS**;
+- `Start-AetherWorkspace.ps1` started the packaged broker and WPF Shell successfully;
+- the reference command opened the three real WPF sample windows, which then closed. Because the
+  packaged workflow output was not captured, this is recorded as an **open defect**, not a fix:
+  v1.0.2 adds `Test-AetherWorkflow.ps1` (packaged headless workflow with structured result),
+  `Collect-Diagnostics.ps1`, WPF sample heartbeat/diagnostics, and real-WPF-sample CI regression
+  tests (launch/context persistence and full GUI workflow), closing the headless-only coverage gap.
+
 ## Corrective-release acceptance evidence (v1.0.1)
 
 - Tagged source SHA with the release pipeline producing **both** desktop and headless assets.

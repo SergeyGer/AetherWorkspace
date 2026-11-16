@@ -21,6 +21,10 @@ public class ReleasePackagingTests
         Assert.Contains("Aether.SampleApps.exe", workflow, StringComparison.Ordinal);
         Assert.Contains("Aether.BrokerApp.exe", workflow, StringComparison.Ordinal);
         Assert.Contains("headless-binaries.zip", workflow, StringComparison.Ordinal);
+        Assert.Contains("shell-headless", workflow, StringComparison.Ordinal);
+        Assert.Contains("Test-AetherWorkflow.ps1", workflow, StringComparison.Ordinal);
+        Assert.Contains("Collect-Diagnostics.ps1", workflow, StringComparison.Ordinal);
+        Assert.Contains("packaging/windows/*.ps1", workflow, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -37,6 +41,31 @@ public class ReleasePackagingTests
         Assert.Contains("--layout-store", launcher, StringComparison.Ordinal);
         Assert.Contains("apps.windows.json", launcher, StringComparison.Ordinal);
         Assert.Contains("AETHER_ENDPOINT_FILE", launcher, StringComparison.Ordinal);
+        Assert.Contains("--audit-file", launcher, StringComparison.Ordinal);
+        Assert.Contains("Collect-Diagnostics.ps1", launcher, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PackagedSelfTestRunsHeadlessWorkflowAndExportsDiagnostics()
+    {
+        var script = Read("packaging", "windows", "Test-AetherWorkflow.ps1");
+
+        Assert.Contains("Aether.Shell.Headless.exe", script, StringComparison.Ordinal);
+        Assert.Contains("--export-diagnostics", script, StringComparison.Ordinal);
+        Assert.Contains("apps.windows.json", script, StringComparison.Ordinal);
+        Assert.Contains("WPF_SAMPLES_EXE=", script, StringComparison.Ordinal);
+        Assert.Contains("workflow-result", script, StringComparison.Ordinal);
+        Assert.Contains("Get-Process Aether.SampleApps", script, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DiagnosticsCollectorExcludesEndpointToken()
+    {
+        var script = Read("packaging", "windows", "Collect-Diagnostics.ps1");
+
+        Assert.Contains("endpoint.json", script, StringComparison.Ordinal);
+        Assert.Contains("excluded", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Compress-Archive", script, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -48,6 +77,16 @@ public class ReleasePackagingTests
         Assert.Contains("UNSIGNED", readme, StringComparison.Ordinal);
         Assert.Contains("SmartScreen", readme, StringComparison.Ordinal);
         Assert.Contains("No telemetry", readme, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReleaseVerifierSupportsExplicitPartialDownloadMode()
+    {
+        var verifier = Read("tools", "release", "Verify-Release.ps1");
+
+        Assert.Contains("AllowPartialDownload", verifier, StringComparison.Ordinal);
+        Assert.Contains("PARTIAL VERIFY PASS", verifier, StringComparison.Ordinal);
+        Assert.Contains("full verification requires all release assets", verifier, StringComparison.Ordinal);
     }
 
     private static string Read(params string[] parts) => File.ReadAllText(TestRepo.PathTo(parts));

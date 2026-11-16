@@ -93,6 +93,15 @@ Windows 11 physical-desktop evidence follows
 v1.0.0 gap assessment are answered in
 [`docs/audit/2026-11-16-gap-assessment-response.md`](audit/2026-11-16-gap-assessment-response.md).
 
+## v1.0.2 — diagnostics release (2026-11-16)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Packaged desktop self-test/diagnostics | **Done** | `Test-AetherWorkflow.ps1` (packaged broker + headless reference workflow + structured result/diagnostics), `Collect-Diagnostics.ps1` (privacy-safe ZIP, endpoint token excluded), headless shell included in the desktop bundle |
+| WPF sample-app diagnostics | **Done** | heartbeat parity, unhandled-exception/connect logging to broker child log and `%TEMP%\aether-sample-logs` |
+| Real-WPF-sample regression coverage | **Done** | CI tests run the real WPF sample apps through launch/context persistence and the full WPF-shell workflow (`WT-04-09`) |
+| Clean-machine desktop workflow verification | **Open** | v1.0.1 bundle: launcher/broker/WPF Shell confirmed, assets `VERIFY PASS`; sample windows closed — packaged workflow result capture via v1.0.2 self-test pending |
+
 ## v1.0.1 — corrective release (2026-11-16)
 
 | Item | Status | Evidence |

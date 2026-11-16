@@ -23,6 +23,13 @@ QUICK START
   4. In the shell run the reference command (pre-filled): the broker launches the three
      sample windows, publishes the typed context, arranges windows and shows a private summary.
   5. Close the shell window and stop the broker process when finished.
+6. If sample windows close unexpectedly or the workflow is denied, run the diagnostics collector:
+     pwsh -NoProfile -ExecutionPolicy Bypass -File .\Collect-Diagnostics.ps1
+   and share the produced ZIP. The endpoint handshake file (operator token) is excluded.
+7. Headless reproduction without UI automation:
+     pwsh -NoProfile -ExecutionPolicy Bypass -File .\Test-AetherWorkflow.ps1
+   It starts the packaged broker, runs the reference workflow through the bundled headless shell,
+   writes workflow result/diagnostics under .\diagnostics, and stops the broker afterwards.
 
 WHAT GETS CREATED LOCALLY
   - endpoint.json   broker/operator handshake file (contains a local single-use token)
@@ -37,10 +44,13 @@ SECURITY AND PRIVACY
   - Synthetic data only. Do not place real customer, personal or market data in the samples.
 
 VERIFY THE DOWNLOAD
-  From the release page download SHA256SUMS-<version>.txt and run:
+  Download SHA256SUMS-<version>.txt, compute:
     Get-FileHash .\AetherWorkspace-<version>-windows-x64-desktop.zip -Algorithm SHA256
-  Compare with the checksum line. The same verifier used by CI:
-    pwsh tools/release/Verify-Release.ps1 -AssetDirectory <dir-with-downloaded-assets>
+  and compare with the matching checksum line.
+  For full verification (all release assets: desktop, headless, source, SPDX SBOM), download every
+  asset listed on the release page into one directory and run:
+    pwsh tools/release/Verify-Release.ps1 -AssetDirectory <dir-with-all-downloaded-assets>
+  Partial single-asset check: add -AllowPartialDownload (NOT a full release verification).
 
 KNOWN LIMITATIONS / NON-GOALS
   - Unsigned portable distribution; no installer and no code-signing claim.

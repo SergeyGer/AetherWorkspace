@@ -12,14 +12,35 @@ Every `v*` tag triggers the Release workflow, which builds on the pinned .NET SD
 
 ## Verify downloaded assets (offline)
 
+Download **all** assets listed on the release page (checksums reference every one of them), then run:
+
 ```powershell
-gh release download v0.6.0 --repo SergeyGer/AetherWorkspace --dir release/v0.6.0
-pwsh tools/release/Verify-Release.ps1 -AssetDirectory release/v0.6.0
+$tag = 'v1.0.1'
+$dir = "release/$tag"
+New-Item -ItemType Directory -Force $dir | Out-Null
+$base = "https://github.com/SergeyGer/AetherWorkspace/releases/download/$tag"
+$files = @(
+  "AetherWorkspace-$tag-windows-x64-desktop.zip",
+  "AetherWorkspace-$tag-headless-binaries.zip",
+  "AetherWorkspace-$tag-source.zip",
+  'manifest.spdx.json',
+  "SHA256SUMS-$tag.txt"
+)
+foreach ($file in $files) { Invoke-WebRequest "$base/$file" -OutFile (Join-Path $dir $file) }
+
+pwsh tools/release/Verify-Release.ps1 -AssetDirectory $dir
 # expected: "VERIFY PASS"
 ```
 
-The script validates every checksum line, missing assets and the SPDX SBOM structure. On Linux/macOS
-use `sha256sum -c SHA256SUMS-<tag>.txt` after renaming the sums file, plus the same script via `pwsh`.
+`gh release download <tag> --dir <dir>` is an equivalent convenience when GitHub CLI is installed.
+The script validates every checksum line, missing assets and the SPDX SBOM structure.
+
+For a quick check of a subset only, add `-AllowPartialDownload`: missing checksum-listed files are
+reported as `SKIP` and the result is `PARTIAL VERIFY PASS`. This is **not** a full release
+verification — the release is verified only when every listed asset is present.
+
+On Linux/macOS use `sha256sum -c SHA256SUMS-<tag>.txt` after renaming the sums file, plus the same
+script via `pwsh`.
 
 ## Independent rebuild
 

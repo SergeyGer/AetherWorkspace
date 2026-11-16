@@ -10,7 +10,12 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [string] $AssetDirectory
+    [string] $AssetDirectory,
+
+    # Verify only assets that were downloaded; checksum-listed files that are absent are
+    # reported as warnings instead of failures. Use for a quick single-asset check only;
+    # full release verification must download every asset listed on the release page.
+    [switch] $AllowPartialDownload
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,6 +41,11 @@ foreach ($line in Get-Content -LiteralPath $sumsFile.FullName) {
     $fileName = $matches[2]
     $assetPath = Join-Path $AssetDirectory $fileName
     if (-not (Test-Path -LiteralPath $assetPath)) {
+        if ($AllowPartialDownload) {
+            Write-Host "SKIP missing (partial mode): $fileName"
+            continue
+        }
+
         Write-Host "FAIL missing asset: $fileName"
         $failures++
         continue
@@ -53,8 +63,13 @@ foreach ($line in Get-Content -LiteralPath $sumsFile.FullName) {
 
 $sbomPath = Join-Path $AssetDirectory 'manifest.spdx.json'
 if (-not (Test-Path -LiteralPath $sbomPath)) {
-    Write-Host 'FAIL missing SPDX SBOM: manifest.spdx.json'
-    $failures++
+    if ($AllowPartialDownload) {
+        Write-Host 'SKIP missing (partial mode): manifest.spdx.json'
+    }
+    else {
+        Write-Host 'FAIL missing SPDX SBOM: manifest.spdx.json'
+        $failures++
+    }
 }
 else {
     try {
@@ -76,8 +91,15 @@ else {
 
 if ($failures -gt 0) {
     Write-Host "VERIFY FAIL ($failures problem(s))"
+    Write-Host 'Download every asset listed on the release page next to SHA256SUMS (desktop bundle, headless bundle, source, SBOM) and re-run;'
+    Write-Host 'use -AllowPartialDownload only for a quick check of a subset.'
     exit 1
 }
 
-Write-Host 'VERIFY PASS'
+if ($AllowPartialDownload) {
+    Write-Host 'PARTIAL VERIFY PASS (only downloaded assets checked; full verification requires all release assets)'
+}
+else {
+    Write-Host 'VERIFY PASS'
+}
 exit 0
