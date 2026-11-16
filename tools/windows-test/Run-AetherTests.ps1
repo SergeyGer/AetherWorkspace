@@ -1077,6 +1077,65 @@ function Read-TrxCounters {
     }
 }
 
+function Get-SolutionTrxFiles {
+    <#
+    .SYNOPSIS
+        Finds the TRX evidence for one solution test run without counting duplicates.
+
+    .DESCRIPTION
+        A solution run writes one TRX under each test project's TestResults directory.
+        Scanning the whole worktree can pick up stale/duplicate copies (for example under
+        bin/obj), so prefer tests/<project>/TestResults, require freshness relative to the
+        suite start and de-duplicate identical files by SHA-256.
+    #>
+    param([string] $WorktreePath, [datetime] $SinceUtc)
+
+    $freshness = $SinceUtc.AddMinutes(-1)
+    $candidates = [System.Collections.Generic.List[object]]::new()
+
+    $testsRoot = Join-Path $WorktreePath 'tests'
+    if (Test-Path -LiteralPath $testsRoot -PathType Container) {
+        foreach ($projectDirectory in @(Get-ChildItem -LiteralPath $testsRoot -Directory -ErrorAction SilentlyContinue)) {
+            $resultsDirectory = Join-Path $projectDirectory.FullName 'TestResults'
+            if (-not (Test-Path -LiteralPath $resultsDirectory -PathType Container)) {
+                continue
+            }
+
+            foreach ($file in @(Get-ChildItem -LiteralPath $resultsDirectory -Filter '*.trx' -File -Recurse -ErrorAction SilentlyContinue)) {
+                if ($file.LastWriteTimeUtc -ge $freshness) {
+                    $candidates.Add($file)
+                }
+            }
+        }
+    }
+
+    if ($candidates.Count -eq 0) {
+        foreach ($file in @(Get-ChildItem -LiteralPath $WorktreePath -Recurse -Filter '*.trx' -File -ErrorAction SilentlyContinue)) {
+            if ($file.LastWriteTimeUtc -ge $freshness) {
+                $candidates.Add($file)
+            }
+        }
+    }
+
+    $seenHashes = @{}
+    $unique = [System.Collections.Generic.List[object]]::new()
+    foreach ($file in $candidates) {
+        try {
+            $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+        }
+        catch {
+            continue
+        }
+
+        if (-not $seenHashes.ContainsKey($hash)) {
+            $seenHashes[$hash] = $true
+            $unique.Add($file)
+        }
+    }
+
+    return $unique.ToArray()
+}
+
 function Read-TrxCountersAggregate {
     <#
     .SYNOPSIS
@@ -1159,13 +1218,14 @@ function Invoke-TestSuites {
         }
 
         $logPath = Join-Path $logsDirectory "test-$suiteName.log"
+        $suiteStartedUtc = (Get-Date).ToUniversalTime()
         $result = Invoke-LoggedCommand -Name "test-$suiteName" -FilePath $dotnet -Arguments $arguments -WorkingDirectory $WorktreePath -LogPath $logPath -TimeoutMinutes $timeoutMinutes
 
         $suiteTrx = "trx/$trxName"
         if ($isSolution) {
             $suiteTrxDirectory = Join-Path $trxDirectory $suiteName
             New-Item -ItemType Directory -Path $suiteTrxDirectory -Force | Out-Null
-            $solutionTrxFiles = @(Get-ChildItem -LiteralPath $WorktreePath -Recurse -Filter '*.trx' -File -ErrorAction SilentlyContinue)
+            $solutionTrxFiles = @(Get-SolutionTrxFiles -WorktreePath $WorktreePath -SinceUtc $suiteStartedUtc)
             $copied = [System.Collections.Generic.List[string]]::new()
             foreach ($trxFile in $solutionTrxFiles) {
                 $projectFolder = Split-Path -Leaf (Split-Path -Parent $trxFile.FullName)
