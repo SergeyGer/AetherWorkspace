@@ -13,8 +13,10 @@ production software or a compliance certification.
   escalation, session token vault), capability-based model routing, real OpenAI/Gemini
   provider smoke evaluation and Windows 11 reference-desktop test infrastructure.
   Windows 11 physical-desktop evidence is produced locally per
-  [docs/testing/windows11-reference.md](docs/testing/windows11-reference.md); GitHub CI
-  remains the mandatory gate.
+  [docs/testing/windows11-reference.md](docs/testing/windows11-reference.md); the first R1
+  `release-full` run passed on a physical Windows 11 laptop for v0.4.0 (sanitized summary in
+  [docs/testing/evidence/2026-11-16-windows11-release-full.md](docs/testing/evidence/2026-11-16-windows11-release-full.md)).
+  GitHub CI remains the mandatory gate.
   Milestones M0/v0.1/v0.2 complete for the tested scope; v0.3 implemented for the declared
   bounded subset. CI is green on Linux and Windows (including named-pipe demo, blocked-egress
   checks, Windows IPC benchmark and WPF UI automation). GitHub releases are published per

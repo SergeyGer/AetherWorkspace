@@ -46,10 +46,17 @@ result; Windows security is never bypassed.
 | WT-04-07 | UI automation contract | stable AutomationIds, semantic patterns, explicit state waits |
 | WT-04-08 | Evidence scrub/artifact minimization | screenshots/TRX exclude secrets and raw restricted payloads |
 
-Automated coverage in this repository: WT-04-01/02/07 are scaffolded in
-`tests/Aether.Desktop.E2E.Tests` (Windows-only, named-pipe transport, FlaUI). WT-04-03…06/08
-are covered by portable CI tests + local run evidence; the full R1 physical run is pending and
-must be recorded before claiming Windows 11 reference validation.
+Automated coverage in this repository: WT-04-01/02/07 are implemented in
+`tests/Aether.Desktop.E2E.Tests` (Windows-only, named-pipe transport, FlaUI); the project's
+class-level `ReferenceDesktop` trait also runs the WT-04-02 privacy/status scenario in the local
+profile. WT-04-03/05/06/08 policy assertions are covered by the portable CI suites and run
+locally as part of `release-full`; deeper physical-desktop privacy scenarios remain scoped work.
+
+**R1 status (2026-11-16):** the first physical Windows 11 reference-desktop `release-full` run
+passed for approved commit `e7007af` (v0.4.0) — see
+[`evidence/2026-11-16-windows11-release-full.md`](evidence/2026-11-16-windows11-release-full.md).
+Recorded device: Windows 11 Pro build 26300, Intel Core Ultra 7 255H, 63.3 GB RAM,
+Intel Arc 140T GPU, 1 monitor, 100% DPI, .NET SDK 10.0.401/10.0.404.
 
 ## Hardware profile (to record on the laptop)
 

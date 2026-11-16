@@ -31,3 +31,13 @@ release notes. Raw logs/screenshots remain local; only curated synthetic summari
 counts, SHA, display profile, sanitized observations) may be added to a release report. Test
 results that cannot run (locked session, missing hardware, no local model) are recorded as
 skips with reasons — never as passes.
+
+## Recorded reference-desktop runs
+
+| Date | Commit | Device | Profile | Result |
+|---|---|---|---|---|
+| 2026-11-16 | `e7007af` (v0.4.0) | Windows 11 Pro build 26300, Intel Core Ultra 7 255H, 63.3 GB RAM, Intel Arc 140T, 1 monitor, 100% DPI | `developer-smoke`, `daily-smoke`, `release-full` | **PASS** (exit 0) |
+
+Sanitized summary: [`evidence/2026-11-16-windows11-release-full.md`](evidence/2026-11-16-windows11-release-full.md).
+The reference laptop is not a GitHub runner, runs only approved 40-hex SHAs, and all raw
+artifacts stay local.

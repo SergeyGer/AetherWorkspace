@@ -1077,6 +1077,42 @@ function Read-TrxCounters {
     }
 }
 
+function Read-TrxCountersAggregate {
+    <#
+    .SYNOPSIS
+        Aggregates Counters from several TRX files (a solution test run writes one TRX per
+        test project; reading a single overwritten file under-counts the evidence).
+    #>
+    param([string[]] $Paths)
+
+    $aggregate = [pscustomobject]@{
+        available = $false
+        total = 0
+        executed = 0
+        passed = 0
+        failed = 0
+        skipped = 0
+        aborted = 0
+    }
+
+    foreach ($path in @($Paths)) {
+        $counters = Read-TrxCounters -Path $path
+        if (-not $counters.available) {
+            continue
+        }
+
+        $aggregate.available = $true
+        $aggregate.total += [int]$counters.total
+        $aggregate.executed += [int]$counters.executed
+        $aggregate.passed += [int]$counters.passed
+        $aggregate.failed += [int]$counters.failed
+        $aggregate.skipped += [int]$counters.skipped
+        $aggregate.aborted += [int]$counters.aborted
+    }
+
+    return $aggregate
+}
+
 function Invoke-TestSuites {
     <#
     .SYNOPSIS
@@ -1098,18 +1134,25 @@ function Invoke-TestSuites {
         }
 
         $definition = $script:SuiteDefinitions[$suiteName]
+        $projectPath = [string]$definition['project']
+        $isSolution = $projectPath -match '\.slnx?$'
         $trxName = "$suiteName.trx"
         $arguments = @(
             'test',
-            [string]$definition['project'],
+            $projectPath,
             '-c',
             $configuration,
-            '--no-build',
-            '--logger',
-            "trx;LogFileName=$trxName",
-            '--results-directory',
-            $trxDirectory
+            '--no-build'
         )
+        if ($isSolution) {
+            # A solution test run writes one TestResults/<project>.trx per test project;
+            # letting each project use its own directory avoids overwriting evidence.
+            $arguments += @('--logger', 'trx')
+        }
+        else {
+            $arguments += @('--logger', "trx;LogFileName=$trxName", '--results-directory', $trxDirectory)
+        }
+
         $filter = [string]$definition['filter']
         if (-not [string]::IsNullOrWhiteSpace($filter)) {
             $arguments += @('--filter', $filter)
@@ -1117,7 +1160,30 @@ function Invoke-TestSuites {
 
         $logPath = Join-Path $logsDirectory "test-$suiteName.log"
         $result = Invoke-LoggedCommand -Name "test-$suiteName" -FilePath $dotnet -Arguments $arguments -WorkingDirectory $WorktreePath -LogPath $logPath -TimeoutMinutes $timeoutMinutes
-        $counters = Read-TrxCounters -Path (Join-Path $trxDirectory $trxName)
+
+        $suiteTrx = "trx/$trxName"
+        if ($isSolution) {
+            $suiteTrxDirectory = Join-Path $trxDirectory $suiteName
+            New-Item -ItemType Directory -Path $suiteTrxDirectory -Force | Out-Null
+            $solutionTrxFiles = @(Get-ChildItem -LiteralPath $WorktreePath -Recurse -Filter '*.trx' -File -ErrorAction SilentlyContinue)
+            $copied = [System.Collections.Generic.List[string]]::new()
+            foreach ($trxFile in $solutionTrxFiles) {
+                $projectFolder = Split-Path -Leaf (Split-Path -Parent $trxFile.FullName)
+                $targetName = ($projectFolder + '-' + $trxFile.Name) -replace '[^A-Za-z0-9._-]', '_'
+                $targetPath = Join-Path $suiteTrxDirectory $targetName
+                Copy-Item -LiteralPath $trxFile.FullName -Destination $targetPath -Force
+                $copied.Add($targetPath)
+            }
+
+            $counters = Read-TrxCountersAggregate -Paths @($copied)
+            $suiteTrx = "trx/$suiteName"
+            if ($copied.Count -eq 0) {
+                Write-RunLog 'EXECUTE' "Suite '$suiteName' produced no TRX files under the worktree; evidence is incomplete." 'WARN'
+            }
+        }
+        else {
+            $counters = Read-TrxCounters -Path (Join-Path $trxDirectory $trxName)
+        }
 
         $suiteStatus = 'PASS'
         if ($result.TimedOut) {
@@ -1146,7 +1212,7 @@ function Invoke-TestSuites {
             filter = $filter
             status = $suiteStatus
             durationSeconds = $result.DurationSeconds
-            trx = "trx/$trxName"
+            trx = $suiteTrx
             log = "logs/test-$suiteName.log"
             counters = $counters
         })
