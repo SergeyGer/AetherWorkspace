@@ -33,7 +33,18 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
-## [Unreleased — v0.5.0 preparation]
+## [Unreleased — v0.6.0 preparation]
+
+### Added
+
+- **AW-034 first slice — review-only contract studio core:** bounded draft generator/validator in
+  `Aether.Contracts.Studio` for registry entries, proto3 message snippets and JSON schema
+  templates; drafts are explicitly untrusted, deterministic, constrained to documented
+  capabilities/context types/classifications, collision-checked against the active registry and
+  cannot execute or auto-apply; contracts tests cover valid drafts, collisions, invalid ids and
+  schema/proto envelopes.
+
+## [v0.5.0 — 2026-11-16]
 
 ### Added
 
