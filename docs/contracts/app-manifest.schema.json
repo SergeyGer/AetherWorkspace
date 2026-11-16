@@ -73,7 +73,9 @@
               "broker.launch",
               "broker.arrange",
               "plan.execute",
-              "intent.resolve"
+              "intent.resolve",
+              "workspace.layout.save",
+              "workspace.layout.restore"
             ]
           },
           "uniqueItems": true
