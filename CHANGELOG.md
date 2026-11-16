@@ -33,6 +33,17 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased — v0.5.0 preparation]
+
+### Added
+
+- Windows reference-test orchestrator now captures the real desktop topology via
+  `System.Windows.Forms.Screen.AllScreens` (device name, primary flag, bounds, bits per pixel)
+  with a CIM fallback; `environment-manifest.json` gains a `displays.screens` array. This fixes
+  multi-monitor detection (`Win32_DesktopMonitor` reported one monitor for a two-monitor setup).
+- R1 evidence records the final deterministic v0.4.4 run (`20261116-104313...`): PASS, 445
+  portable + 2 windows-ui + 2 desktop-e2e = 449 passed, 0 failed/skipped.
+
 ## [Unreleased] — v0.4.4 restore TRX aggregation helper (2026-11-16)
 
 ### Fixed
