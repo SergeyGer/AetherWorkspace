@@ -37,6 +37,18 @@ release tag yet.
 
 ### Added
 
+- **AW-031 core durable workspace layouts:** strict `WorkspaceLayout` model (monitor device
+  identity, bounds/work areas, DPI scale hints, per-app bindings), `WorkspaceLayoutValidation`,
+  strict `WorkspaceLayoutParser`, and `WorkspaceLayoutPlanner` capture/restore with clamping to
+  visible work areas, primary-monitor fallback when a saved monitor disappears, DPI rescaling,
+  deterministic ordering and denial when no monitors are available. Published
+  `docs/contracts/workspace-layout.schema.json` + example; 18 new broker/contracts tests pass.
+- **Reference dual-monitor baseline:** Windows 11 laptop in Extend mode — DISPLAY1 1920×1200
+  primary at (0,0) + DISPLAY2 3440×1440 at (1920,0), both 100% DPI, captured in the
+  `environment-manifest.json` `displays.screens` array after the topology fix.
+
+### Added
+
 - Windows reference-test orchestrator now captures the real desktop topology via
   `System.Windows.Forms.Screen.AllScreens` (device name, primary flag, bounds, bits per pixel)
   with a CIM fallback; `environment-manifest.json` gains a `displays.screens` array. This fixes

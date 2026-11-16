@@ -41,6 +41,7 @@ skips with reasons — never as passes.
 | 2026-11-16 | `d44e6ba` (v0.4.2) | same reference laptop (single monitor) | `release-full` control run | **PASS** (exit 0; deterministic per-project TRX execution introduced in v0.4.3) |
 | 2026-11-16 | `303f4d7` (v0.4.3) | same reference laptop, second monitor connected | `release-full` attempt | FAIL_HARNESS — all 8 test projects PASS, then missing aggregation helper; fixed in v0.4.4 |
 | 2026-11-16 | `e97ee5d` (v0.4.4) | same reference laptop | `release-full` | **PASS** (exit 0; 445 portable + 2 + 2 = 449 passed; deterministic per-project TRX) |
+| 2026-11-16 | `e97ee5d` (v0.4.4 script, topology fix) | same reference laptop, dual monitor | `developer-smoke` | **PASS** — recorded dual-monitor baseline: DISPLAY1 1920×1200 primary + DISPLAY2 3440×1440 at x=1920, 100% DPI |
 
 Sanitized summary: [`evidence/2026-11-16-windows11-release-full.md`](evidence/2026-11-16-windows11-release-full.md).
 The reference laptop is not a GitHub runner, runs only approved 40-hex SHAs, and all raw

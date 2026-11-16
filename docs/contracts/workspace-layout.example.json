@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "layoutId": "synthetic-dual-monitor",
+  "createdAtUtc": "2026-11-16T10:00:00+00:00",
+  "description": "Synthetic dual-monitor reference layout (1920x1200 primary + 3440x1440 secondary).",
+  "monitors": [
+    {
+      "deviceName": "\\\\.\\DISPLAY1",
+      "primary": true,
+      "bounds": { "x": 0, "y": 0, "width": 1920, "height": 1200 },
+      "workArea": { "x": 0, "y": 0, "width": 1920, "height": 1160 },
+      "dpiScale": 1.0
+    },
+    {
+      "deviceName": "\\\\.\\DISPLAY2",
+      "primary": false,
+      "bounds": { "x": 1920, "y": 0, "width": 3440, "height": 1440 },
+      "workArea": { "x": 1920, "y": 0, "width": 3440, "height": 1400 },
+      "dpiScale": 1.0
+    }
+  ],
+  "bindings": [
+    {
+      "appId": "sample.watchlist",
+      "monitorDeviceName": "\\\\.\\DISPLAY1",
+      "bounds": { "x": 0, "y": 0, "width": 960, "height": 1160 },
+      "visible": true
+    },
+    {
+      "appId": "sample.chart",
+      "monitorDeviceName": "\\\\.\\DISPLAY2",
+      "bounds": { "x": 1920, "y": 0, "width": 1720, "height": 1400 },
+      "visible": true
+    }
+  ]
+}

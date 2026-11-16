@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aetherworkspace.example/schemas/workspace-layout.schema.json",
+  "title": "WorkspaceLayout",
+  "description": "Durable multi-monitor workspace layout persisted by the AetherWorkspace broker. Unknown members are rejected by the strict product parser.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "layoutId", "createdAtUtc", "monitors", "bindings"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "layoutId": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "description": { "type": ["string", "null"], "maxLength": 512 },
+    "monitors": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/monitor" }
+    },
+    "bindings": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/definitions/binding" }
+    }
+  },
+  "definitions": {
+    "rect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "integer", "minimum": -32768, "maximum": 32768 },
+        "y": { "type": "integer", "minimum": -32768, "maximum": 32768 },
+        "width": { "type": "integer", "minimum": 1, "maximum": 32768 },
+        "height": { "type": "integer", "minimum": 1, "maximum": 32768 }
+      }
+    },
+    "monitor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deviceName", "primary", "bounds", "workArea", "dpiScale"],
+      "properties": {
+        "deviceName": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "primary": { "type": "boolean" },
+        "bounds": { "$ref": "#/definitions/rect" },
+        "workArea": { "$ref": "#/definitions/rect" },
+        "dpiScale": { "type": "number", "minimum": 0.5, "maximum": 4.0 }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appId", "monitorDeviceName", "bounds", "visible"],
+      "properties": {
+        "appId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "monitorDeviceName": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "bounds": { "$ref": "#/definitions/rect" },
+        "visible": { "type": "boolean" }
+      }
+    }
+  }
+}
