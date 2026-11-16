@@ -37,10 +37,13 @@ SECURITY AND PRIVACY
   - Synthetic data only. Do not place real customer, personal or market data in the samples.
 
 VERIFY THE DOWNLOAD
-  From the release page download SHA256SUMS-<version>.txt and run:
+  Download SHA256SUMS-<version>.txt, compute:
     Get-FileHash .\AetherWorkspace-<version>-windows-x64-desktop.zip -Algorithm SHA256
-  Compare with the checksum line. The same verifier used by CI:
-    pwsh tools/release/Verify-Release.ps1 -AssetDirectory <dir-with-downloaded-assets>
+  and compare with the matching checksum line.
+  For full verification (all release assets: desktop, headless, source, SPDX SBOM), download every
+  asset listed on the release page into one directory and run:
+    pwsh tools/release/Verify-Release.ps1 -AssetDirectory <dir-with-all-downloaded-assets>
+  Partial single-asset check: add -AllowPartialDownload (NOT a full release verification).
 
 KNOWN LIMITATIONS / NON-GOALS
   - Unsigned portable distribution; no installer and no code-signing claim.

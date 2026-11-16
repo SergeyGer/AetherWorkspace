@@ -32,6 +32,7 @@ public partial class WatchlistWindow : Window
         }
         catch (Exception exception)
         {
+            SampleDiagnostics.Log("connect-failed", exception);
             StatusText.Text = "Broker unavailable: " + exception.Message;
         }
     }
