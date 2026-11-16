@@ -33,7 +33,7 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
-## [Unreleased — v0.6.0 preparation]
+## [v0.6.0 — 2026-11-16]
 
 ### Added
 

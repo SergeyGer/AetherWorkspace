@@ -58,12 +58,20 @@ exists yet.
 | AW-041 WPF GUI E2E over Windows Named Pipes | **Done** | `tests/Aether.Desktop.E2E.Tests` runs on GitHub Windows CI and passed on the physical Windows 11 reference desktop (R1 `release-full`): real broker over named pipes, WPF shell, three sample processes, trace/privacy assertions, 2/2 tests PASS |
 | AW-042 WT-04 regression suite on reference desktop | **Done for the v0.4 scope** | WT-04-01/02/07 execute on R1 (2 desktop E2E tests + WPF UI automation); WT-04-03/05/06/08 policy assertions covered by portable CI suites and executed locally via `release-full`. Residual: deeper physical-desktop WT-04 privacy matrix and evidence-scrubbing drill tracked as follow-up |
 
-## v0.6.0 — in progress (developer contract studio)
+## v1.0.0 — in progress (reproducible public release)
 
 | Item | Status | Evidence |
 |---|---|---|
-| AW-034 Review-only contract generation assistant | **Implemented (templates, untrusted envelopes, validator, staging CLI with explicit review/apply --confirm); R1 demo pending** | `Aether.Contracts.Studio` bounded generators and validator; `tools/Aether.ContractStudio` staging CLI (generate/review/apply --confirm); untrusted status, deterministic output, capability/context/classification constraints, active-registry collision detection, path-safe staging/atomic apply, no compilation/execution; contracts 57/57 |
-| AW-035 Validate generated schemas before acceptance | **Implemented (change classification, forbidden paths, target checks); R1 demo pending** | `ContractValidationGate`: active-registry add/remove comparison with breaking classification, forbidden path segments, extension enforcement; wired into CLI review/apply; contracts 63/63 |
+| AW-036 Reproducible Windows distribution and supply-chain evidence | **Next increment** | deterministic build/release pipeline, SBOM/checksums, verification guide |
+| AW-037 Finalize public docs/Wiki/narrated demo | Planned (after AW-036) | — |
+| AW-038 Final release gate + acceptance report | Planned (after AW-036/037) | — |
+
+## v0.6.0 — released 2026-11-16 (developer contract studio)
+
+| Item | Status | Evidence |
+|---|---|---|
+| AW-034 Review-only contract generation assistant | **Done (release v0.6.0)** | `Aether.Contracts.Studio` bounded generators and validator; `tools/Aether.ContractStudio` staging CLI (generate/review/apply --confirm); untrusted status, deterministic output, capability/context/classification constraints, active-registry collision detection, path-safe staging/atomic apply, no compilation/execution; contracts 57/57 |
+| AW-035 Validate generated schemas before acceptance | **Done (release v0.6.0)** | `ContractValidationGate`: active-registry add/remove comparison with breaking classification, forbidden path segments, extension enforcement; wired into CLI review/apply; contracts 63/63 |
 
 ## v0.5.0 — released 2026-11-16
 
