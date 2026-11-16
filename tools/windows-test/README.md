@@ -49,8 +49,10 @@ Exit/result semantics: `PASS`, `FAIL_PRODUCT`, `FAIL_HARNESS`, `INCONCLUSIVE`,
 `results\<run-id>\run-result.json` together with `environment-manifest.json` (OS build,
 hardware/display/DPI, .NET SDK, SHA, suite version), `run.log` and TRX evidence. Skips exit
 with code 0; product failures with 1 and harness failures with 2. A locked/asleep session never
-fails the product; it is recorded as a skip. Solution test runs keep one TRX per test project
-and the orchestrator aggregates their counters (fixed in v0.4.1).
+fails the product; it is recorded as a skip. The portable suite runs each
+`tests/*.Tests.csproj` project separately with its own TRX under `results/trx/portable/` and
+aggregates exactly those files (deterministic evidence, fixed in v0.4.3); a missing TRX makes
+the suite `INCONCLUSIVE` instead of silently under-counting.
 
 ## Task Scheduler
 

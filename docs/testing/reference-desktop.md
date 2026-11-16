@@ -37,7 +37,8 @@ skips with reasons — never as passes.
 | Date | Commit | Device | Profile | Result |
 |---|---|---|---|---|
 | 2026-11-16 | `e7007af` (v0.4.0) | Windows 11 Pro build 26300, Intel Core Ultra 7 255H, 63.3 GB RAM, Intel Arc 140T, 1 monitor, 100% DPI | `developer-smoke`, `daily-smoke`, `release-full` | **PASS** (exit 0) |
-| 2026-11-16 | `4a2796e` (v0.4.1) | same reference laptop | `release-full` control run | **PASS** (exit 0; per-project suite log confirms 445 portable + 2 + 2 = 449 passed; counter aggregation hardened in v0.4.2) |
+| 2026-11-16 | `4a2796e` (v0.4.1) | same reference laptop | `release-full` control run | **PASS** (exit 0; per-project suite log confirms 445 portable + 2 + 2 = 449 passed) |
+| 2026-11-16 | `d44e6ba` (v0.4.2) | same reference laptop (single monitor) | `release-full` control run | **PASS** (exit 0; deterministic per-project TRX execution introduced in v0.4.3) |
 
 Sanitized summary: [`evidence/2026-11-16-windows11-release-full.md`](evidence/2026-11-16-windows11-release-full.md).
 The reference laptop is not a GitHub runner, runs only approved 40-hex SHAs, and all raw

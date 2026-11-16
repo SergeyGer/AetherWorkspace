@@ -1077,99 +1077,139 @@ function Read-TrxCounters {
     }
 }
 
-function Get-SolutionTrxFiles {
+function Get-SolutionTestProjects {
     <#
     .SYNOPSIS
-        Finds the TRX evidence for one solution test run without counting duplicates.
-
-    .DESCRIPTION
-        A solution run writes one TRX under each test project's TestResults directory.
-        Scanning the whole worktree can pick up stale/duplicate copies (for example under
-        bin/obj), so prefer tests/<project>/TestResults, require freshness relative to the
-        suite start and de-duplicate identical files by SHA-256.
+        Returns the test project paths declared in the solution (.slnx), excluding helper
+        libraries such as tests/Aether.Testing.
     #>
-    param([string] $WorktreePath, [datetime] $SinceUtc)
+    param([string] $SolutionPath)
 
-    $freshness = $SinceUtc.AddMinutes(-1)
-    $candidates = [System.Collections.Generic.List[object]]::new()
+    if (-not (Test-Path -LiteralPath $SolutionPath -PathType Leaf)) {
+        throw "Solution '$SolutionPath' was not found in the run worktree."
+    }
 
-    $testsRoot = Join-Path $WorktreePath 'tests'
-    if (Test-Path -LiteralPath $testsRoot -PathType Container) {
-        foreach ($projectDirectory in @(Get-ChildItem -LiteralPath $testsRoot -Directory -ErrorAction SilentlyContinue)) {
-            $resultsDirectory = Join-Path $projectDirectory.FullName 'TestResults'
-            if (-not (Test-Path -LiteralPath $resultsDirectory -PathType Container)) {
-                continue
-            }
+    try {
+        [xml]$document = Get-Content -LiteralPath $SolutionPath -Raw -ErrorAction Stop
+    }
+    catch {
+        throw "Solution '$SolutionPath' is not valid XML: $($_.Exception.Message)"
+    }
 
-            foreach ($file in @(Get-ChildItem -LiteralPath $resultsDirectory -Filter '*.trx' -File -Recurse -ErrorAction SilentlyContinue)) {
-                if ($file.LastWriteTimeUtc -ge $freshness) {
-                    $candidates.Add($file)
-                }
-            }
+    $projects = [System.Collections.Generic.List[string]]::new()
+    foreach ($node in @($document.SelectNodes("//*[local-name()='Project']"))) {
+        $path = ([string]$node.GetAttribute('Path')).Replace('\\', '/')
+        if ($path -match '^tests/.+\.Tests\.csproj$') {
+            $projects.Add($path)
         }
     }
 
-    if ($candidates.Count -eq 0) {
-        foreach ($file in @(Get-ChildItem -LiteralPath $WorktreePath -Recurse -Filter '*.trx' -File -ErrorAction SilentlyContinue)) {
-            if ($file.LastWriteTimeUtc -ge $freshness) {
-                $candidates.Add($file)
-            }
-        }
-    }
-
-    $seenHashes = @{}
-    $unique = [System.Collections.Generic.List[object]]::new()
-    foreach ($file in $candidates) {
-        try {
-            $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
-        }
-        catch {
-            continue
-        }
-
-        if (-not $seenHashes.ContainsKey($hash)) {
-            $seenHashes[$hash] = $true
-            $unique.Add($file)
-        }
-    }
-
-    return $unique.ToArray()
+    return @($projects | Sort-Object)
 }
 
-function Read-TrxCountersAggregate {
+function Invoke-SolutionTestSuite {
     <#
     .SYNOPSIS
-        Aggregates Counters from several TRX files (a solution test run writes one TRX per
-        test project; reading a single overwritten file under-counts the evidence).
-    #>
-    param([string[]] $Paths)
+        Runs each test project of the solution separately with a unique TRX file.
 
-    $aggregate = [pscustomobject]@{
-        available = $false
-        total = 0
-        executed = 0
-        passed = 0
-        failed = 0
-        skipped = 0
-        aborted = 0
+    .DESCRIPTION
+        Running one `dotnet test` per test project makes the evidence deterministic: every
+        project writes exactly one TRX into results/trx/<suite>/ and the harness aggregates
+        those Counters. This avoids duplicate/stale TRX discovery and filename overwrites.
+    #>
+    param(
+        [string] $SuiteName,
+        [hashtable] $Definition,
+        [string] $SolutionProjectPath,
+        [string] $Configuration,
+        [string] $WorktreePath,
+        [string] $TrxDirectory,
+        [string] $LogsDirectory,
+        [string] $Dotnet,
+        [int] $TimeoutMinutes
+    )
+
+    $solutionPath = Join-Path $WorktreePath $SolutionProjectPath
+    try {
+        $projects = @(Get-SolutionTestProjects -SolutionPath $solutionPath)
+    }
+    catch {
+        Add-Failure -Suite $SuiteName -Status 'FAIL_HARNESS' -Message "Cannot enumerate solution test projects: $($_.Exception.Message)"
+        return
     }
 
-    foreach ($path in @($Paths)) {
-        $counters = Read-TrxCounters -Path $path
-        if (-not $counters.available) {
-            continue
+    if ($projects.Count -eq 0) {
+        Add-Failure -Suite $SuiteName -Status 'FAIL_HARNESS' -Message "Solution '$SolutionProjectPath' declares no *\\.Tests.csproj projects."
+        return
+    }
+
+    $suiteTrxDirectory = Join-Path $TrxDirectory $SuiteName
+    New-Item -ItemType Directory -Path $suiteTrxDirectory -Force | Out-Null
+    $copied = [System.Collections.Generic.List[string]]::new()
+    $failedProjects = [System.Collections.Generic.List[string]]::new()
+    $timedOutProjects = [System.Collections.Generic.List[string]]::new()
+    $totalDuration = 0.0
+
+    foreach ($project in $projects) {
+        $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project)
+        $trxName = "$projectName.trx"
+        $arguments = @(
+            'test',
+            $project,
+            '-c',
+            $Configuration,
+            '--no-build',
+            '--logger',
+            "trx;LogFileName=$trxName",
+            '--results-directory',
+            $suiteTrxDirectory
+        )
+        $logPath = Join-Path $LogsDirectory "test-$SuiteName-$projectName.log"
+        $result = Invoke-LoggedCommand -Name "test-$SuiteName-$projectName" -FilePath $Dotnet -Arguments $arguments -WorkingDirectory $WorktreePath -LogPath $logPath -TimeoutMinutes $TimeoutMinutes
+        $totalDuration += [double]$result.DurationSeconds
+        if ($result.TimedOut) {
+            $timedOutProjects.Add($projectName)
+        }
+        elseif ($result.ExitCode -ne 0) {
+            $failedProjects.Add($projectName)
         }
 
-        $aggregate.available = $true
-        $aggregate.total += [int]$counters.total
-        $aggregate.executed += [int]$counters.executed
-        $aggregate.passed += [int]$counters.passed
-        $aggregate.failed += [int]$counters.failed
-        $aggregate.skipped += [int]$counters.skipped
-        $aggregate.aborted += [int]$counters.aborted
+        $trxPath = Join-Path $suiteTrxDirectory $trxName
+        if (Test-Path -LiteralPath $trxPath -PathType Leaf) {
+            $copied.Add($trxPath)
+        }
     }
 
-    return $aggregate
+    $counters = Read-TrxCountersAggregate -Paths @($copied)
+    $status = 'PASS'
+    if ($timedOutProjects.Count -gt 0) {
+        $status = 'FAIL_HARNESS'
+        Add-Failure -Suite $SuiteName -Status $status -Message ("Test project(s) timed out: " + ($timedOutProjects -join ', '))
+    }
+    elseif ($failedProjects.Count -gt 0) {
+        $status = 'FAIL_PRODUCT'
+        Add-Failure -Suite $SuiteName -Status $status -Message ("Test project(s) failed: " + ($failedProjects -join ', '))
+    }
+    elseif ($copied.Count -ne $projects.Count) {
+        $status = 'INCONCLUSIVE'
+        Add-Failure -Suite $SuiteName -Status $status -Message "Expected $($projects.Count) TRX files but collected $($copied.Count); evidence is incomplete."
+    }
+    elseif (-not $counters.available -or $counters.total -eq 0) {
+        $status = 'INCONCLUSIVE'
+        Add-Failure -Suite $SuiteName -Status $status -Message 'No executed tests were reported across the per-project TRX files.'
+    }
+
+    $script:state.Suites.Add([pscustomobject]@{
+        name = $SuiteName
+        description = [string]$Definition['description']
+        project = $SolutionProjectPath
+        filter = ''
+        status = $status
+        durationSeconds = [Math]::Round($totalDuration, 1)
+        trx = "trx/$SuiteName"
+        log = "logs/test-$SuiteName-*.log"
+        counters = $counters
+    })
 }
 
 function Invoke-TestSuites {
@@ -1194,24 +1234,26 @@ function Invoke-TestSuites {
 
         $definition = $script:SuiteDefinitions[$suiteName]
         $projectPath = [string]$definition['project']
-        $isSolution = $projectPath -match '\.slnx?$'
+
+        if ($projectPath -match '\.slnx?$') {
+            Invoke-SolutionTestSuite -SuiteName $suiteName -Definition $definition -SolutionProjectPath $projectPath `
+                -Configuration $configuration -WorktreePath $WorktreePath -TrxDirectory $trxDirectory `
+                -LogsDirectory $logsDirectory -Dotnet $dotnet -TimeoutMinutes $timeoutMinutes
+            continue
+        }
+
         $trxName = "$suiteName.trx"
         $arguments = @(
             'test',
             $projectPath,
             '-c',
             $configuration,
-            '--no-build'
+            '--no-build',
+            '--logger',
+            "trx;LogFileName=$trxName",
+            '--results-directory',
+            $trxDirectory
         )
-        if ($isSolution) {
-            # A solution test run writes one TestResults/<project>.trx per test project;
-            # letting each project use its own directory avoids overwriting evidence.
-            $arguments += @('--logger', 'trx')
-        }
-        else {
-            $arguments += @('--logger', "trx;LogFileName=$trxName", '--results-directory', $trxDirectory)
-        }
-
         $filter = [string]$definition['filter']
         if (-not [string]::IsNullOrWhiteSpace($filter)) {
             $arguments += @('--filter', $filter)
@@ -1220,30 +1262,8 @@ function Invoke-TestSuites {
         $logPath = Join-Path $logsDirectory "test-$suiteName.log"
         $suiteStartedUtc = (Get-Date).ToUniversalTime()
         $result = Invoke-LoggedCommand -Name "test-$suiteName" -FilePath $dotnet -Arguments $arguments -WorkingDirectory $WorktreePath -LogPath $logPath -TimeoutMinutes $timeoutMinutes
-
         $suiteTrx = "trx/$trxName"
-        if ($isSolution) {
-            $suiteTrxDirectory = Join-Path $trxDirectory $suiteName
-            New-Item -ItemType Directory -Path $suiteTrxDirectory -Force | Out-Null
-            $solutionTrxFiles = @(Get-SolutionTrxFiles -WorktreePath $WorktreePath -SinceUtc $suiteStartedUtc)
-            $copied = [System.Collections.Generic.List[string]]::new()
-            foreach ($trxFile in $solutionTrxFiles) {
-                $projectFolder = Split-Path -Leaf (Split-Path -Parent $trxFile.FullName)
-                $targetName = ($projectFolder + '-' + $trxFile.Name) -replace '[^A-Za-z0-9._-]', '_'
-                $targetPath = Join-Path $suiteTrxDirectory $targetName
-                Copy-Item -LiteralPath $trxFile.FullName -Destination $targetPath -Force
-                $copied.Add($targetPath)
-            }
-
-            $counters = Read-TrxCountersAggregate -Paths @($copied)
-            $suiteTrx = "trx/$suiteName"
-            if ($copied.Count -eq 0) {
-                Write-RunLog 'EXECUTE' "Suite '$suiteName' produced no TRX files under the worktree; evidence is incomplete." 'WARN'
-            }
-        }
-        else {
-            $counters = Read-TrxCounters -Path (Join-Path $trxDirectory $trxName)
-        }
+        $counters = Read-TrxCounters -Path (Join-Path $trxDirectory $trxName)
 
         $suiteStatus = 'PASS'
         if ($result.TimedOut) {
@@ -1268,7 +1288,7 @@ function Invoke-TestSuites {
         $script:state.Suites.Add([pscustomobject]@{
             name = $suiteName
             description = [string]$definition['description']
-            project = [string]$definition['project']
+            project = $projectPath
             filter = $filter
             status = $suiteStatus
             durationSeconds = $result.DurationSeconds
