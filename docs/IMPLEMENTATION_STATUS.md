@@ -63,7 +63,7 @@ exists yet.
 | Item | Status | Evidence |
 |---|---|---|
 | AW-034 Review-only contract generation assistant | **Implemented (templates, untrusted envelopes, validator, staging CLI with explicit review/apply --confirm); R1 demo pending** | `Aether.Contracts.Studio` bounded generators and validator; `tools/Aether.ContractStudio` staging CLI (generate/review/apply --confirm); untrusted status, deterministic output, capability/context/classification constraints, active-registry collision detection, path-safe staging/atomic apply, no compilation/execution; contracts 57/57 |
-| AW-035 Validate generated schemas before acceptance | Planned (next increment) | — |
+| AW-035 Validate generated schemas before acceptance | **Implemented (change classification, forbidden paths, target checks); R1 demo pending** | `ContractValidationGate`: active-registry add/remove comparison with breaking classification, forbidden path segments, extension enforcement; wired into CLI review/apply; contracts 63/63 |
 
 ## v0.5.0 — released 2026-11-16
 

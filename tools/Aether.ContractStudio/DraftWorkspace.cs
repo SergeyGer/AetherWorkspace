@@ -68,7 +68,11 @@ public sealed class DraftWorkspace
             throw new AetherContractException(AetherErrorCodes.PlanInvalidJson, "Applying a draft requires explicit --confirm after review.");
         }
 
-        var issues = Review(draft, activeRegistryJson);
+        var report = ContractValidationGate.ValidateDraft(draft, activeRegistryJson);
+        var issues = report.Issues
+            .Concat(report.Changes.Where(change => change.Breaking).Select(change => "breaking: " + change.Detail))
+            .ToList();
+        issues.AddRange(ContractValidationGate.CheckTargetPath(draft, targetPath));
         if (issues.Count > 0)
         {
             throw new AetherContractException(AetherErrorCodes.PlanInvalidJson, "Draft rejected: " + string.Join("; ", issues));

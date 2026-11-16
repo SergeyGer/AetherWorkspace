@@ -60,10 +60,16 @@ static int Review(Dictionary<string, string?> options)
     var workspace = new DraftWorkspace(options.GetValueOrDefault("staging") ?? Environment.CurrentDirectory);
     var draft = workspace.LoadDraft(Required(options, "draft"));
     var active = options.GetValueOrDefault("registry") is { } registryPath ? File.ReadAllText(registryPath) : null;
-    var issues = workspace.Review(draft, active);
+    var report = ContractValidationGate.ValidateDraft(draft, active);
+    var issues = report.Issues.Concat(report.Changes.Where(change => change.Breaking).Select(change => "breaking: " + change.Detail)).ToList();
     Console.WriteLine($"draft: {draft.DraftId} ({draft.Kind}, untrusted={draft.Untrusted})");
     Console.WriteLine("preview:");
     Console.WriteLine(DraftWorkspace.UnwrapPayload(draft));
+    foreach (var change in report.Changes)
+    {
+        Console.WriteLine($"change: {(change.Breaking ? "BREAKING " : "")}{change.Kind}: {change.Detail}");
+    }
+
     if (issues.Count == 0)
     {
         Console.WriteLine("review: OK (no active registry changes were made)");
