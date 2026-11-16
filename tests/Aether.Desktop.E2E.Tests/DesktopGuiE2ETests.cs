@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Aether.Broker.Client;
 using Aether.Contracts;
@@ -307,4 +308,73 @@ public sealed class DesktopGuiE2ETests
         string Summary,
         string TraceText,
         string TraceId);
+    /// <summary>
+    /// WT-04-09 regression for the packaged desktop defect: the real WPF shell runs the
+    /// reference workflow against the three *real WPF* sample apps (not the headless doubles),
+    /// including window arrangement and typed context delivery. The sample windows must remain
+    /// open after the workflow, with broker health still HEALTHY.
+    /// </summary>
+    [Fact(Timeout = 360_000)]
+    [Trait("TestId", "WT-04-09")]
+    public async Task GuiWorkflowWithRealWpfSampleAppsKeepsWindowsOpen()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var samplesExecutable = DesktopExecutableLocator.ResolveWpfSampleApps();
+        await using var broker = await NamedPipeBrokerHarness.StartAsync(
+            "gui-wpf-samples",
+            useWindowsRegistry: true,
+            wpfSamplesExe: samplesExecutable);
+
+        using var shell = ShellWindowSession.Launch(broker.EndpointFile);
+        var run = await RunRestrictedReferenceWorkflowAsync(shell, broker);
+
+        await Task.Delay(TimeSpan.FromSeconds(6));
+
+        await using var operatorClient = await broker.CreateOperatorClientAsync();
+        var health = await broker.WaitForAppHealthAsync(operatorClient, TestData.SampleAppIds, OperatorTimeout);
+        foreach (var appId in TestData.SampleAppIds)
+        {
+            Assert.Contains(health.AppHealth, entry => string.Equals(entry, appId + "=HEALTHY", StringComparison.Ordinal));
+        }
+
+        var deadline = DateTime.UtcNow.AddSeconds(20);
+        var live = Array.Empty<Process>();
+        while (DateTime.UtcNow < deadline)
+        {
+            live = Process.GetProcessesByName("Aether.SampleApps").Where(process => !process.HasExited).ToArray();
+            if (live.Length >= TestData.SampleAppIds.Length &&
+                live.All(process =>
+                {
+                    process.Refresh();
+                    return process.MainWindowHandle != IntPtr.Zero;
+                }))
+            {
+                break;
+            }
+
+            await Task.Delay(250);
+        }
+
+        var diagnostics = string.Join(
+            Environment.NewLine,
+            new[] { $"trace: {run.TraceId}", $"live Aether.SampleApps processes: {live.Length}" }
+                .Concat(live.Select(process => $"pid={process.Id} exited={process.HasExited} mainWindow=0x{process.MainWindowHandle.ToInt64():X}"))
+                .Concat(Directory.Exists(broker.ChildLogDirectory)
+                    ? Directory.GetFiles(broker.ChildLogDirectory, "*.log")
+                        .OrderBy(path => path, StringComparer.Ordinal)
+                        .SelectMany(path => new[] { "--- " + Path.GetFileName(path) + " ---" }.Concat(File.ReadAllLines(path).TakeLast(40)))
+                    : ["(no child logs)"]));
+
+        Assert.True(live.Length >= TestData.SampleAppIds.Length, "A WPF sample process exited after the reference workflow.\n" + diagnostics);
+        Assert.All(live, process =>
+        {
+            process.Refresh();
+            Assert.True(process.MainWindowHandle != IntPtr.Zero, $"WPF sample pid {process.Id} lost its main window.\n" + diagnostics);
+        });
+    }
+
 }

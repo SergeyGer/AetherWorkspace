@@ -17,6 +17,7 @@ internal static class DesktopExecutableLocator
 {
     private const string ShellExecutableOverrideVariable = "AETHER_SHELL_EXE";
     private const string BrokerExecutableOverrideVariable = "AETHER_BROKER_EXE";
+    private const string WpfSamplesOverrideVariable = "AETHER_WPF_SAMPLES_EXE";
 
     /// <summary>Resolves the WPF shell host executable.</summary>
     public static string ResolveShell()
@@ -39,6 +40,33 @@ internal static class DesktopExecutableLocator
             throw new FileNotFoundException(
                 $"The compiled WPF shell was not found at '{path}'. Build src/Aether.Shell for the "
                 + $"'{TestRepo.Configuration}' configuration first (or set {ShellExecutableOverrideVariable}).",
+                path);
+        }
+
+        return path;
+    }
+
+    /// <summary>Resolves the WPF sample-applications host executable (Watchlist/Risk/Chart).</summary>
+    public static string ResolveWpfSampleApps()
+    {
+        var overridePath = ResolveOverride(WpfSamplesOverrideVariable);
+        if (overridePath is not null)
+        {
+            return overridePath;
+        }
+
+        var path = TestRepo.PathTo(
+            "src",
+            "Aether.SampleApps",
+            "bin",
+            TestRepo.Configuration,
+            "net10.0-windows",
+            "Aether.SampleApps.exe");
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException(
+                $"The compiled WPF sample apps were not found at '{path}'. Build src/Aether.SampleApps for the "
+                + $"'{TestRepo.Configuration}' configuration first (or set {WpfSamplesOverrideVariable}).",
                 path);
         }
 

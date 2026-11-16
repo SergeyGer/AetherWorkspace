@@ -104,7 +104,11 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
     public int ProcessId => _process.Id;
 
     /// <summary>Starts the broker and waits until both readiness signals are consistent.</summary>
-    public static async Task<NamedPipeBrokerHarness> StartAsync(string testName, CancellationToken cancellationToken = default)
+    public static async Task<NamedPipeBrokerHarness> StartAsync(
+        string testName,
+        CancellationToken cancellationToken = default,
+        bool useWindowsRegistry = false,
+        string? wpfSamplesExe = null)
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -129,7 +133,13 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         {
             process = new Process
             {
-                StartInfo = CreateBrokerStartInfo(endpointFile, brokerAuditFile, childLogDirectory, layoutStoreDirectory),
+                StartInfo = CreateBrokerStartInfo(
+                    endpointFile,
+                    brokerAuditFile,
+                    childLogDirectory,
+                    layoutStoreDirectory,
+                    useWindowsRegistry,
+                    wpfSamplesExe),
             };
             if (!process.Start())
             {
@@ -292,7 +302,13 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         }
     }
 
-    private static ProcessStartInfo CreateBrokerStartInfo(string endpointFile, string auditFile, string childLogDirectory, string layoutStoreDirectory)
+    private static ProcessStartInfo CreateBrokerStartInfo(
+        string endpointFile,
+        string auditFile,
+        string childLogDirectory,
+        string layoutStoreDirectory,
+        bool useWindowsRegistry,
+        string? wpfSamplesExe)
     {
         var (fileName, prefixAssembly) = DesktopExecutableLocator.ResolveBrokerHost();
         var startInfo = new ProcessStartInfo
@@ -311,11 +327,16 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         }
 
         AddArgument(startInfo, "--transport", BrokerTransports.NamedPipe);
-        AddArgument(startInfo, "--registry", TestRepo.PathTo("samples", "registry", "apps.json"));
+        AddArgument(startInfo, "--registry", TestRepo.PathTo("samples", "registry", useWindowsRegistry ? "apps.windows.json" : "apps.json"));
         AddArgument(startInfo, "--contexts", TestRepo.PathTo("samples", "contexts", "contexts.json"));
         foreach (var token in TestData.LaunchTokens())
         {
             AddArgument(startInfo, "--token", token.Key + "=" + token.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(wpfSamplesExe))
+        {
+            AddArgument(startInfo, "--token", "WPF_SAMPLES_EXE=" + wpfSamplesExe);
         }
 
         foreach (var allowedRoot in TestData.AllowedExecutableRoots())
