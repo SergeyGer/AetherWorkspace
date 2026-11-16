@@ -24,6 +24,26 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Restore and build (warnings are errors)
         run: dotnet build AetherWorkspace.slnx -c Release
+      - name: Validate Windows reference-test orchestrator script
+        shell: pwsh
+        run: |
+          $path = 'tools/windows-test/Run-AetherTests.ps1'
+          $errors = $null
+          $ast = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$null, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            throw "PowerShell parse errors:`n$($errors | Out-String)"
+          }
+          $defs = @($ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true) | ForEach-Object { $_.Name })
+          $required = @(
+            'Read-TrxCounters', 'Read-TrxCountersAggregate', 'Get-SolutionTestProjects',
+            'Invoke-SolutionTestSuite', 'Invoke-TestSuites', 'Get-ProfileSuites',
+            'Write-RunResult', 'Complete-Cleanup', 'Invoke-Preflight'
+          )
+          $missing = @($required | Where-Object { $defs -notcontains $_ })
+          if ($missing.Count -gt 0) {
+            throw "Orchestrator is missing required helper definitions: $($missing -join ', ')"
+          }
+          Write-Host "Orchestrator script OK ($($defs.Count) functions, $($required.Count) required helpers present)."
       - name: Run full test suite
         run: dotnet test AetherWorkspace.slnx -c Release --no-build --logger "trx;LogFileName=linux-tests.trx"
       - name: FDC3 official-schema interop check (independent Python validator)
