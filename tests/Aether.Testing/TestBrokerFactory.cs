@@ -14,7 +14,8 @@ public static class TestBrokerFactory
         IProcessIdentityResolver? identityResolver = null,
         TimeProvider? timeProvider = null,
         int heartbeatIntervalSeconds = 5,
-        int missedHeartbeatsBeforeUnresponsive = 3) => new()
+        int missedHeartbeatsBeforeUnresponsive = 3,
+        string? layoutStoreDirectory = null) => new()
     {
         Registry = TestData.CreateRegistry(),
         Contexts = TestData.CreateContextCatalog(),
@@ -26,6 +27,7 @@ public static class TestBrokerFactory
         MaxActionsPerPlan = 6,
         AuditFile = auditFile,
         ChildLogDirectory = childLogDirectory,
+        LayoutStoreDirectory = layoutStoreDirectory,
         TimeProvider = timeProvider ?? TimeProvider.System,
         ProcessIdentityResolver = identityResolver,
         HeartbeatIntervalSeconds = heartbeatIntervalSeconds,

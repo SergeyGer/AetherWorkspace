@@ -2,6 +2,12 @@ using Aether.Broker.Catalog;
 using Aether.Broker.Channels;
 using Aether.Broker.Health;
 using Aether.Broker.Intents;
+using Aether.Broker.Workspaces;
+using Aether.Contracts.Json;
+using Aether.Contracts.Models.Workspaces;
+using ModelWindowBounds = Aether.Contracts.Models.WindowBounds;
+using ModelWindowLayout = Aether.Contracts.Models.WindowLayout;
+using ModelWindowPlacement = Aether.Contracts.Models.WindowPlacement;
 using Aether.Broker.Launching;
 using Aether.Broker.Registry;
 using Aether.Broker.Sessions;
@@ -40,6 +46,8 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
     private readonly IAuditSink _auditSink;
     private readonly ISensitiveEntityDetector _detector;
     private readonly IntentRouter _intentRouter;
+    private readonly IDisplayTopologyProvider _displayTopology;
+    private readonly WorkspaceLayoutStore? _layoutStore;
     private readonly string _transport;
 
     public BrokerGrpcService(
@@ -54,6 +62,8 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
         HealthMonitor health,
         IAuditSink auditSink,
         IntentRouter intentRouter,
+        IDisplayTopologyProvider displayTopology,
+        WorkspaceLayoutStore? layoutStore,
         string transport)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -67,6 +77,8 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
         _health = health ?? throw new ArgumentNullException(nameof(health));
         _auditSink = auditSink ?? throw new ArgumentNullException(nameof(auditSink));
         _intentRouter = intentRouter ?? throw new ArgumentNullException(nameof(intentRouter));
+        _displayTopology = displayTopology ?? throw new ArgumentNullException(nameof(displayTopology));
+        _layoutStore = layoutStore;
         _detector = new RuleBasedSensitiveEntityDetector();
         _transport = transport;
     }
@@ -580,6 +592,217 @@ public sealed class BrokerGrpcService : BrokerService.BrokerServiceBase
             },
         });
     }
+
+    public override Task<SaveWorkspaceLayoutReply> SaveWorkspaceLayout(SaveWorkspaceLayoutRequest request, ServerCallContext context)
+    {
+        var session = RequireSession(context);
+        RequireCapability(session, CapabilityNames.WorkspaceLayoutSave);
+        var traceId = ResolveTraceId(request.TraceId, context);
+        if (_layoutStore is null)
+        {
+            return Task.FromResult(new SaveWorkspaceLayoutReply
+            {
+                Accepted = false,
+                DenialCode = AetherErrorCodes.WorkspaceLayoutUnavailable,
+                DenialMessage = "Durable workspace layouts are disabled on this broker (no layout store configured).",
+            });
+        }
+
+        var layoutId = string.IsNullOrWhiteSpace(request.LayoutId) ? "default" : request.LayoutId.Trim();
+        try
+        {
+            var windows = _windows.ListVisible();
+            if (windows.Count == 0)
+            {
+                return Task.FromResult(new SaveWorkspaceLayoutReply
+                {
+                    Accepted = false,
+                    DenialCode = AetherErrorCodes.BrokerArrangeNoWindows,
+                    DenialMessage = "No registered top-level windows have been reported yet.",
+                });
+            }
+
+            var monitors = _displayTopology.GetMonitors();
+            if (monitors.Count == 0)
+            {
+                return Task.FromResult(new SaveWorkspaceLayoutReply
+                {
+                    Accepted = false,
+                    DenialCode = AetherErrorCodes.WorkspaceLayoutUnavailable,
+                    DenialMessage = "No display topology is available; refusing to persist an empty layout.",
+                });
+            }
+
+            var layout = WorkspaceLayoutPlanner.Capture(
+                layoutId,
+                monitors,
+                windows,
+                _options.TimeProvider.GetUtcNow(),
+                string.IsNullOrWhiteSpace(request.Description) ? null : request.Description);
+            _layoutStore.Save(layout);
+
+            _auditSink.Append(new AuditEventDraft
+            {
+                TraceId = traceId,
+                EventType = AuditEventTypes.WorkspaceLayoutSave,
+                Outcome = AuditOutcomes.Succeeded,
+                BrokeredAppId = "broker",
+            });
+
+            return Task.FromResult(new SaveWorkspaceLayoutReply
+            {
+                Accepted = true,
+                LayoutId = layout.LayoutId,
+                LayoutJson = AetherJson.Serialize(layout),
+                Provenance = CreateBrokerProvenance(traceId),
+            });
+        }
+        catch (AetherContractException exception)
+        {
+            _auditSink.Append(new AuditEventDraft
+            {
+                TraceId = traceId,
+                EventType = AuditEventTypes.WorkspaceLayoutSave,
+                Outcome = AuditOutcomes.Denied,
+                Code = exception.Code,
+                BrokeredAppId = "broker",
+            });
+            return Task.FromResult(new SaveWorkspaceLayoutReply
+            {
+                Accepted = false,
+                DenialCode = exception.Code,
+                DenialMessage = exception.Message,
+            });
+        }
+        catch (IOException exception)
+        {
+            _auditSink.Append(new AuditEventDraft
+            {
+                TraceId = traceId,
+                EventType = AuditEventTypes.WorkspaceLayoutSave,
+                Outcome = AuditOutcomes.Failed,
+                Code = AetherErrorCodes.WorkspaceLayoutUnavailable,
+                BrokeredAppId = "broker",
+            });
+            return Task.FromResult(new SaveWorkspaceLayoutReply
+            {
+                Accepted = false,
+                DenialCode = AetherErrorCodes.WorkspaceLayoutUnavailable,
+                DenialMessage = exception.Message,
+            });
+        }
+    }
+
+    public override async Task<RestoreWorkspaceLayoutReply> RestoreWorkspaceLayout(RestoreWorkspaceLayoutRequest request, ServerCallContext context)
+    {
+        var session = RequireSession(context);
+        RequireCapability(session, CapabilityNames.WorkspaceLayoutRestore);
+        var traceId = ResolveTraceId(request.TraceId, context);
+        if (_layoutStore is null)
+        {
+            return new RestoreWorkspaceLayoutReply
+            {
+                Applied = false,
+                DenialCode = AetherErrorCodes.WorkspaceLayoutUnavailable,
+                DenialMessage = "Durable workspace layouts are disabled on this broker (no layout store configured).",
+            };
+        }
+
+        var load = _layoutStore.Load(request.LayoutId);
+        if (!load.Found || load.Layout is null)
+        {
+            return new RestoreWorkspaceLayoutReply
+            {
+                Applied = false,
+                LayoutId = request.LayoutId,
+                DenialCode = load.Code ?? AetherErrorCodes.WorkspaceLayoutNotFound,
+                DenialMessage = load.Message ?? "The workspace layout could not be loaded.",
+            };
+        }
+
+        var monitors = _displayTopology.GetMonitors();
+        var plan = WorkspaceLayoutPlanner.PlanRestore(load.Layout, monitors);
+        var windows = _windows.ListVisible();
+        var windowByApp = windows
+            .GroupBy(window => window.AppId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.OrderBy(window => window.InstanceId, StringComparer.Ordinal).First(), StringComparer.Ordinal);
+
+        var placements = new List<ModelWindowPlacement>();
+        foreach (var planned in plan.Placements)
+        {
+            if (!windowByApp.TryGetValue(planned.AppId, out var window))
+            {
+                continue;
+            }
+
+            placements.Add(new ModelWindowPlacement(
+                window.AppId,
+                window.InstanceId,
+                window.WindowId,
+                window.Title,
+                new ModelWindowBounds(planned.Bounds.X, planned.Bounds.Y, planned.Bounds.Width, planned.Bounds.Height),
+                planned.MonitorDeviceName,
+                planned.Visible));
+        }
+
+        var reply = new RestoreWorkspaceLayoutReply
+        {
+            LayoutId = load.Layout.LayoutId,
+            ClampedCount = plan.ClampedCount,
+            PrimaryFallbackCount = plan.PrimaryFallbackCount,
+            MissingMonitorCount = plan.MissingMonitorCount,
+            DpiScaledCount = plan.DpiScaledCount,
+            Provenance = CreateBrokerProvenance(traceId),
+        };
+        reply.Notes.AddRange(plan.Notes);
+        reply.Placements.AddRange(placements.Select(placement => new WorkspaceLayoutPlacement
+        {
+            AppId = placement.AppId,
+            MonitorDeviceName = placement.MonitorId,
+            X = placement.Bounds.X,
+            Y = placement.Bounds.Y,
+            Width = placement.Bounds.Width,
+            Height = placement.Bounds.Height,
+            Visible = placement.Visible,
+        }));
+
+        if (placements.Count == 0)
+        {
+            reply.Applied = false;
+            reply.DenialCode = AetherErrorCodes.BrokerArrangeNoWindows;
+            reply.DenialMessage = "No currently registered windows match the saved workspace layout.";
+            return reply;
+        }
+
+        var layoutToApply = new ModelWindowLayout("workspace-restore", placements, placements[0].MonitorId);
+        var applied = await _arranger.ApplyAsync(layoutToApply, windows, context.CancellationToken).ConfigureAwait(false);
+        reply.Applied = applied.Applied;
+        if (!applied.Applied)
+        {
+            reply.DenialCode = AetherErrorCodes.BrokerArrangeNoWindows;
+            reply.DenialMessage = applied.Message ?? "The workspace layout was not applied.";
+        }
+
+        _auditSink.Append(new AuditEventDraft
+        {
+            TraceId = traceId,
+            EventType = AuditEventTypes.WorkspaceLayoutRestore,
+            Outcome = applied.Applied ? AuditOutcomes.Succeeded : AuditOutcomes.Failed,
+            Code = reply.DenialCode,
+            BrokeredAppId = "broker",
+        });
+
+        return reply;
+    }
+
+    private Provenance CreateBrokerProvenance(string traceId) => new()
+    {
+        SourceAppId = "aether.broker",
+        SourceInstanceId = "broker",
+        TraceId = traceId,
+        SpanId = TraceIdGenerator.NewSpanId(),
+        CreatedAtUnixMs = _options.TimeProvider.GetUtcNow().ToUnixTimeMilliseconds(),
+    };
 
     public override Task<HealthProbeReply> HealthProbe(HealthProbeRequest request, ServerCallContext context)
     {

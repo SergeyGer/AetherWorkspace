@@ -30,6 +30,12 @@ public static class CapabilityNames
     /// <summary>Resolve a bounded FDC3 intent to a registered target app.</summary>
     public const string IntentResolve = "intent.resolve";
 
+    /// <summary>Persist the current workspace layout (v0.5 durable layouts).</summary>
+    public const string WorkspaceLayoutSave = "workspace.layout.save";
+
+    /// <summary>Restore a durable workspace layout into the current desktop topology.</summary>
+    public const string WorkspaceLayoutRestore = "workspace.layout.restore";
+
     public static readonly IReadOnlyList<string> All =
     [
         ContextPublish,
@@ -40,5 +46,7 @@ public static class CapabilityNames
         BrokerArrange,
         PlanExecute,
         IntentResolve,
+        WorkspaceLayoutSave,
+        WorkspaceLayoutRestore,
     ];
 }

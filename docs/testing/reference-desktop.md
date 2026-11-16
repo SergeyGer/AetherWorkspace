@@ -46,3 +46,13 @@ skips with reasons — never as passes.
 Sanitized summary: [`evidence/2026-11-16-windows11-release-full.md`](evidence/2026-11-16-windows11-release-full.md).
 The reference laptop is not a GitHub runner, runs only approved 40-hex SHAs, and all raw
 artifacts stay local.
+
+## Durable layout persistence (v0.5)
+
+The broker persists layouts only when configured with `--layout-store <dir>`; one strict
+versioned JSON file per layout id is written atomically inside that trusted directory. The
+operator client calls `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` (capabilities
+`workspace.layout.save` / `workspace.layout.restore`); restore clamps every window into a
+visible work area, falls back to the primary monitor when a saved monitor disappears, and
+audits both operations. Layout files are synthetic local configuration — no window content or
+customer data is stored.

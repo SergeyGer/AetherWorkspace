@@ -43,6 +43,12 @@ release tag yet.
   visible work areas, primary-monitor fallback when a saved monitor disappears, DPI rescaling,
   deterministic ordering and denial when no monitors are available. Published
   `docs/contracts/workspace-layout.schema.json` + example; 18 new broker/contracts tests pass.
+- **AW-031 persistence and broker API:** local atomic/versioned `WorkspaceLayoutStore`
+  (strict per-layout JSON files, size limits, path-safe ids, corrupt/missing/disabled
+  handling), `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` gRPC methods with capability
+  checks + audit events, `BrokerClient` methods and `--layout-store` BrokerApp option;
+  Windows topology capture via `EnumDisplayMonitors`/DPI with deterministic virtual fallback;
+  store and RPC integration tests (broker suite now 85 tests).
 - **Reference dual-monitor baseline:** Windows 11 laptop in Extend mode — DISPLAY1 1920×1200
   primary at (0,0) + DISPLAY2 3440×1440 at (1920,0), both 100% DPI, captured in the
   `environment-manifest.json` `displays.screens` array after the topology fix.
