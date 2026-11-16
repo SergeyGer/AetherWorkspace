@@ -1,6 +1,14 @@
 # AetherWorkspace
 
 [![CI](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml/badge.svg)](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml)
+[![coverage](docs/assets/coverage-badge.svg)](docs/testing/coverage.md)
+[![tests](https://img.shields.io/badge/tests-521%20passing-brightgreen)](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml)
+![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)
+![C%23 14](https://img.shields.io/badge/C%23-14-239120)
+![WPF](https://img.shields.io/badge/WPF-Windows%2011-0C54C2)
+![gRPC](https://img.shields.io/badge/gRPC-named%20pipes-244C5A?logo=grpc&logoColor=white)
+![FDC3](https://img.shields.io/badge/FDC3-declared%20subset-1F4E79)
+[![License: MIT](https://img.shields.io/badge/license-MIT-3DA639)](LICENSE)
 
 AetherWorkspace is an independent, vendor-neutral **reference implementation** of a
 local-only desktop interoperability workspace. A policy-aware AI planner proposes a strict,
