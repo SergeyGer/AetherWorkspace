@@ -64,8 +64,8 @@ exists yet.
 |---|---|---|
 | AW-030 Owned-window docking | **Not planned (no go decision)** | AW-004 feasibility did not produce a go decision; top-level arrangement remains the supported path. To be recorded as not planned in the v0.5 release |
 | AW-031 Durable multi-monitor workspace layouts | **Done for the v0.5 scope** | strict `WorkspaceLayout` model/parser/validation; capture/restore planner with work-area clamping, primary fallback, DPI rescaling; atomic versioned store; `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` RPC with capabilities/audit; `BrokerClient` methods; broker 85 tests. WT-05 `Category=Layout05` desktop tests run in the Windows UI CI lane and in the reference orchestrator. **Physical dual-monitor evidence (2026-11-16):** `release-full` PASS — 484/484 tests, `layout05=4`, monitors DISPLAY1 1920×1200 + DISPLAY2 3440×1440; see [`docs/testing/evidence/2026-11-16-windows11-wt05-layout.md`](testing/evidence/2026-11-16-windows11-wt05-layout.md). WT-05-03/05/06/10 remain manual/approval-only for v0.5 |
-| AW-032 Live Inspector with redacted trace timeline | Planned (v0.5) | — |
-| AW-033 Local diagnostics export and support bundle | Planned (v0.5) | — |
+| AW-032 Live Inspector with redacted trace timeline | **Implemented (headless timeline + WPF Inspector tab/export); physical R1 run pending** | shell `timeline` output; WPF Inspector tab with step timeline and local diagnostics export; broker tests/UI compile; WT-05-08 R1 evidence pending |
+| AW-033 Local diagnostics export and support bundle | **Implemented (sanitized local JSON bundle); physical R1 run pending** | `--export-diagnostics`, redaction/atomic-write/size/path tests (Security 133/133), explicit no-raw-payload/no-telemetry flags; WPF export button; WT-05-08 R1 evidence pending |
 
 Windows 11 physical-desktop evidence for v0.4/v0.5 follows
 [`docs/testing/windows11-reference.md`](testing/windows11-reference.md) and the published
