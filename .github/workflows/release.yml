@@ -109,20 +109,24 @@ jobs:
           $desktop = "artifacts/desktop"
           dotnet publish src/Aether.BrokerApp -c Release -o "$desktop/broker" -v q
           dotnet publish src/Aether.Shell -c Release -o "$desktop/shell" -v q
+          dotnet publish src/Aether.Shell.Headless -c Release -o "$desktop/shell-headless" -v q
           dotnet publish src/Aether.SampleApps -c Release -o "$desktop/samples/app" -v q
           New-Item -ItemType Directory -Force -Path "$desktop/samples/registry", "$desktop/samples/contexts", "$desktop/samples/fixtures" | Out-Null
           Copy-Item samples/registry/apps.windows.json -Destination "$desktop/samples/registry/apps.windows.json"
           Copy-Item samples/contexts/contexts.json -Destination "$desktop/samples/contexts/contexts.json"
           Copy-Item samples/fixtures/* -Destination "$desktop/samples/fixtures" -Recurse
           Copy-Item packaging/windows/README.txt -Destination "$desktop/README.txt"
-          Copy-Item packaging/windows/Start-AetherWorkspace.ps1 -Destination "$desktop/Start-AetherWorkspace.ps1"
+          Copy-Item packaging/windows/*.ps1 -Destination $desktop
           $required = @(
             "$desktop/broker/Aether.BrokerApp.exe",
             "$desktop/shell/Aether.Shell.exe",
             "$desktop/samples/app/Aether.SampleApps.exe",
             "$desktop/samples/registry/apps.windows.json",
+            "$desktop/shell-headless/Aether.Shell.Headless.exe",
             "$desktop/README.txt",
-            "$desktop/Start-AetherWorkspace.ps1"
+            "$desktop/Start-AetherWorkspace.ps1",
+            "$desktop/Test-AetherWorkflow.ps1",
+            "$desktop/Collect-Diagnostics.ps1"
           )
           foreach ($path in $required) {
             if (-not (Test-Path -LiteralPath $path)) { throw "Desktop bundle is missing $path" }

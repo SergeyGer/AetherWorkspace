@@ -46,6 +46,7 @@ $brokerProcess = Start-Process -FilePath $broker -WorkingDirectory $root -PassTh
     '--endpoint-file', $endpointFile,
     '--layout-store', $layoutStore,
     '--child-log-dir', $childLogs,
+    '--audit-file', (Join-Path $childLogs 'broker-audit.jsonl'),
     '--max-actions', '6'
 )
 
@@ -71,3 +72,6 @@ Write-Host ''
 Write-Host 'AetherWorkspace desktop reference is starting.'
 Write-Host 'Run the pre-filled reference command in the shell. Close the shell and stop the broker process when finished.'
 Write-Host "Broker PID: $($brokerProcess.Id)"
+Write-Host ""
+Write-Host 'Diagnostics: if sample windows close or the workflow fails, run Collect-Diagnostics.ps1 and share the ZIP.'
+Write-Host 'Headless reproduction: Test-AetherWorkflow.ps1 (prints workflow result without GUI automation).'
