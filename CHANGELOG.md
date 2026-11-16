@@ -49,6 +49,13 @@ release tag yet.
   checks + audit events, `BrokerClient` methods and `--layout-store` BrokerApp option;
   Windows topology capture via `EnumDisplayMonitors`/DPI with deterministic virtual fallback;
   store and RPC integration tests (broker suite now 85 tests).
+- **AW-033 sanitized diagnostics export (headless):** `--export-diagnostics <path.json>` writes an
+  operator-initiated local bundle (run/timeline metadata, app health, environment, aggregated
+  audit-chain facts, provider routing flags) with synthetic account-id/secret/JWT redaction,
+  atomic file write, `.json`/size validation and explicit `rawPayloadsIncluded=false` /
+  `telemetryUploads=false` flags; no telemetry uploads, off by default.
+- **AW-032 trace timeline (headless):** shell output now includes a redacted per-step
+  `timeline` (sequence/action/state/code) for Inspector consumers; WPF Inspector tab pending.
 - **WT-05 layout desktop tests:** new `Category=Layout05` scenarios in
   `tests/Aether.Desktop.E2E.Tests` — single-monitor save/restore with bounds assertions,
   two-monitor placement on real dual-monitor hardware, missing-monitor primary fallback and

@@ -10,6 +10,7 @@ using Aether.Contracts.Broker;
 using Aether.Contracts.Errors;
 using Aether.Contracts.Json;
 using Aether.Contracts.Models;
+using Aether.Contracts.Models.Diagnostics;
 using Aether.Execution.Authorization;
 using Aether.Execution.Executor;
 using Aether.Execution.Results;
@@ -18,6 +19,7 @@ using Aether.Security.Audit;
 using Aether.Security.Classification;
 using Aether.Security.Egress;
 using Aether.Security.Policy;
+using Aether.Security.Diagnostics;
 using Aether.Security.Secrets;
 using Aether.Workflow;
 
@@ -155,7 +157,13 @@ public static class Program
                 SuppliedPlan: suppliedPlan);
 
             var result = await orchestrator.ExecuteAsync(request, timeoutSource.Token).ConfigureAwait(false);
-            var output = BuildOutput(result, egressGateway, auditLog, options, cloudEnabled, cloudConsent, envOverrides);
+            ShellDiagnosticsOutput? diagnostics = null;
+            if (!string.IsNullOrWhiteSpace(options.ExportDiagnosticsPath))
+            {
+                diagnostics = await ExportDiagnosticsAsync(result, auditLog, client, options, cloudEnabled, cloudConsent, envOverrides);
+            }
+
+            var output = BuildOutput(result, egressGateway, auditLog, options, cloudEnabled, cloudConsent, envOverrides, diagnostics);
             return Emit(output, options);
         }
         catch (BrokerRpcException exception)
@@ -182,7 +190,8 @@ public static class Program
         ShellOptions options,
         bool cloudEnabled,
         bool cloudConsent,
-        IReadOnlyDictionary<string, string>? envOverrides)
+        IReadOnlyDictionary<string, string>? envOverrides,
+        ShellDiagnosticsOutput? diagnostics = null)
     {
         var egressSnapshot = egress.Snapshot();
         var verification = auditLog.Verify();
@@ -227,7 +236,70 @@ public static class Program
                 rotatedFiles,
                 fileChainValid),
             BuildProviders(options, cloudEnabled, cloudConsent, envOverrides, result.Classification),
-            BuildLimitations());
+            BuildLimitations(),
+            result.Execution?.Steps.Select((step, index) => new ShellTimelineEntry(
+                index + 1,
+                step.Action,
+                step.State.ToString().ToLowerInvariant(),
+                step.Code)).ToArray() ?? [],
+            diagnostics);
+    }
+
+    private static async Task<ShellDiagnosticsOutput> ExportDiagnosticsAsync(
+        WorkflowResult result,
+        HashChainAuditLog auditLog,
+        BrokerClient client,
+        ShellOptions options,
+        bool cloudEnabled,
+        bool cloudConsent,
+        IReadOnlyDictionary<string, string>? envOverrides)
+    {
+        var traceId = TraceIdGenerator.NewTraceId();
+        var snapshot = await client.GetSnapshotAsync(traceId).ConfigureAwait(false);
+        var health = await client.HealthProbeAsync().ConfigureAwait(false);
+        var providers = BuildProviders(options, cloudEnabled, cloudConsent, envOverrides, result.Classification);
+        var auditEntries = auditLog.Snapshot();
+        var counts = auditEntries
+            .GroupBy(entry => entry.EventType, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+        var verification = auditLog.Verify();
+        var (rotatedFiles, fileChainValid) = VerifyAuditFile(options);
+        var timeline = result.Execution?.Steps
+            .Select((step, index) => new DiagnosticsTimelineEntry(index + 1, step.Action, step.State.ToString().ToLowerInvariant(), step.Code, null))
+            .ToArray() ?? [];
+        var apps = snapshot.Apps
+            .Select(app => new DiagnosticsApp(
+                app.AppId,
+                health.AppHealth.FirstOrDefault(entry => entry.StartsWith(app.AppId + "=", StringComparison.Ordinal)) ?? "UNKNOWN",
+                0))
+            .ToArray();
+        var bundle = DiagnosticsBundleBuilder.Build(
+            new DiagnosticsRun(
+                result.Success ? "succeeded" : "denied",
+                result.TraceId,
+                result.PlanId,
+                result.Classification.ToWireName(),
+                result.DenialCode,
+                result.DurationMs,
+                result.PlannerProvider,
+                result.UsedModel),
+            timeline,
+            apps,
+            new DiagnosticsAudit(verification.EntryCount, verification.Valid, rotatedFiles, fileChainValid, counts),
+            new DiagnosticsProviders(
+                providers.Mode,
+                providers.RouteKind,
+                providers.RouteReason,
+                providers.ModelProvider,
+                providers.ModelName,
+                providers.CloudEnabled,
+                providers.CloudConsentGranted,
+                providers.CloudAdapterConfigured,
+                providers.LocalModelAdapterConfigured),
+            options.Offline,
+            TimeProvider.System.GetUtcNow());
+        var path = DiagnosticsBundleBuilder.WriteFile(bundle, options.ExportDiagnosticsPath!);
+        return new ShellDiagnosticsOutput(path, new FileInfo(path).Length, true);
     }
 
     private static ShellOutput BuildParseFailureOutput(ShellOptions options, IReadOnlyList<PlanValidationIssue> issues, IReadOnlyDictionary<string, string>? envOverrides)
