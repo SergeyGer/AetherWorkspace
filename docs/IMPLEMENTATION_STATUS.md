@@ -58,7 +58,14 @@ exists yet.
 | AW-041 WPF GUI E2E over Windows Named Pipes | **Done** | `tests/Aether.Desktop.E2E.Tests` runs on GitHub Windows CI and passed on the physical Windows 11 reference desktop (R1 `release-full`): real broker over named pipes, WPF shell, three sample processes, trace/privacy assertions, 2/2 tests PASS |
 | AW-042 WT-04 regression suite on reference desktop | **Done for the v0.4 scope** | WT-04-01/02/07 execute on R1 (2 desktop E2E tests + WPF UI automation); WT-04-03/05/06/08 policy assertions covered by portable CI suites and executed locally via `release-full`. Residual: deeper physical-desktop WT-04 privacy matrix and evidence-scrubbing drill tracked as follow-up |
 
-## v0.5.0 — in progress
+## v0.6.0 — in progress (developer contract studio)
+
+| Item | Status | Evidence |
+|---|---|---|
+| AW-034 Review-only contract generation assistant | **Core implemented (draft templates + untrusted envelope + validator); CLI/review workflow next** | `Aether.Contracts.Studio` bounded generators for registry/proto/schema; untrusted status, deterministic output, capability/context/classification constraints, active-registry collision detection; contracts 52/52 with 9 studio tests |
+| AW-035 Validate generated schemas before acceptance | Planned (next increment) | — |
+
+## v0.5.0 — released 2026-11-16
 
 | Item | Status | Evidence |
 |---|---|---|
