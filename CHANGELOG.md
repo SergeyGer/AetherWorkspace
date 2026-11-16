@@ -33,6 +33,18 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.4.4 restore TRX aggregation helper (2026-11-16)
+
+### Fixed
+
+- Restored `Read-TrxCountersAggregate` in `tools/windows-test/Run-AetherTests.ps1` (it was
+  dropped during the v0.4.3 deterministic-suite rewrite; the v0.4.3 run executed all eight test
+  projects successfully but ended `FAIL_HARNESS` with "Read-TrxCountersAggregate is not
+  recognized"). Added a static check that every custom helper call has a definition; only
+  PowerShell built-in cmdlets and `git` remain external.
+- R1 evidence and reference-desktop run tables record the v0.4.3 failed harness attempt
+  (8/8 test projects passed; failure was harness-only) and point to the v0.4.4 fix.
+
 ## [Unreleased] — v0.4.3 deterministic per-project test evidence (2026-11-16)
 
 ### Fixed

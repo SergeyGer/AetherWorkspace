@@ -26,6 +26,7 @@ Preceding control runs on the same reviewed SHA (same device):
 | `20261116-085803-release-full-ad5ae7` | `e7007af` | `release-full` | PASS |
 | `20261116-091552-release-full-97b9bf` | `4a2796e` (v0.4.1) | `release-full` | PASS |
 | `20261116-094002-release-full-a5f4d6` | `d44e6ba` (v0.4.2) | `release-full` | PASS |
+| `20261116-102503-release-full-24c244` | `303f4d7` (v0.4.3) | `release-full` | FAIL_HARNESS (missing aggregation helper; all 8 test projects passed before the harness error) |
 
 Two independent runs from the same approved SHA produced matching functional outcomes
 (addendum gate G‑01), and the GUI end-to-end scenario used the real Windows Named Pipes
@@ -61,6 +62,12 @@ The run itself passed; the counter aggregation needed two iterations:
    `AetherWorkspace.slnx`, runs each one separately with its own `results/trx/portable/<project>.trx`,
    and aggregates exactly those files. This removes duplicate discovery by construction;
    locally simulated collection yields 8 files / 445 passed.
+4. **v0.4.4 — helper regression fix:** the first v0.4.3 run executed all eight test projects
+   successfully but failed at the aggregation step because the `Read-TrxCountersAggregate`
+   helper had been dropped during the rewrite (status `FAIL_HARNESS`, exit 2). v0.4.4 restores
+   the helper and adds a static check that every custom helper call has a definition (only
+   built-in cmdlets/`git` remain external). The next run records the final deterministic
+   counters.
 
 **Authoritative portable counters are confirmed from the v0.4.1 control-run suite log**
 (`logs/test-portable.log`), independent of the harness aggregation bug:

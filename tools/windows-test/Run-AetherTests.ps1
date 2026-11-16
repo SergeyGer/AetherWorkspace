@@ -1107,6 +1107,41 @@ function Get-SolutionTestProjects {
     return @($projects | Sort-Object)
 }
 
+function Read-TrxCountersAggregate {
+    <#
+    .SYNOPSIS
+        Aggregates Counters from several TRX files (one per test project).
+    #>
+    param([string[]] $Paths)
+
+    $aggregate = [pscustomobject]@{
+        available = $false
+        total = 0
+        executed = 0
+        passed = 0
+        failed = 0
+        skipped = 0
+        aborted = 0
+    }
+
+    foreach ($path in @($Paths)) {
+        $counters = Read-TrxCounters -Path $path
+        if (-not $counters.available) {
+            continue
+        }
+
+        $aggregate.available = $true
+        $aggregate.total += [int]$counters.total
+        $aggregate.executed += [int]$counters.executed
+        $aggregate.passed += [int]$counters.passed
+        $aggregate.failed += [int]$counters.failed
+        $aggregate.skipped += [int]$counters.skipped
+        $aggregate.aborted += [int]$counters.aborted
+    }
+
+    return $aggregate
+}
+
 function Invoke-SolutionTestSuite {
     <#
     .SYNOPSIS
