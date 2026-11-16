@@ -21,21 +21,36 @@ C:\AetherWorkspace\results      ACL-restricted TRX/manifests/redacted logs/scree
 # 1. Approve a reviewed revision (full 40-hex SHA, one line)
 Set-Content C:\AetherWorkspace\automation\approved-revision.txt '<40-hex-sha>'
 
-# 2. Run a profile
-pwsh -NoProfile -File .\Run-AetherTests.ps1 `
+# 2. Run a profile (from a copy under automation, pass -RepoRoot explicitly)
+pwsh -NoProfile -File C:\AetherWorkspace\automation\Run-AetherTests.ps1 `
   -Profile daily-smoke `
-  -ApprovedRevisionFile C:\AetherWorkspace\automation\approved-revision.txt
+  -RepoRoot C:\AetherWorkspace\trusted `
+  -ApprovedRevisionFile C:\AetherWorkspace\approved-revision.txt
+
+# Alternatively run the script directly from the trusted checkout (RepoRoot defaults
+# to the checkout root):
+# pwsh -NoProfile -File .\tools\windows-test\Run-AetherTests.ps1 -Profile release-full `
+#   -ApprovedRevisionFile C:\AetherWorkspace\approved-revision.txt
 ```
 
-Profiles: `developer-smoke`, `daily-smoke`, `release-full`. Optional
-`test-config.example.json` documents paths/preflight/privacy settings; copy it to
+Profiles: `developer-smoke` (1 reference-desktop GUI E2E), `daily-smoke` (+2 WPF UI automation
+tests), `release-full` (portable solution suites + both Windows UI suites). The
+`desktop-e2e` suite runs the two `ReferenceDesktop`-traited tests (WT-04-01 and WT-04-02).
+Optional `test-config.example.json` documents paths/preflight/privacy settings; copy it to
 `test-config.json` in the automation directory if you want to override defaults.
 
-Exit/result semantics: `PASS`, `FAIL_PRODUCT`, `FAIL_HARNESS`, `SKIPPED_LOCKED`,
-`SKIPPED_ASLEEP`, `SKIPPED_UNAPPROVED_SHA`, `SKIPPED_HARDWARE`, `INCONCLUSIVE` — written to
+Recorded run: 2026-11-16, `release-full` **PASS** on a physical Windows 11 laptop for approved
+commit `e7007af` — see
+[`docs/testing/evidence/2026-11-16-windows11-release-full.md`](../../docs/testing/evidence/2026-11-16-windows11-release-full.md).
+
+Exit/result semantics: `PASS`, `FAIL_PRODUCT`, `FAIL_HARNESS`, `INCONCLUSIVE`,
+`SKIPPED_LOCKED`, `SKIPPED_UNAPPROVED`, `SKIPPED_OVERLAP`, `SKIPPED_ON_BATTERY`,
+`SKIPPED_NO_INTERACTIVE_SESSION`, `SKIPPED_INSUFFICIENT_RESOURCES` — written to
 `results\<run-id>\run-result.json` together with `environment-manifest.json` (OS build,
-hardware/display/DPI, .NET SDK, SHA, suite version) and TRX logs. A locked/asleep session never
-fails the product; it is recorded as a skip.
+hardware/display/DPI, .NET SDK, SHA, suite version), `run.log` and TRX evidence. Skips exit
+with code 0; product failures with 1 and harness failures with 2. A locked/asleep session never
+fails the product; it is recorded as a skip. Solution test runs keep one TRX per test project
+and the orchestrator aggregates their counters (fixed in v0.4.1).
 
 ## Task Scheduler
 

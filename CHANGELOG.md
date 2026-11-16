@@ -33,6 +33,28 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.4.1 physical Windows 11 R1 evidence and harness counter fix (2026-11-16)
+
+### Added
+
+- Sanitized R1 evidence from the first physical Windows 11 reference-desktop `release-full`
+  run: **PASS** for approved commit `e7007af` (v0.4.0); preceding `developer-smoke` and
+  `daily-smoke` runs also PASS; real Windows Named Pipes GUI E2E with three child processes,
+  zero inbound listeners, clean worktree/cleanup.
+- `docs/testing/evidence/2026-11-16-windows11-release-full.md`, recorded-runs table in the
+  reference-desktop lifecycle doc and updated R1 status in the Windows 11 testing strategy.
+- AW-039/AW-040/AW-041 marked done; AW-042 done for the v0.4 scope with tracked residual.
+
+### Fixed
+
+- `tools/windows-test/Run-AetherTests.ps1`: solution test runs wrote one TRX per project and
+  the shared filename overwrote evidence, so `portable` counters under-reported (16 instead of
+  445). Solution suites now keep per-project TRX files and the harness aggregates Counters
+  across all of them; expected authoritative totals 445 + 2 + 2 = 449.
+- Windows testing README: corrected SKIPPED_* taxonomy names, added the trusted-checkout
+  `-RepoRoot` example, documented that the reference-desktop suite includes WT-04-01/02 and
+  that TRX evidence is aggregated.
+
 ## [Unreleased] — v0.4.0 privacy, model routing/evaluation and Windows 11 test infrastructure (2026-11-15)
 
 ### Added
