@@ -6,4 +6,7 @@
     <ProjectReference Include="..\..\src\Aether.Contracts\Aether.Contracts.csproj" />
     <ProjectReference Include="..\Aether.Testing\Aether.Testing.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tools\Aether.ContractStudio\Aether.ContractStudio.csproj" />
+  </ItemGroup>
 </Project>
