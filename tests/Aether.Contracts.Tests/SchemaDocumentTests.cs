@@ -30,6 +30,26 @@ public class SchemaDocumentTests
     }
 
     [Fact]
+    public void WorkspaceLayoutExampleMatchesPublishedSchema()
+    {
+        var schema = LoadSchema("workspace-layout.schema.json");
+        var example = JsonSerializer.SerializeToElement(JsonNode.Parse(File.ReadAllText(TestRepo.PathTo("docs", "contracts", "workspace-layout.example.json")))!);
+
+        var result = Evaluate(schema, example);
+        Assert.True(result.IsValid, Describe(result));
+    }
+
+    [Fact]
+    public void WorkspaceLayoutSchemaRejectsUnknownMembers()
+    {
+        var schema = LoadSchema("workspace-layout.schema.json");
+        var example = JsonNode.Parse(File.ReadAllText(TestRepo.PathTo("docs", "contracts", "workspace-layout.example.json")))!.AsObject();
+        example["unexpected"] = "value";
+
+        Assert.False(Evaluate(schema, JsonSerializer.SerializeToElement(example)).IsValid);
+    }
+
+    [Fact]
     public void EmbeddedExecutableFieldIsRejectedByPlanSchema()
     {
         var schema = LoadSchema("action-plan.schema.json");

@@ -56,7 +56,9 @@ locally as part of `release-full`; deeper physical-desktop privacy scenarios rem
 passed for approved commit `e7007af` (v0.4.0) — see
 [`evidence/2026-11-16-windows11-release-full.md`](evidence/2026-11-16-windows11-release-full.md).
 Recorded device: Windows 11 Pro build 26300, Intel Core Ultra 7 255H, 63.3 GB RAM,
-Intel Arc 140T GPU, 1 monitor, 100% DPI, .NET SDK 10.0.401/10.0.404. A control `release-full`
+Intel Arc 140T GPU, 1 monitor, 100% DPI, .NET SDK 10.0.401/10.0.404. Dual-monitor baseline
+(2026-11-16, same laptop): `\\.\DISPLAY1` 1920×1200 primary at (0,0) + `\\.\DISPLAY2`
+3440×1440 at (1920,0), both 100% scaling — the reference topology for v0.5 WT‑05.​ A control `release-full`
 run on v0.4.1 (`4a2796e`) also passed; v0.4.2 hardens TRX evidence discovery (project-scoped,
 freshness-filtered, SHA-256 de-duplicated) after the control run exposed duplicate/stray TRX
 over-counting (664 instead of the 445-portable baseline).

@@ -81,6 +81,10 @@ public static class AetherErrorCodes
     public const string Fdc3IntentTargetNotApproved = "fdc3.intent.target_not_approved";
     public const string Fdc3ContextUnsupported = "fdc3.context.unsupported";
 
+    // Durable workspace layouts
+    public const string WorkspaceLayoutInvalid = "workspace.layout.invalid";
+    public const string WorkspaceLayoutNotFound = "workspace.layout.not_found";
+
     // Configuration
     public const string ConfigInvalidEnvFile = "config.invalid_env_file";
 
@@ -133,6 +137,7 @@ public static class AetherErrorCodes
                 _ => DenialCategory.InputRejected,
             },
             "ai" => DenialCategory.ProviderUnavailable,
+            "workspace" => DenialCategory.InputRejected,
             "execution" => DenialCategory.InternalError,
             "workflow" => DenialCategory.InternalError,
             _ => DenialCategory.Unknown,

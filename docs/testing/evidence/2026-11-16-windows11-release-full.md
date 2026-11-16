@@ -73,6 +73,21 @@ The run itself passed; the counter aggregation needed two iterations:
    `desktop-e2e=PASS (2p/0f)`, `totals passed=449 failed=0 skipped=0`. The per-project TRX
    execution aggregates exactly the eight expected TRX files; the counter issue is closed.
 
+## Dual-monitor baseline (2026-11-16, v0.4.4 script)
+
+After the topology-capture fix, a `developer-smoke` run on the same approved SHA `e97ee5d`
+recorded the reference laptop's dual-monitor configuration (second monitor connected in
+Extend mode):
+
+| Screen | Primary | Position | Resolution | Bits |
+|---|---|---:|---|---:|
+| `\\.\DISPLAY1` | yes | (0, 0) | 1920 × 1200 | 32 |
+| `\\.\DISPLAY2` | no | (1920, 0) | 3440 × 1440 | 32 |
+
+`environment-manifest.json` now reports `monitorCount: 2` and the `displays.screens` array;
+`desktopMonitorCount` (CIM `Win32_DesktopMonitor`) still reports 1, which is why the old
+detection missed the second display. This is the baseline for v0.5 WT‑05 dual-monitor tests.
+
 ## Display topology note (v0.5 prep)
 
 The final v0.4.4 run reported `monitorCount=1` (1920×1200, 100% DPI) even though a second
