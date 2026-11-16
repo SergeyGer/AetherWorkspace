@@ -20,7 +20,15 @@ public sealed record ShellOutput(
     ShellEgressOutput Egress,
     ShellAuditOutput Audit,
     ShellProvidersOutput Providers,
-    IReadOnlyList<string> Limitations);
+    IReadOnlyList<string> Limitations,
+    IReadOnlyList<ShellTimelineEntry>? Timeline = null,
+    ShellDiagnosticsOutput? Diagnostics = null);
+
+/// <summary>Redacted Inspector timeline entry for one workflow step (v0.5 AW-032).</summary>
+public sealed record ShellTimelineEntry(int Sequence, string Action, string State, string? Code);
+
+/// <summary>Result of an explicit sanitized diagnostics export (v0.5 AW-033).</summary>
+public sealed record ShellDiagnosticsOutput(string Path, long Bytes, bool Redacted);
 
 public sealed record ShellStepOutput(
     string Action,

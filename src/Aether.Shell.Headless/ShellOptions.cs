@@ -39,6 +39,9 @@ public sealed class ShellOptions
     /// <summary>Optional `.env`-style file loaded into an in-memory secret provider.</summary>
     public string? EnvFile { get; private set; }
 
+    /// <summary>Operator-initiated sanitized diagnostics export path (v0.5, AW-033).</summary>
+    public string? ExportDiagnosticsPath { get; private set; }
+
     public long AuditMaxFileBytes { get; private set; }
 
     public int AuditMaxFiles { get; private set; } = 4;
@@ -120,6 +123,9 @@ public sealed class ShellOptions
                 case "--env-file":
                     options.EnvFile = NextValue();
                     break;
+                case "--export-diagnostics":
+                    options.ExportDiagnosticsPath = NextValue();
+                    break;
                 default:
                     throw new ArgumentException($"Unknown option '{argument}'.");
             }
@@ -157,6 +163,7 @@ public sealed class ShellOptions
           --use-local-model         Use the optional loopback local model adapter for summaries.
           --offline                 Offline mode: no cloud adapter is constructed and cloud flags are forced off.
           --env-file <path>         Load provider configuration/secrets from a local .env file (git-ignored).
+          --export-diagnostics <path.json>  Write a sanitized local diagnostics bundle (no telemetry upload).
           --audit-max-bytes <n>     Rotate the audit file at n bytes (min 4096; 0 disables rotation).
           --audit-files <n>         Retain at most n rotated audit files (default 4).
         """;
