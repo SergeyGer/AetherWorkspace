@@ -84,6 +84,7 @@ public static class AetherErrorCodes
     // Durable workspace layouts
     public const string WorkspaceLayoutInvalid = "workspace.layout.invalid";
     public const string WorkspaceLayoutNotFound = "workspace.layout.not_found";
+    public const string WorkspaceLayoutUnavailable = "workspace.layout.unavailable";
 
     // Configuration
     public const string ConfigInvalidEnvFile = "config.invalid_env_file";

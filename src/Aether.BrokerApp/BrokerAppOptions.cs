@@ -33,6 +33,8 @@ public sealed class BrokerAppOptions
 
     public string? AuditFile { get; private set; }
 
+    public string? LayoutStoreDirectory { get; private set; }
+
     public long AuditMaxFileBytes { get; private set; }
 
     public int AuditMaxFiles { get; private set; } = 4;
@@ -99,6 +101,9 @@ public sealed class BrokerAppOptions
                     break;
                 case "--audit-file":
                     options.AuditFile = NextValue();
+                    break;
+                case "--layout-store":
+                    options.LayoutStoreDirectory = NextValue();
                     break;
                 case "--audit-max-bytes":
                     options.AuditMaxFileBytes = long.Parse(NextValue(), System.Globalization.CultureInfo.InvariantCulture);
@@ -202,7 +207,8 @@ public sealed class BrokerAppOptions
           --operator-token <val>   Explicit operator token (generated when omitted).
           --max-actions <n>        Plan action budget (demo default 6; library default 5).
           --work-area WxH          Virtual work area for deterministic layout (default 1920x1080).
-          --audit-file <path>      Append the tamper-evident audit chain as JSONL.
+          --layout-store <dir>        Directory for durable workspace layouts (v0.5 save/restore).
+        --audit-file <path>      Append the tamper-evident audit chain as JSONL.
           --audit-max-bytes <n>    Rotate the audit file at n bytes (min 4096; 0 disables).
           --audit-files <n>        Retain at most n rotated audit files (default 4).
           --child-log-dir <path>   Capture child app stdout/stderr lines for diagnostics.

@@ -16,6 +16,8 @@ public static class AuditEventTypes
     public const string WorkflowResult = "workflow.result";
     public const string AuditChain = "audit.chain";
     public const string IntentResolve = "fdc3.intent.resolve";
+    public const string WorkspaceLayoutSave = "workspace.layout.save";
+    public const string WorkspaceLayoutRestore = "workspace.layout.restore";
 }
 
 public static class AuditOutcomes

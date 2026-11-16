@@ -58,13 +58,19 @@ exists yet.
 | AW-041 WPF GUI E2E over Windows Named Pipes | **Done** | `tests/Aether.Desktop.E2E.Tests` runs on GitHub Windows CI and passed on the physical Windows 11 reference desktop (R1 `release-full`): real broker over named pipes, WPF shell, three sample processes, trace/privacy assertions, 2/2 tests PASS |
 | AW-042 WT-04 regression suite on reference desktop | **Done for the v0.4 scope** | WT-04-01/02/07 execute on R1 (2 desktop E2E tests + WPF UI automation); WT-04-03/05/06/08 policy assertions covered by portable CI suites and executed locally via `release-full`. Residual: deeper physical-desktop WT-04 privacy matrix and evidence-scrubbing drill tracked as follow-up |
 
-## v0.5.0…v1.0.0 — planned
+## v0.5.0 — in progress
 
-AW-030…AW-038 (docking decision, multi-monitor layouts, Live Inspector, diagnostics export,
-contract studio, reproducible Windows distribution/SBOM, public docs and final release gate)
-are planned only. Windows 11 physical-desktop evidence for v0.4/v0.5 follows
+| Item | Status | Evidence |
+|---|---|---|
+| AW-030 Owned-window docking | **Not planned (no go decision)** | AW-004 feasibility did not produce a go decision; top-level arrangement remains the supported path. To be recorded as not planned in the v0.5 release |
+| AW-031 Durable multi-monitor workspace layouts | **Implemented (core + persistence); WT-05 desktop evidence pending** | strict `WorkspaceLayout` model/parser/validation; capture/restore planner with work-area clamping, primary fallback, DPI rescaling; atomic versioned store; `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` RPC with capabilities/audit; `BrokerClient` methods; broker 85 tests. Reference dual-monitor baseline recorded (DISPLAY1 1920×1200 + DISPLAY2 3440×1440, 100% DPI); WT-05-01/02/04 desktop tests and dual-monitor run pending |
+| AW-032 Live Inspector with redacted trace timeline | Planned (v0.5) | — |
+| AW-033 Local diagnostics export and support bundle | Planned (v0.5) | — |
+
+Windows 11 physical-desktop evidence for v0.4/v0.5 follows
 [`docs/testing/windows11-reference.md`](testing/windows11-reference.md) and the published
-[`reference-desktop run lifecycle`](testing/reference-desktop.md).
+[`reference-desktop run lifecycle`](testing/reference-desktop.md). AW-034…AW-038 remain planned
+for v0.6/v1.0.
 
 ## Verification commands
 

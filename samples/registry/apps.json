@@ -122,7 +122,9 @@
         "context.publish",
         "context.read",
         "window.report",
-        "intent.resolve"
+        "intent.resolve",
+        "workspace.layout.save",
+        "workspace.layout.restore"
       ],
       "allowedChannels": [
         "default"

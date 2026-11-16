@@ -3,6 +3,7 @@ using Aether.Contracts.Models;
 using Aether.Broker.Catalog;
 using Aether.Broker.Registry;
 using Aether.Broker.Launching;
+using Aether.Broker.Workspaces;
 using Aether.Security.Audit;
 
 namespace Aether.Broker;
@@ -82,6 +83,15 @@ public sealed class BrokerOptions
     public bool EnableWin32WindowArrangement { get; init; } = OperatingSystem.IsWindows();
 
     public string? AuditFile { get; init; }
+
+    /// <summary>Optional directory for durable workspace layout files (v0.5). Null disables save/restore.</summary>
+    public string? LayoutStoreDirectory { get; init; }
+
+    /// <summary>Maximum serialized workspace layout size in bytes.</summary>
+    public int LayoutMaxBytes { get; init; } = 256 * 1024;
+
+    /// <summary>Test seam for display topology; Windows/headless defaults are used when null.</summary>
+    public IDisplayTopologyProvider? DisplayTopology { get; init; }
 
     /// <summary>When greater than zero, the audit JSONL rotates at this size (min 4096).</summary>
     public long AuditMaxFileBytes { get; init; }

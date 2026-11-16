@@ -58,6 +58,7 @@ public static class Program
                 WorkAreaWidth = parsed.WorkAreaWidth,
                 WorkAreaHeight = parsed.WorkAreaHeight,
                 AuditFile = parsed.AuditFile,
+                LayoutStoreDirectory = parsed.LayoutStoreDirectory,
                 AuditMaxFileBytes = parsed.AuditMaxFileBytes,
                 AuditMaxFiles = parsed.AuditMaxFiles,
                 ChildLogDirectory = parsed.ChildLogDirectory,
@@ -98,6 +99,7 @@ public static class Program
                 auditMaxFileBytes = parsed.AuditMaxFileBytes,
                 auditMaxFiles = parsed.AuditMaxFiles,
                 childLogDirectory = parsed.ChildLogDirectory,
+                layoutStoreDirectory = parsed.LayoutStoreDirectory,
                 maxActionsPerPlan = options.MaxActionsPerPlan,
             };
             Console.Out.WriteLine("AETHER_BROKER_READY " + AetherJson.Serialize(ready));

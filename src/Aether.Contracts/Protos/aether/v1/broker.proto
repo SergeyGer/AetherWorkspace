@@ -20,6 +20,8 @@ service BrokerService {
   rpc ArrangeWindows(ArrangeWindowsRequest) returns (ArrangeWindowsReply);
   rpc GetSnapshot(SnapshotRequest) returns (SnapshotReply);
   rpc ResolveIntent(ResolveIntentRequest) returns (ResolveIntentReply);
+  rpc SaveWorkspaceLayout(SaveWorkspaceLayoutRequest) returns (SaveWorkspaceLayoutReply);
+  rpc RestoreWorkspaceLayout(RestoreWorkspaceLayoutRequest) returns (RestoreWorkspaceLayoutReply);
   rpc StopApp(StopAppRequest) returns (StopAppReply);
   rpc RestartApp(RestartAppRequest) returns (RestartAppReply);
   rpc HealthProbe(HealthProbeRequest) returns (HealthProbeReply);
@@ -189,6 +191,50 @@ message ArrangeWindowsReply {
   WindowLayout layout = 2;
   string denial_code = 3;
   string denial_message = 4;
+}
+
+message SaveWorkspaceLayoutRequest {
+  string layout_id = 1;
+  string description = 2;
+  string trace_id = 3;
+}
+
+message SaveWorkspaceLayoutReply {
+  bool accepted = 1;
+  string layout_id = 2;
+  string layout_json = 3;
+  string denial_code = 4;
+  string denial_message = 5;
+  Provenance provenance = 6;
+}
+
+message RestoreWorkspaceLayoutRequest {
+  string layout_id = 1;
+  string trace_id = 2;
+}
+
+message WorkspaceLayoutPlacement {
+  string app_id = 1;
+  string monitor_device_name = 2;
+  int32 x = 3;
+  int32 y = 4;
+  int32 width = 5;
+  int32 height = 6;
+  bool visible = 7;
+}
+
+message RestoreWorkspaceLayoutReply {
+  bool applied = 1;
+  string layout_id = 2;
+  repeated WorkspaceLayoutPlacement placements = 3;
+  int32 clamped_count = 4;
+  int32 primary_fallback_count = 5;
+  int32 missing_monitor_count = 6;
+  int32 dpi_scaled_count = 7;
+  repeated string notes = 8;
+  string denial_code = 9;
+  string denial_message = 10;
+  Provenance provenance = 11;
 }
 
 message StopAppRequest {

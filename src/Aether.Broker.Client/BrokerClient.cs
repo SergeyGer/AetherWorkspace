@@ -216,6 +216,46 @@ public sealed class BrokerClient : IAsyncDisposable
         }
     }
 
+    public async Task<SaveWorkspaceLayoutReply> SaveWorkspaceLayoutAsync(
+        string layoutId,
+        string? description = null,
+        string? traceId = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _service.SaveWorkspaceLayoutAsync(
+                new SaveWorkspaceLayoutRequest
+                {
+                    LayoutId = layoutId,
+                    Description = description ?? "",
+                    TraceId = traceId ?? "",
+                },
+                Options(traceId, cancellationToken)).ConfigureAwait(false);
+        }
+        catch (RpcException exception)
+        {
+            throw BrokerRpcException.From(exception);
+        }
+    }
+
+    public async Task<RestoreWorkspaceLayoutReply> RestoreWorkspaceLayoutAsync(
+        string layoutId,
+        string? traceId = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _service.RestoreWorkspaceLayoutAsync(
+                new RestoreWorkspaceLayoutRequest { LayoutId = layoutId, TraceId = traceId ?? "" },
+                Options(traceId, cancellationToken)).ConfigureAwait(false);
+        }
+        catch (RpcException exception)
+        {
+            throw BrokerRpcException.From(exception);
+        }
+    }
+
     public async Task<ResolveIntentReply> ResolveIntentAsync(
         string intent,
         string contextRef,
