@@ -54,6 +54,10 @@ release tag yet.
   two-monitor placement on real dual-monitor hardware, missing-monitor primary fallback and
   corrupt-layout denial; named-pipe broker harness now provisions `--layout-store`; wired into
   the `release-full`/`daily-smoke` reference profiles and the Windows UI CI lane.
+- **Physical WT-05 evidence (Windows 11, 2026-11-16):** dual-monitor `release-full` PASS on
+  approved commit `491d4c2` — `portable=476`, `windows-ui=2`, `desktop-e2e=2`, `layout05=4`,
+  **484/484 passed** with DISPLAY1 1920×1200 + DISPLAY2 3440×1440; sanitized summary in
+  `docs/testing/evidence/2026-11-16-windows11-wt05-layout.md`.
 - **Reference dual-monitor baseline:** Windows 11 laptop in Extend mode — DISPLAY1 1920×1200
   primary at (0,0) + DISPLAY2 3440×1440 at (1920,0), both 100% DPI, captured in the
   `environment-manifest.json` `displays.screens` array after the topology fix.

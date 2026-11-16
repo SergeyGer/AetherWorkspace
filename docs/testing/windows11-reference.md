@@ -87,10 +87,10 @@ and logs are never auto-uploaded to GitHub; only curated synthetic summaries may
 
 | Test ID | Scenario | Automation status |
 |---|---|---|
-| WT-05-01 | One-monitor arrangement within visible work areas | **Automated** (`Category=Layout05`: `SaveRestoreKeepsAllWindowsOnVisibleScreens`) |
-| WT-05-02 | Save/restore layout across a change, no offscreen windows | **Automated** (same test: save → arrange → restore + bounds assertions) |
+| WT-05-01 | One-monitor arrangement within visible work areas | **Automated + R1 PASS** (`Category=Layout05`) |
+| WT-05-02 | Save/restore layout across a change, no offscreen windows | **Automated + R1 PASS** (save → arrange → restore + bounds assertions) |
 | WT-05-03 | Resolution change / monitor disconnect recovery | Restore fallback automated; display-config change itself is manual/approval-only (not automated in v0.5) |
-| WT-05-04 | Two-monitor arrangement | **Automated** (`DualMonitorLayoutRestoresSecondaryMonitorPlacements`; executes on real dual-monitor hardware, otherwise reported SKIPPED_HARDWARE by the run log) |
+| WT-05-04 | Two-monitor arrangement | **Automated + R1 PASS** (`DualMonitorLayoutRestoresSecondaryMonitorPlacements`; physical 1920×1200 + 3440×1440 evidence recorded 2026-11-16) |
 | WT-05-05 | DPI 100/125/150% | Manual profile with rollback (not automated in v0.5) |
 | WT-05-06 | Focus / keyboard / modal behaviour | Manual/device check (planned) |
 | WT-05-07 | Child crash/hang recovery | Covered by v0.2 fault-injection suites; device-side run pending |
@@ -99,6 +99,8 @@ and logs are never auto-uploaded to GitHub; only curated synthetic summaries may
 | WT-05-10 | UI responsiveness measurement | Out of v0.5 automation scope; requires hardware-fingerprint profile |
 
 The v0.5 `Layout05` suite runs in the local reference orchestrator (`release-full`/`daily-smoke`
-profiles) and in the Windows UI CI lane. Dual-monitor evidence requires the reference laptop
-with the second display connected; on the Windows-hosted runner the dual scenario logs
-SKIPPED_HARDWARE while single-monitor/missing-monitor/corrupt scenarios still assert.
+profiles) and in the Windows UI CI lane. Physical dual-monitor evidence recorded 2026-11-16:
+`release-full` PASS with 484/484 tests, `layout05=4`, `monitors=2`
+([summary](evidence/2026-11-16-windows11-wt05-layout.md)). On the Windows-hosted runner the dual
+scenario logs SKIPPED_HARDWARE while single-monitor/missing-monitor/corrupt scenarios still
+assert.
