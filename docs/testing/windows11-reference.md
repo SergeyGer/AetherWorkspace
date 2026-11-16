@@ -83,9 +83,22 @@ and logs are never auto-uploaded to GitHub; only curated synthetic summaries may
 (infrastructure defect, never converted to pass) · `SKIPPED_LOCKED` / `SKIPPED_ASLEEP` ·
 `SKIPPED_HARDWARE` · `SKIPPED_UNAPPROVED_SHA` · `INCONCLUSIVE`.
 
-## v0.5 scope (next)
+## v0.5 scope (in progress)
 
-WT-05-01…10: single-monitor arrangement, layout save/restore, resolution change, two-monitor
-(if hardware), DPI 100/125/150%, focus/keyboard/modal, child crash/hang recovery, Live
-Inspector/redacted export, optional docking (only after a go decision) and UI responsiveness
-on the reference hardware. Cross-process embedding is not asserted without a go decision.
+| Test ID | Scenario | Automation status |
+|---|---|---|
+| WT-05-01 | One-monitor arrangement within visible work areas | **Automated** (`Category=Layout05`: `SaveRestoreKeepsAllWindowsOnVisibleScreens`) |
+| WT-05-02 | Save/restore layout across a change, no offscreen windows | **Automated** (same test: save → arrange → restore + bounds assertions) |
+| WT-05-03 | Resolution change / monitor disconnect recovery | Restore fallback automated; display-config change itself is manual/approval-only (not automated in v0.5) |
+| WT-05-04 | Two-monitor arrangement | **Automated** (`DualMonitorLayoutRestoresSecondaryMonitorPlacements`; executes on real dual-monitor hardware, otherwise reported SKIPPED_HARDWARE by the run log) |
+| WT-05-05 | DPI 100/125/150% | Manual profile with rollback (not automated in v0.5) |
+| WT-05-06 | Focus / keyboard / modal behaviour | Manual/device check (planned) |
+| WT-05-07 | Child crash/hang recovery | Covered by v0.2 fault-injection suites; device-side run pending |
+| WT-05-08 | Live Inspector and redacted export | Planned with AW-032/AW-033 |
+| WT-05-09 | Optional docking | Not planned (no go decision; top-level arrangement retained) |
+| WT-05-10 | UI responsiveness measurement | Out of v0.5 automation scope; requires hardware-fingerprint profile |
+
+The v0.5 `Layout05` suite runs in the local reference orchestrator (`release-full`/`daily-smoke`
+profiles) and in the Windows UI CI lane. Dual-monitor evidence requires the reference laptop
+with the second display connected; on the Windows-hosted runner the dual scenario logs
+SKIPPED_HARDWARE while single-monitor/missing-monitor/corrupt scenarios still assert.

@@ -49,6 +49,11 @@ release tag yet.
   checks + audit events, `BrokerClient` methods and `--layout-store` BrokerApp option;
   Windows topology capture via `EnumDisplayMonitors`/DPI with deterministic virtual fallback;
   store and RPC integration tests (broker suite now 85 tests).
+- **WT-05 layout desktop tests:** new `Category=Layout05` scenarios in
+  `tests/Aether.Desktop.E2E.Tests` — single-monitor save/restore with bounds assertions,
+  two-monitor placement on real dual-monitor hardware, missing-monitor primary fallback and
+  corrupt-layout denial; named-pipe broker harness now provisions `--layout-store`; wired into
+  the `release-full`/`daily-smoke` reference profiles and the Windows UI CI lane.
 - **Reference dual-monitor baseline:** Windows 11 laptop in Extend mode — DISPLAY1 1920×1200
   primary at (0,0) + DISPLAY2 3440×1440 at (1920,0), both 100% DPI, captured in the
   `environment-manifest.json` `displays.screens` array after the topology fix.

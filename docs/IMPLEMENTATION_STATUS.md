@@ -63,7 +63,7 @@ exists yet.
 | Item | Status | Evidence |
 |---|---|---|
 | AW-030 Owned-window docking | **Not planned (no go decision)** | AW-004 feasibility did not produce a go decision; top-level arrangement remains the supported path. To be recorded as not planned in the v0.5 release |
-| AW-031 Durable multi-monitor workspace layouts | **Implemented (core + persistence); WT-05 desktop evidence pending** | strict `WorkspaceLayout` model/parser/validation; capture/restore planner with work-area clamping, primary fallback, DPI rescaling; atomic versioned store; `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` RPC with capabilities/audit; `BrokerClient` methods; broker 85 tests. Reference dual-monitor baseline recorded (DISPLAY1 1920×1200 + DISPLAY2 3440×1440, 100% DPI); WT-05-01/02/04 desktop tests and dual-monitor run pending |
+| AW-031 Durable multi-monitor workspace layouts | **Implemented; WT-05-01/02/04 automated; physical dual-monitor run pending** | strict `WorkspaceLayout` model/parser/validation; capture/restore planner with work-area clamping, primary fallback, DPI rescaling; atomic versioned store; `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` RPC with capabilities/audit; `BrokerClient` methods; broker 85 tests. WT-05 `Category=Layout05` desktop tests: single-monitor save/restore bounds, two-monitor placement (hardware-dependent), missing-monitor fallback, corrupt-layout denial — wired into the reference orchestrator profiles and Windows UI CI lane. Reference dual-monitor baseline recorded (DISPLAY1 1920×1200 + DISPLAY2 3440×1440, 100% DPI); physical dual-monitor evidence run pending |
 | AW-032 Live Inspector with redacted trace timeline | Planned (v0.5) | — |
 | AW-033 Local diagnostics export and support bundle | Planned (v0.5) | — |
 

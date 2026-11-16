@@ -56,3 +56,8 @@ operator client calls `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` (capabiliti
 visible work area, falls back to the primary monitor when a saved monitor disappears, and
 audits both operations. Layout files are synthetic local configuration — no window content or
 customer data is stored.
+
+The reference orchestrator profiles include the `layout05` suite (WT‑05‑01/02/04 scenarios from
+`tests/Aether.Desktop.E2E.Tests`, `Category=Layout05`). `release-full` and `daily-smoke` run
+`portable`, `windows-ui`, `desktop-e2e` and `layout05`; the two-monitor scenario executes only
+when a second physical display is attached (otherwise the run log records SKIPPED_HARDWARE).
