@@ -33,6 +33,22 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.4.3 deterministic per-project test evidence (2026-11-16)
+
+### Fixed
+
+- `tools/windows-test/Run-AetherTests.ps1`: the solution/portable suite no longer discovers TRX
+  files from the worktree (heuristics still over-counted on Windows: 664 on v0.4.1, 781 on
+  v0.4.2 against the 445 baseline). The orchestrator now enumerates the eight
+  `tests/*.Tests.csproj` projects from `AetherWorkspace.slnx`, runs each project separately with
+  its own TRX under `results/trx/portable/<project>.trx`, and aggregates exactly those files.
+  Locally simulated collection: 8 files / 445 passed. SUITE status derives from per-project
+  exit codes and TRX presence (missing TRX ⇒ INCONCLUSIVE, failing project ⇒ FAIL_PRODUCT,
+  timeout ⇒ FAIL_HARNESS).
+- Recorded the v0.4.2 control `release-full` run (`20261116-094002...`, commit `d44e6ba`) as
+  PASS in the R1 evidence doc; a final rerun on v0.4.3 records the deterministic counters
+  (ideally with the second monitor connected for the dual-monitor baseline).
+
 ## [Unreleased] — v0.4.2 TRX evidence de-duplication and control-run record (2026-11-16)
 
 ### Fixed

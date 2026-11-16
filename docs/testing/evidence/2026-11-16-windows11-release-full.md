@@ -25,6 +25,7 @@ Preceding control runs on the same reviewed SHA (same device):
 | `20261116-085650-daily-smoke-99a6d4` | `e7007af` | `daily-smoke` | PASS |
 | `20261116-085803-release-full-ad5ae7` | `e7007af` | `release-full` | PASS |
 | `20261116-091552-release-full-97b9bf` | `4a2796e` (v0.4.1) | `release-full` | PASS |
+| `20261116-094002-release-full-a5f4d6` | `d44e6ba` (v0.4.2) | `release-full` | PASS |
 
 Two independent runs from the same approved SHA produced matching functional outcomes
 (addendum gate G‑01), and the GUI end-to-end scenario used the real Windows Named Pipes
@@ -51,13 +52,15 @@ The run itself passed; the counter aggregation needed two iterations:
    original fixed filename under `--results-directory` overwrote evidence, so the first run
    reported portable as 16 tests instead of the full suite. Fix: per-project TRX + aggregate
    Counters across files.
-2. **v0.4.2 — over-count:** the control run on v0.4.1 reported `portable=664` because the
-   recursive worktree scan picked up duplicate/stray TRX copies (the synthetic baseline for
-   this commit is 445 portable tests, matching Linux/Windows CI). Fix: discover TRX only under
-   `tests/<project>/TestResults`, require freshness relative to the suite start, and
-   de-duplicate identical files by SHA-256. Validated with fixture directories containing a
-   duplicate copy under `bin/` and a stale TRX: only the 2 valid project files were counted
-   (total 5), duplicates/stale files ignored.
+2. **v0.4.2 — over-count (664 → 781):** the v0.4.1 control run reported `portable=664` and the
+   v0.4.2 run reported `portable=781` (the synthetic baseline for this commit is 445 portable
+   tests, matching Linux and Windows CI). Heuristic discovery of per-project TRX files on
+   Windows still picked up duplicate/extra files.
+3. **v0.4.3 — deterministic fix:** the portable suite no longer discovers TRX from the
+   worktree at all. The orchestrator enumerates the eight `tests/*.Tests.csproj` projects from
+   `AetherWorkspace.slnx`, runs each one separately with its own `results/trx/portable/<project>.trx`,
+   and aggregates exactly those files. This removes duplicate discovery by construction;
+   locally simulated collection yields 8 files / 445 passed.
 
 **Authoritative portable counters are confirmed from the v0.4.1 control-run suite log**
 (`logs/test-portable.log`), independent of the harness aggregation bug:
