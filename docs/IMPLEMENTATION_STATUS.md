@@ -100,7 +100,7 @@ v1.0.0 gap assessment are answered in
 | Packaged desktop self-test/diagnostics | **Done** | `Test-AetherWorkflow.ps1` (packaged broker + headless reference workflow + structured result/diagnostics), `Collect-Diagnostics.ps1` (privacy-safe ZIP, endpoint token excluded), headless shell included in the desktop bundle |
 | WPF sample-app diagnostics | **Done** | heartbeat parity, unhandled-exception/connect logging to broker child log and `%TEMP%\aether-sample-logs` |
 | Real-WPF-sample regression coverage | **Done** | CI tests run the real WPF sample apps through launch/context persistence and the full WPF-shell workflow (`WT-04-09`) |
-| Clean-machine desktop workflow verification | **Open** | v1.0.1 bundle: launcher/broker/WPF Shell confirmed, assets `VERIFY PASS`; sample windows closed — packaged workflow result capture via v1.0.2 self-test pending |
+| Clean-machine desktop workflow verification | **Done** | v1.0.2 bundle: assets `VERIFY PASS`; packaged headless self-test `status=succeeded` 6/6 steps; GUI run 6/6 steps, three real WPF sample windows open, summary + Inspector. Evidence: [`docs/testing/evidence/2026-11-16-windows11-v1.0.2-desktop-bundle.md`](testing/evidence/2026-11-16-windows11-v1.0.2-desktop-bundle.md) |
 
 ## v1.0.1 — corrective release (2026-11-16)
 
