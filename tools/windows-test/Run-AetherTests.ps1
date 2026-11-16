@@ -653,9 +653,42 @@ function Get-HardwareSnapshot {
         $appliedDpi = 96
     }
 
-    $monitorCount = [Math]::Max($desktopMonitors.Count, 1)
-    if ($videoControllers.Count -eq 0) {
+    # Real desktop topology: Win32_DesktopMonitor frequently reports one entry for
+    # multi-monitor setups or virtual displays. Screen.AllScreens reflects the actual
+    # desktop layout (bounds per monitor) when the Windows Desktop runtime is available.
+    $screens = @()
+    try {
+        Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+        $screens = @([System.Windows.Forms.Screen]::AllScreens | ForEach-Object {
+            [pscustomobject]@{
+                deviceName = [string]$_.DeviceName
+                primary = [bool]$_.Primary
+                x = [int]$_.Bounds.X
+                y = [int]$_.Bounds.Y
+                width = [int]$_.Bounds.Width
+                height = [int]$_.Bounds.Height
+                bitsPerPixel = [int]$_.BitsPerPixel
+            }
+        } | Sort-Object x, y)
+    }
+    catch {
+        $screens = @()
+    }
+
+    $monitorCount = if ($screens.Count -gt 0) {
+        $screens.Count
+    }
+    else {
+        [Math]::Max($desktopMonitors.Count, 1)
+    }
+
+    if ($videoControllers.Count -eq 0 -and $screens.Count -eq 0) {
         $monitorCount = 0
+    }
+
+    if ($screens.Count -gt 0) {
+        $maximumWidth = [Math]::Max($maximumWidth, ($screens | Measure-Object -Property width -Maximum).Maximum)
+        $maximumHeight = [Math]::Max($maximumHeight, ($screens | Measure-Object -Property height -Maximum).Maximum)
     }
 
     return [pscustomobject]@{
@@ -677,6 +710,7 @@ function Get-HardwareSnapshot {
         height = $maximumHeight
         dpi = $appliedDpi
         dpiPercent = [Math]::Round(($appliedDpi / 96.0) * 100, 0)
+        screens = $screens
     }
 }
 
@@ -1684,6 +1718,7 @@ function Build-EnvironmentManifest {
             maximumHeight = $hardware.height
             dpi = $hardware.dpi
             dpiPercent = $hardware.dpiPercent
+            screens = @($hardware.screens)
             adapters = @($hardware.displayAdapters)
         }
         power = [pscustomobject]@{ hasBattery = $power.HasBattery; onBattery = $power.OnBattery; status = $power.Status }

@@ -27,6 +27,7 @@ Preceding control runs on the same reviewed SHA (same device):
 | `20261116-091552-release-full-97b9bf` | `4a2796e` (v0.4.1) | `release-full` | PASS |
 | `20261116-094002-release-full-a5f4d6` | `d44e6ba` (v0.4.2) | `release-full` | PASS |
 | `20261116-102503-release-full-24c244` | `303f4d7` (v0.4.3) | `release-full` | FAIL_HARNESS (missing aggregation helper; all 8 test projects passed before the harness error) |
+| `20261116-104313-release-full-ca993b` | `e97ee5d` (v0.4.4) | `release-full` | **PASS**, deterministic counters: 445 portable + 2 windows-ui + 2 desktop-e2e = 449; dual-monitor capture pending topology fix |
 
 Two independent runs from the same approved SHA produced matching functional outcomes
 (addendum gate G‑01), and the GUI end-to-end scenario used the real Windows Named Pipes
@@ -65,9 +66,22 @@ The run itself passed; the counter aggregation needed two iterations:
 4. **v0.4.4 — helper regression fix:** the first v0.4.3 run executed all eight test projects
    successfully but failed at the aggregation step because the `Read-TrxCountersAggregate`
    helper had been dropped during the rewrite (status `FAIL_HARNESS`, exit 2). v0.4.4 restores
-   the helper and adds a static check that every custom helper call has a definition (only
-   built-in cmdlets/`git` remain external). The next run records the final deterministic
-   counters.
+   the helper and a CI gate now validates the orchestrator script (parse + required helper
+   definitions).
+5. **v0.4.4 — final deterministic run (2026-11-16, run `20261116-104313-release-full-ca993b`):**
+   **PASS**, exit 0, with `portable=PASS (445p/0f)`, `windows-ui=PASS (2p/0f)`,
+   `desktop-e2e=PASS (2p/0f)`, `totals passed=449 failed=0 skipped=0`. The per-project TRX
+   execution aggregates exactly the eight expected TRX files; the counter issue is closed.
+
+## Display topology note (v0.5 prep)
+
+The final v0.4.4 run reported `monitorCount=1` (1920×1200, 100% DPI) even though a second
+physical monitor was connected at the time: `Win32_DesktopMonitor` did not expose it. The
+orchestrator's topology capture is being replaced with real desktop screen enumeration
+(`System.Windows.Forms.Screen.AllScreens` with a CIM fallback) and the manifest now includes a
+`screens` array (device name, primary flag, bounds, bits per pixel). The dual-monitor baseline
+will be recorded on the next reference run once the second monitor is in **Extend** mode and the
+new topology capture is approved.
 
 **Authoritative portable counters are confirmed from the v0.4.1 control-run suite log**
 (`logs/test-portable.log`), independent of the harness aggregation bug:
