@@ -4,7 +4,8 @@ Every `v*` tag triggers the Release workflow, which builds on the pinned .NET SD
 
 | Asset | Purpose |
 |---|---|
-| `AetherWorkspace-<tag>-binaries.zip` | portable, unsigned, framework-dependent Windows/Linux binaries |
+| `AetherWorkspace-<tag>-windows-x64-desktop.zip` | **Windows x64 WPF desktop bundle** (Shell, three WPF sample apps, broker, registry/contexts/fixtures, `Start-AetherWorkspace.ps1`, README) |
+| `AetherWorkspace-<tag>-headless-binaries.zip` | headless portable Windows/Linux runtime (broker, headless shell and headless samples) |
 | `AetherWorkspace-<tag>-source.zip` | tagged source snapshot |
 | `manifest.spdx.json` | SPDX SBOM for the published artifacts |
 | `SHA256SUMS-<tag>.txt` | SHA-256 checksums of all release assets |

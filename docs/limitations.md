@@ -55,8 +55,9 @@ is not backed by a test or a measured baseline in this repository, it is not mad
   RESTRICTED/UNKNOWN fixture and failed-classifier fixture in the suite, the observed
   number of external provider calls is zero (egress instrumentation + tests).
 - The optional cloud path for `INTERNAL` data (sanitized, explicitly reviewed) is
-  policy-gated and **not implemented end-to-end**; only the deny-by-default behaviour is
-  implemented and tested.
+  **formally de-scoped for the v1.x line** (ADR-009, `docs/adr/ADR-009-public-only-cloud-policy.md`):
+  cloud attempts are restricted to PUBLIC data; the session token vault remains local-only and is
+  not an INTERNAL-cloud sanitisation path. The deny-by-default behaviour is implemented and tested.
 - **Same-user processes remain a weak OS isolation boundary.** Process-bound launch
   tokens and capability checks raise the cost of impersonation; they do not create a
   security boundary stronger than the OS user. Residual risk is documented in the
@@ -80,10 +81,13 @@ is not backed by a test or a measured baseline in this repository, it is not mad
   session token vault is volatile/in-memory and not yet applied to every prompt path. No local
   model was installed in this environment, so local-inference behaviour is reported
   unavailable rather than validated.
-- **Windows 11 physical-desktop evidence is not yet recorded:** the reference-desktop
-  orchestrator and Named-Pipes GUI E2E suite are implemented; executing them on the laptop and
-  publishing curated evidence is the remaining AW-039–AW-042 step. GitHub-hosted Windows CI is
-  a Windows Server VM and its UI evidence is non-authoritative for desktop support claims.
+- **Windows 11 physical-desktop evidence is recorded for the tested scope:** the reference
+  orchestrator, named-pipe GUI E2E and layout suites passed on the physical Windows 11 laptop
+  (final release gate `20261116-153831-release-full-b3e064`: 511/511, dual monitors; sanitized
+  evidence in `docs/testing/evidence/`). GitHub-hosted Windows CI remains a non-authoritative
+  supporting gate for desktop support claims. Remaining gaps — DPI 125/150%, focus/keyboard/modal,
+  display-topology changes, crash/restart matrix and UI frame-time profiling — are explicit in
+  the post-v1.0 gap assessment rather than implied PASS.
 - **FDC3 scope is a declared bounded subset:** `fdc3.instrument`/`fdc3.organization`
   contexts and three intents only; no user channels, intent listeners, app-directory
   federation or external FDC3 desktop-agent interop; no conformance claim.
@@ -94,9 +98,9 @@ is not backed by a test or a measured baseline in this repository, it is not mad
   network-egress-blocked capture are not complete.
 - Retry semantics are at-most-once with deduplication keys for explicitly idempotent
   publish retries; there is no general transaction or exactly-once delivery.
-- Window arrangement is deterministic for the configured virtual/monitor work area; it
-  is not tested with real multi-monitor DPI topologies or monitor removal/docking (v0.5
-  scope).
+- Window arrangement is deterministic for configured monitor work areas. Dual-monitor restore
+  and missing-monitor fallback are verified on real hardware; per-monitor DPI 125%/150%,
+  live display-configuration changes and automated visual assertions remain manual/approval-only.
 - The chart sample uses WPF vector rendering instead of WebView2; the specification
   allowed WebView2 "where required" but it is not required for the deterministic
   demonstration.
@@ -106,8 +110,10 @@ is not backed by a test or a measured baseline in this repository, it is not mad
 
 ## Documentation and process
 
-- GitHub Releases are produced per milestone with framework-dependent build archives,
-  source archives, SHA-256 checksums and an SPDX SBOM. There is **no signed installer, no
+- GitHub Releases are produced per milestone: since v1.0.1 they include a Windows x64 WPF desktop
+  bundle (Shell + three WPF sample apps + broker + launcher), a headless runtime archive, a source
+  snapshot, SHA-256 checksums and an SPDX SBOM. Verification: `tools/release/Verify-Release.ps1`.
+  There is **no signed installer, no
   reproducible-build guarantee and no Windows code signing** yet (v1.0 scope). These
   releases are development baselines, not production distributions.
 - No calendar commitments, compliance certifications, DORA/GDPR statements, or claims
