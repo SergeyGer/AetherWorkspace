@@ -37,6 +37,10 @@ release tag yet.
 
 ### Added
 
+- **AW-036 release verification and supply-chain evidence:** `tools/release/Verify-Release.ps1`
+  validates published SHA-256 checksums, missing assets and SPDX SBOM structure offline; verified
+  against v0.6.0 release assets (VERIFY PASS, SPDX-2.2, 64 packages); `docs/distribution/reproducibility.md`
+  documents verification, independent rebuild and honest reproducibility boundaries (unsigned portable).
 - **AW-034 first slice — review-only contract studio core:** bounded draft generator/validator in
   `Aether.Contracts.Studio` for registry entries, proto3 message snippets and JSON schema
   templates; drafts are explicitly untrusted, deterministic, constrained to documented

@@ -62,7 +62,7 @@ exists yet.
 
 | Item | Status | Evidence |
 |---|---|---|
-| AW-036 Reproducible Windows distribution and supply-chain evidence | **Next increment** | deterministic build/release pipeline, SBOM/checksums, verification guide |
+| AW-036 Reproducible Windows distribution and supply-chain evidence | **Implemented (release workflow + offline verification + docs); R1 final gate pending** | automated tag-driven artifact build (binaries/source/SPDX SBOM/SHA-256); `tools/release/Verify-Release.ps1` verified v0.6.0 assets (VERIFY PASS, SPDX-2.2, 64 packages); `docs/distribution/reproducibility.md` describes verification, rebuild and unsigned-portable boundaries |
 | AW-037 Finalize public docs/Wiki/narrated demo | Planned (after AW-036) | — |
 | AW-038 Final release gate + acceptance report | Planned (after AW-036/037) | — |
 
