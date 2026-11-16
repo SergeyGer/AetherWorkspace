@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "1.0",
+  "asOf": "2026-11-16",
+  "project": "AetherWorkspace",
+  "releaseGate": {
+    "runId": "20261116-153831-release-full-b3e064",
+    "profile": "release-full",
+    "status": "PASS",
+    "exitCode": 0,
+    "approvedSha": "6ec0b9eb37dc6dcd0a23303d45bf8c6edf5de73a",
+    "releaseTag": "v1.0.0",
+    "releaseTagTargetSha": "c67c3eb5138b1a2bf6c0012cc0165f48416a7559",
+    "provenanceDiff": {
+      "fromSha": "6ec0b9e",
+      "toSha": "c67c3eb",
+      "classification": "documentation-only",
+      "codeChanged": false,
+      "rerunRequired": false
+    }
+  },
+  "suites": [
+    {
+      "name": "portable",
+      "status": "PASS",
+      "passed": 503,
+      "failed": 0
+    },
+    {
+      "name": "windows-ui",
+      "status": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "name": "desktop-e2e",
+      "status": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "name": "layout05",
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0
+    }
+  ],
+  "totals": {
+    "passed": 511,
+    "failed": 0,
+    "skipped": 0
+  },
+  "environment": {
+    "os": "Windows 11 Pro (build 26300)",
+    "deviceClass": "physical reference laptop",
+    "cpu": "Intel Core Ultra 7 255H",
+    "gpu": "Intel Arc 140T",
+    "ramGb": 63.3,
+    "dotnetSdk": "10.0.401/10.0.404",
+    "monitors": 2,
+    "displayTopology": [
+      {
+        "deviceName": "\\\\\\\\.\\\\DISPLAY1",
+        "primary": true,
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1200
+      },
+      {
+        "deviceName": "\\\\\\\\.\\\\DISPLAY2",
+        "primary": false,
+        "x": 1920,
+        "y": 0,
+        "width": 3440,
+        "height": 1440
+      }
+    ],
+    "dpiPercent": 100,
+    "inboundTcpListeners": 0
+  },
+  "sanitization": {
+    "rawArtifactsPublished": false,
+    "rawTrxLogsScreenshots": "retained locally per evidence policy",
+    "machineOrUserNameIncluded": false,
+    "screenshotsIncluded": false
+  },
+  "evidenceFiles": [
+    {
+      "path": "docs/testing/evidence/2026-11-16-windows11-v1.0.0-acceptance.md",
+      "label": "acceptance report",
+      "sha256": "a6a19192614f0fba7b7744d794882ffb7dd629c1678595ef121ce9944f610117"
+    },
+    {
+      "path": "docs/testing/evidence/2026-11-16-windows11-wt05-layout.md",
+      "label": "WT-05 layout evidence",
+      "sha256": "55bb2a57b951fed78098996813b5927bdefc6fa3d43b560b4c69a4e6312ac63e"
+    },
+    {
+      "path": "docs/testing/evidence/2026-11-16-v0.6.0-contract-studio.md",
+      "label": "v0.6.0 contract studio evidence",
+      "sha256": "fc74c0ceccf7fcc1aa7fbbd6760a7b36727278ef92e6f9fb860ce036a22407f8"
+    },
+    {
+      "path": "docs/testing/windows11-reference.md",
+      "label": "Windows 11 testing strategy",
+      "sha256": "f6c3d920e3e2285efea6810df4659bb81ef73a1896d8f6d3abcfe3e613403034"
+    },
+    {
+      "path": "docs/testing/reference-desktop.md",
+      "label": "reference-desktop run lifecycle",
+      "sha256": "c46dfa9250392be2b6b2ea2b6bb059500a0f47ff5b6ba6c609ba8738a55fdedd"
+    }
+  ]
+}

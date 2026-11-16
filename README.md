@@ -19,6 +19,7 @@ Choose the path that matches the time you have.
 | I want to… | Time | What you get | Start |
 |---|---|---|---|
 | Understand the product | 5 min | Purpose, key concepts, safety boundaries | [Wiki: Home](https://github.com/SergeyGer/AetherWorkspace/wiki) |
+| Run the Windows desktop app without building | 5 min | Unsigned portable WPF bundle + one-command launcher; verify checksums first | [Latest release](https://github.com/SergeyGer/AetherWorkspace/releases/latest) |
 | Run the reference workflow | 10 min | Real trace, plan, denials and private summary | [Quick start](docs/quickstart.md) |
 | See status, evidence and roadmap | 5 min | Milestones v0.1–v0.6, CI and desktop evidence | [Wiki: Project status](https://github.com/SergeyGer/AetherWorkspace/wiki/Project-Status) |
 | Explore architecture and decisions | 20 min | Component map, invariants, ADRs | [Wiki: Architecture](https://github.com/SergeyGer/AetherWorkspace/wiki/Architecture) |
@@ -36,6 +37,9 @@ Choose the path that matches the time you have.
 - **Verifiable evidence.** Deterministic Linux/Windows CI, a headless reference workflow,
   Windows named-pipe and WPF UI lanes, plus a physical Windows 11 reference-desktop run
   recorded in the Wiki. If a claim is not backed by a test or measurement, it is not made.
+- **A downloadable Windows desktop bundle.** Since v1.0.1 each release ships a Windows x64 ZIP
+  with the WPF shell, three WPF sample apps, broker and a one-command launcher — no source
+  checkout required (unsigned portable; verify the published SHA-256 and SBOM).
 - **A runnable desktop reference.** Three independent synthetic apps (Watchlist, Risk,
   Chart), durable multi-monitor layouts, a Live Inspector with sanitized diagnostics export,
   and a review-only contract studio.

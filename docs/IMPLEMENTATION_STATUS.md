@@ -2,8 +2,13 @@
 
 Status legend: **Done** = implemented with committed automated evidence; **Partial** =
 key parts implemented and tested, milestone gate not fully met; **Not started** = planned
-only. Every claim below points at code and tests in this repository. No release tag
-exists yet.
+only. Every claim below points at code and tests in this repository.
+
+**Snapshot:** 16 November 2026 — latest released tags **v1.0.1** (corrective) and **v1.0.0**
+(reproducible reference release). This page is the implementation mapping; the authoritative
+versioned summary is the [Wiki Project status](https://github.com/SergeyGer/AetherWorkspace/wiki/Project-Status).
+Open post-v1.0 findings and their disposition are tracked in
+[`docs/audit/2026-11-16-gap-assessment-response.md`](audit/2026-11-16-gap-assessment-response.md).
 
 ## M0 — feasibility and engineering foundations (AW-001…AW-006)
 
@@ -58,7 +63,7 @@ exists yet.
 | AW-041 WPF GUI E2E over Windows Named Pipes | **Done** | `tests/Aether.Desktop.E2E.Tests` runs on GitHub Windows CI and passed on the physical Windows 11 reference desktop (R1 `release-full`): real broker over named pipes, WPF shell, three sample processes, trace/privacy assertions, 2/2 tests PASS |
 | AW-042 WT-04 regression suite on reference desktop | **Done for the v0.4 scope** | WT-04-01/02/07 execute on R1 (2 desktop E2E tests + WPF UI automation); WT-04-03/05/06/08 policy assertions covered by portable CI suites and executed locally via `release-full`. Residual: deeper physical-desktop WT-04 privacy matrix and evidence-scrubbing drill tracked as follow-up |
 
-## v1.0.0 — in progress (reproducible public release)
+## v1.0.0 — released 2026-11-16 (reproducible public release)
 
 | Item | Status | Evidence |
 |---|---|---|
@@ -79,13 +84,26 @@ exists yet.
 |---|---|---|
 | AW-030 Owned-window docking | **Not planned (no go decision)** | AW-004 feasibility did not produce a go decision; top-level arrangement remains the supported path. To be recorded as not planned in the v0.5 release |
 | AW-031 Durable multi-monitor workspace layouts | **Done for the v0.5 scope** | strict `WorkspaceLayout` model/parser/validation; capture/restore planner with work-area clamping, primary fallback, DPI rescaling; atomic versioned store; `SaveWorkspaceLayout`/`RestoreWorkspaceLayout` RPC with capabilities/audit; `BrokerClient` methods; broker 85 tests. WT-05 `Category=Layout05` desktop tests run in the Windows UI CI lane and in the reference orchestrator. **Physical dual-monitor evidence (2026-11-16):** `release-full` PASS — 484/484 tests, `layout05=4`, monitors DISPLAY1 1920×1200 + DISPLAY2 3440×1440; see [`docs/testing/evidence/2026-11-16-windows11-wt05-layout.md`](testing/evidence/2026-11-16-windows11-wt05-layout.md). WT-05-03/05/06/10 remain manual/approval-only for v0.5 |
-| AW-032 Live Inspector with redacted trace timeline | **Implemented (headless timeline + WPF Inspector tab/export); physical R1 run pending** | shell `timeline` output; WPF Inspector tab with step timeline and local diagnostics export; broker tests/UI compile; WT-05-08 R1 evidence pending |
-| AW-033 Local diagnostics export and support bundle | **Implemented (sanitized local JSON bundle); physical R1 run pending** | `--export-diagnostics`, redaction/atomic-write/size/path tests (Security 133/133), explicit no-raw-payload/no-telemetry flags; WPF export button; WT-05-08 R1 evidence pending |
+| AW-032 Live Inspector with redacted trace timeline | **Done (release v0.5.0)** | shell `timeline` output; WPF Inspector tab with step timeline and local diagnostics export; broker tests/UI compile; WT-05-08 R1 evidence pending |
+| AW-033 Local diagnostics export and support bundle | **Done (release v0.5.0)** | `--export-diagnostics`, redaction/atomic-write/size/path tests (Security 133/133), explicit no-raw-payload/no-telemetry flags; WPF export button; WT-05-08 R1 evidence pending |
 
-Windows 11 physical-desktop evidence for v0.4/v0.5 follows
+Windows 11 physical-desktop evidence follows
 [`docs/testing/windows11-reference.md`](testing/windows11-reference.md) and the published
-[`reference-desktop run lifecycle`](testing/reference-desktop.md). AW-034…AW-038 remain planned
-for v0.6/v1.0.
+[`reference-desktop run lifecycle`](testing/reference-desktop.md); AW-033/AW-037 gaps after the
+v1.0.0 gap assessment are answered in
+[`docs/audit/2026-11-16-gap-assessment-response.md`](audit/2026-11-16-gap-assessment-response.md).
+
+## v1.0.1 — corrective release (2026-11-16)
+
+| Item | Status | Evidence |
+|---|---|---|
+| G-01 Windows x64 WPF desktop bundle in releases | **Done** | release workflow now has a `windows-desktop` job (WPF Shell + WPF sample apps + broker + registry/contexts/fixtures + launcher/README) and a `publish` job that requires it; artifact `AetherWorkspace-<tag>-windows-x64-desktop.zip` |
+| G-08 stale status/limitations documents | **Done** | this page and [`docs/limitations.md`](limitations.md) reconciled to v1.0.0/v1.0.1; CI doc-consistency test added |
+| G-09 tag/R1 provenance | **Done** | provenance record appended to the v1.0.0 acceptance evidence (docs-only diff between R1 SHA and tag target) |
+| G-12 machine-readable R1 evidence | **Done** | `docs/testing/evidence/2026-11-16-windows11-v1.0.0-acceptance.manifest.json` |
+| G-02/03/04/05/06/10/11 remaining findings | **Accepted deviations / planned v1.1** | dispositions and explicit ADRs in [`docs/audit/2026-11-16-gap-assessment-response.md`](audit/2026-11-16-gap-assessment-response.md) |
+
+
 
 ## Verification commands
 

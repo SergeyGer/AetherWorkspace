@@ -14,8 +14,8 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build, verify, package and publish release
+  portable:
+    name: Build headless release assets (portable)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
           dotnet publish src/Aether.BrokerApp -c Release -o "artifacts/publish/$VERSION/broker" -v q
           dotnet publish src/Aether.Shell.Headless -c Release -o "artifacts/publish/$VERSION/shell" -v q
           dotnet publish src/Aether.SampleApps.Headless -c Release -o "artifacts/publish/$VERSION/samples" -v q
-          (cd "artifacts/publish/$VERSION" && zip -qr "../../AetherWorkspace-$VERSION-binaries.zip" .)
+          (cd "artifacts/publish/$VERSION" && zip -qr "../../AetherWorkspace-$VERSION-headless-binaries.zip" .)
           git archive --format=zip --output="artifacts/AetherWorkspace-$VERSION-source.zip" HEAD
       - name: Generate SBOM (SPDX)
         shell: bash
@@ -63,24 +63,124 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           cd artifacts
-          sha256sum "AetherWorkspace-$VERSION-binaries.zip" "AetherWorkspace-$VERSION-source.zip" *.json > "SHA256SUMS-$VERSION.txt"
+          sha256sum "AetherWorkspace-$VERSION-headless-binaries.zip" "AetherWorkspace-$VERSION-source.zip" *.json > "SHA256SUMS-$VERSION.txt"
+          cat "SHA256SUMS-$VERSION.txt"
+      - name: Upload portable assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: portable-assets
+          path: artifacts/*
+          if-no-files-found: error
+
+  windows-desktop:
+    name: Build Windows x64 desktop bundle (WPF)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = $env:GITHUB_REF_NAME
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+      - name: Build solution (warnings are errors)
+        shell: pwsh
+        run: dotnet build AetherWorkspace.slnx -c Release
+      - name: Windows packaged GUI smoke tests
+        shell: pwsh
+        run: |
+          dotnet build tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release
+          dotnet build tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj -c Release
+          dotnet test tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj -c Release --no-build --filter "Category=ReferenceDesktop|Category=Layout05"
+          dotnet test tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release --no-build --filter "Category=UI"
+      - name: Publish desktop applications
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $desktop = "artifacts/desktop"
+          dotnet publish src/Aether.BrokerApp -c Release -o "$desktop/broker" -v q
+          dotnet publish src/Aether.Shell -c Release -o "$desktop/shell" -v q
+          dotnet publish src/Aether.SampleApps -c Release -o "$desktop/samples/app" -v q
+          New-Item -ItemType Directory -Force -Path "$desktop/samples/registry", "$desktop/samples/contexts", "$desktop/samples/fixtures" | Out-Null
+          Copy-Item samples/registry/apps.windows.json -Destination "$desktop/samples/registry/apps.windows.json"
+          Copy-Item samples/contexts/contexts.json -Destination "$desktop/samples/contexts/contexts.json"
+          Copy-Item samples/fixtures/* -Destination "$desktop/samples/fixtures" -Recurse
+          Copy-Item packaging/windows/README.txt -Destination "$desktop/README.txt"
+          Copy-Item packaging/windows/Start-AetherWorkspace.ps1 -Destination "$desktop/Start-AetherWorkspace.ps1"
+          $required = @(
+            "$desktop/broker/Aether.BrokerApp.exe",
+            "$desktop/shell/Aether.Shell.exe",
+            "$desktop/samples/app/Aether.SampleApps.exe",
+            "$desktop/samples/registry/apps.windows.json",
+            "$desktop/README.txt",
+            "$desktop/Start-AetherWorkspace.ps1"
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path)) { throw "Desktop bundle is missing $path" }
+          }
+          Compress-Archive -Path "$desktop/*" -DestinationPath "artifacts/AetherWorkspace-$version-windows-x64-desktop.zip" -CompressionLevel Optimal
+      - name: Upload desktop bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-desktop-assets
+          path: artifacts/AetherWorkspace-*-windows-x64-desktop.zip
+          if-no-files-found: error
+
+  publish:
+    name: Verify, checksum and publish release
+    needs: [portable, windows-desktop]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Verify asset set
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -l artifacts
+          test -n "$(find artifacts -maxdepth 1 -name '*-headless-binaries.zip' -print -quit)" || { echo 'missing headless binaries'; exit 1; }
+          test -n "$(find artifacts -maxdepth 1 -name '*-windows-x64-desktop.zip' -print -quit)" || { echo 'missing windows desktop bundle'; exit 1; }
+          test -n "$(find artifacts -maxdepth 1 -name '*-source.zip' -print -quit)" || { echo 'missing source snapshot'; exit 1; }
+          test -n "$(find artifacts -maxdepth 1 -name 'manifest.spdx.json' -print -quit)" || { echo 'missing SPDX SBOM'; exit 1; }
+      - name: Checksums
+        shell: bash
+        run: |
+          VERSION="${{ github.ref_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then VERSION="${{ github.event.inputs.version }}"; fi
+          cd artifacts
+          sha256sum *.zip *.json > "SHA256SUMS-$VERSION.txt"
           cat "SHA256SUMS-$VERSION.txt"
       - name: Publish GitHub release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${{ github.ref_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then VERSION="${{ github.event.inputs.version }}"; fi
           NOTES="docs/releases/$VERSION.md"
           if [ ! -f "$NOTES" ]; then
-            printf '# %s\n\nSee CHANGELOG.md and docs/IMPLEMENTATION_STATUS.md for evidence.\n' "$VERSION" > "/tmp/release-notes.md"
+            printf '# AetherWorkspace %s\n\nSee CHANGELOG.md and docs/IMPLEMENTATION_STATUS.md for evidence.\n' "$VERSION" > "/tmp/release-notes.md"
             NOTES="/tmp/release-notes.md"
           fi
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" artifacts/*.zip artifacts/*.json "artifacts/SHA256SUMS-$VERSION.txt" --clobber
           else
-            gh release create "$VERSION" \
-              --title "AetherWorkspace $VERSION" \
-              --notes-file "$NOTES" \
-              artifacts/*.zip artifacts/*.json "artifacts/SHA256SUMS-$VERSION.txt"
+            gh release create "$VERSION"               --title "AetherWorkspace $VERSION"               --notes-file "$NOTES"               artifacts/*.zip artifacts/*.json "artifacts/SHA256SUMS-$VERSION.txt"
           fi
