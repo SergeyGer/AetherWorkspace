@@ -21,6 +21,7 @@ public class WorkspaceLayoutRpcTests
             auditFile: Path.Combine(directory, "audit.jsonl"),
             childLogDirectory: Path.Combine(directory, "logs"),
             layoutStoreDirectory: layoutDirectory);
+        options.DisplayTopology = new Aether.Broker.Workspaces.VirtualDisplayTopology(options);
         var context = BrokerTestContext.CreateWith(options);
         await context.StartAsync();
         var client = await context.RegisterOperatorAsync();

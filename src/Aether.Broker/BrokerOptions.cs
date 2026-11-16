@@ -91,7 +91,7 @@ public sealed class BrokerOptions
     public int LayoutMaxBytes { get; init; } = 256 * 1024;
 
     /// <summary>Test seam for display topology; Windows/headless defaults are used when null.</summary>
-    public IDisplayTopologyProvider? DisplayTopology { get; init; }
+    public IDisplayTopologyProvider? DisplayTopology { get; set; }
 
     /// <summary>When greater than zero, the audit JSONL rotates at this size (min 4096).</summary>
     public long AuditMaxFileBytes { get; init; }
