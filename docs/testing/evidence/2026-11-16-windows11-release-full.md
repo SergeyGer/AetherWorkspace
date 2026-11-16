@@ -19,11 +19,12 @@ only the non-personal summary.
 
 Preceding control runs on the same reviewed SHA (same device):
 
-| Run | Profile | Status |
-|---|---|---|
-| `20261116-085503-developer-smoke-565c20` | `developer-smoke` | PASS |
-| `20261116-085650-daily-smoke-99a6d4` | `daily-smoke` | PASS |
-| `20261116-085803-release-full-ad5ae7` | `release-full` | PASS |
+| Run | Commit | Profile | Status |
+|---|---|---|---|
+| `20261116-085503-developer-smoke-565c20` | `e7007af` | `developer-smoke` | PASS |
+| `20261116-085650-daily-smoke-99a6d4` | `e7007af` | `daily-smoke` | PASS |
+| `20261116-085803-release-full-ad5ae7` | `e7007af` | `release-full` | PASS |
+| `20261116-091552-release-full-97b9bf` | `4a2796e` (v0.4.1) | `release-full` | PASS |
 
 Two independent runs from the same approved SHA produced matching functional outcomes
 (addendum gate G‑01), and the GUI end-to-end scenario used the real Windows Named Pipes
@@ -42,19 +43,26 @@ transport with three child processes (G‑02).
 | .NET SDKs discovered | 10.0.401, 10.0.404 |
 | PowerShell | 7.7.0 |
 
-## Harness counter caveat and follow-up fix
+## Harness counter caveat and follow-up fixes
 
-The first release-full run reported `portable=PASS (16p/0f)` and `totals passed=20`. The run
-itself executed and passed the whole portable suite, but the orchestrator read only one TRX
-file: `dotnet test` on a solution writes **one TRX per test project**, and the shared
-`--results-directory`/fixed filename caused overwrites. The suite status derivation used the
-process exit code, so `PASS` is still valid, but the counters under-reported evidence.
+The run itself passed; the counter aggregation needed two iterations:
 
-Fix in this patch release: solution test runs now use per-project TRX files and the harness
-aggregates `Counters` across all of them; the desktop/privacy test coverage and TRX collection
-are recorded per suite. Authoritative expected totals on this commit: **445 portable + 2
-windows-ui + 2 desktop-e2e = 449 passed**. A control `release-full` rerun after the fix is
-requested to record the corrected counters.
+1. **v0.4.1 — under-count:** solution `dotnet test` writes one TRX per test project, and the
+   original fixed filename under `--results-directory` overwrote evidence, so the first run
+   reported portable as 16 tests instead of the full suite. Fix: per-project TRX + aggregate
+   Counters across files.
+2. **v0.4.2 — over-count:** the control run on v0.4.1 reported `portable=664` because the
+   recursive worktree scan picked up duplicate/stray TRX copies (the synthetic baseline for
+   this commit is 445 portable tests, matching Linux/Windows CI). Fix: discover TRX only under
+   `tests/<project>/TestResults`, require freshness relative to the suite start, and
+   de-duplicate identical files by SHA-256. Validated with fixture directories containing a
+   duplicate copy under `bin/` and a stale TRX: only the 2 valid project files were counted
+   (total 5), duplicates/stale files ignored.
+
+Authoritative suite composition on this commit: **445 portable + 2 windows-ui + 2
+desktop-e2e = 449 passed**. A final control `release-full` rerun on v0.4.2 is the remaining
+evidence step for the corrected counters; until then the PASS statuses above are authoritative
+from suite process exit codes and per-project logs.
 
 ## What this evidences (and what it does not)
 

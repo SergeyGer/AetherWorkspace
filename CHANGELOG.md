@@ -33,6 +33,20 @@ release tag yet.
   (README, quickstart, architecture, threat model, ADRs, limitations, implementation
   status, benchmark methodology).
 
+## [Unreleased] — v0.4.2 TRX evidence de-duplication and control-run record (2026-11-16)
+
+### Fixed
+
+- `tools/windows-test/Run-AetherTests.ps1`: the solution-TRX collector scanned the whole
+  worktree and could pick up duplicate/stray TRX copies; the v0.4.1 control run consequently
+  over-counted portable tests (664 vs the 445 baseline). Discovery now only scans
+  `tests/<project>/TestResults`, requires files newer than the suite start, and de-duplicates
+  identical files by SHA-256. Validated with a synthetic worktree containing a duplicate
+  `bin/` copy and a stale TRX: only the 2 valid files were counted (total 5).
+- Recorded the v0.4.1 control `release-full` run (`20261116-091552...`, commit `4a2796e`) as
+  PASS in the R1 evidence doc; authoritative totals: 445 portable + 2 windows-ui + 2
+  desktop-e2e = 449 passed (final rerun on v0.4.2 remains the evidence-closing step).
+
 ## [Unreleased] — v0.4.1 physical Windows 11 R1 evidence and harness counter fix (2026-11-16)
 
 ### Added
