@@ -141,7 +141,7 @@ jobs:
       - name: Run WPF shell UI automation tests
         run: dotnet test tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release --no-build --logger "trx;LogFileName=windows-ui-tests.trx"
       - name: Run reference-desktop Named-Pipes GUI E2E tests
-        run: dotnet test tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj -c Release --no-build --filter "Category=ReferenceDesktop|Category=Privacy04" --logger "trx;LogFileName=windows-desktop-e2e.trx"
+        run: dotnet test tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj -c Release --no-build --filter "Category=ReferenceDesktop|Category=Privacy04|Category=Layout05" --logger "trx;LogFileName=windows-desktop-e2e.trx"
       - name: Upload UI evidence
         if: always()
         uses: actions/upload-artifact@v4

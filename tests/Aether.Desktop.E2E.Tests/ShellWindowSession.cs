@@ -5,6 +5,9 @@ using FlaUI.UIA3;
 using Xunit;
 using Xunit.Sdk;
 
+using Application = FlaUI.Core.Application;
+using ComboBox = FlaUI.Core.AutomationElements.ComboBox;
+
 namespace Aether.Desktop.E2E.Tests;
 
 /// <summary>
@@ -55,10 +58,10 @@ internal sealed class ShellWindowSession : IDisposable
     internal static readonly TimeSpan TraceTimeout = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
 
-    private readonly Application _application;
+    private readonly FlaUI.Core.Application _application;
     private readonly UIA3Automation _automation;
 
-    private ShellWindowSession(Application application, UIA3Automation automation, Window window)
+    private ShellWindowSession(FlaUI.Core.Application application, UIA3Automation automation, Window window)
     {
         _application = application;
         _automation = automation;
@@ -302,7 +305,7 @@ internal sealed class ShellWindowSession : IDisposable
         }
     }
 
-    private static Window WaitForStableTitle(Application application, Window window)
+    private static Window WaitForStableTitle(FlaUI.Core.Application application, Window window)
     {
         var deadline = DateTime.UtcNow + ElementTimeout;
         while (!string.Equals(window.Title, WindowTitle, StringComparison.Ordinal)
@@ -374,6 +377,6 @@ internal sealed class ShellWindowSession : IDisposable
         return textPattern?.DocumentRange.GetText(-1) ?? string.Empty;
     }
 
-    private static bool IsRestricted(ComboBox comboBox) =>
+    private static bool IsRestricted(FlaUI.Core.AutomationElements.ComboBox comboBox) =>
         string.Equals(comboBox.SelectedItem?.Name, "RESTRICTED", StringComparison.Ordinal);
 }

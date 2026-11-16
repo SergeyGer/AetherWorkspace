@@ -34,17 +34,28 @@
   "profiles": {
     "developer-smoke": {
       "description": "Fast local developer loop: reference-desktop GUI E2E only.",
-      "suites": [ "desktop-e2e" ],
+      "suites": [
+        "desktop-e2e"
+      ],
       "suiteTimeoutMinutes": 30
     },
     "daily-smoke": {
       "description": "Daily reference-desktop check: existing WPF UI automation plus the named-pipe reference-desktop suite.",
-      "suites": [ "windows-ui", "desktop-e2e" ],
+      "suites": [
+        "windows-ui",
+        "desktop-e2e",
+        "layout05"
+      ],
       "suiteTimeoutMinutes": 60
     },
     "release-full": {
       "description": "Release gate: portable solution suites, Windows WPF UI automation and reference-desktop GUI E2E.",
-      "suites": [ "portable", "windows-ui", "desktop-e2e" ],
+      "suites": [
+        "portable",
+        "windows-ui",
+        "desktop-e2e",
+        "layout05"
+      ],
       "suiteTimeoutMinutes": 120
     }
   },

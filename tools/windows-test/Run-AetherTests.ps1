@@ -116,11 +116,16 @@ $script:SuiteDefinitions = @{
         filter = 'Category=ReferenceDesktop'
         description = 'Reference-desktop GUI end-to-end tests over the Windows named-pipe transport (WT-04-01/02).'
     }
+    'layout05' = @{
+        project = 'tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj'
+        filter = 'Category=Layout05'
+        description = 'WT-05 durable multi-monitor layout tests: save/restore on visible screens, dual-monitor restore, missing-monitor fallback, corrupt layout denial.'
+    }
 }
 
 $script:SuiteDefaults = @{
-    'daily-smoke' = @('windows-ui', 'desktop-e2e')
-    'release-full' = @('portable', 'windows-ui', 'desktop-e2e')
+    'daily-smoke' = @('windows-ui', 'desktop-e2e', 'layout05')
+    'release-full' = @('portable', 'windows-ui', 'desktop-e2e', 'layout05')
     'developer-smoke' = @('desktop-e2e')
 }
 

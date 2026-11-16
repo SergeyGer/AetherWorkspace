@@ -172,6 +172,7 @@ public sealed class BrokerAppOptions
             WorkAreaWidth = options.WorkAreaWidth,
             WorkAreaHeight = options.WorkAreaHeight,
             AuditFile = options.AuditFile,
+            LayoutStoreDirectory = options.LayoutStoreDirectory,
             AuditMaxFileBytes = options.AuditMaxFileBytes,
             AuditMaxFiles = options.AuditMaxFiles,
             ChildLogDirectory = options.ChildLogDirectory,
@@ -207,8 +208,8 @@ public sealed class BrokerAppOptions
           --operator-token <val>   Explicit operator token (generated when omitted).
           --max-actions <n>        Plan action budget (demo default 6; library default 5).
           --work-area WxH          Virtual work area for deterministic layout (default 1920x1080).
-          --layout-store <dir>        Directory for durable workspace layouts (v0.5 save/restore).
-        --audit-file <path>      Append the tamper-evident audit chain as JSONL.
+          --layout-store <dir>     Directory for durable workspace layouts (v0.5 save/restore).
+          --audit-file <path>      Append the tamper-evident audit chain as JSONL.
           --audit-max-bytes <n>    Rotate the audit file at n bytes (min 4096; 0 disables).
           --audit-files <n>        Retain at most n rotated audit files (default 4).
           --child-log-dir <path>   Capture child app stdout/stderr lines for diagnostics.

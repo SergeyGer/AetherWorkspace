@@ -53,6 +53,7 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         string endpointFile,
         string brokerAuditFile,
         string childLogDirectory,
+        string layoutStoreDirectory,
         string brokerStdOutFile,
         string brokerStdErrFile,
         CancellationTokenSource pumpCancellation,
@@ -69,6 +70,7 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         EndpointFile = endpointFile;
         BrokerAuditFile = brokerAuditFile;
         ChildLogDirectory = childLogDirectory;
+        LayoutStoreDirectory = layoutStoreDirectory;
         BrokerStdOutFile = brokerStdOutFile;
         BrokerStdErrFile = brokerStdErrFile;
     }
@@ -84,6 +86,9 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
 
     /// <summary>Directory with per-sample-app stdout/stderr capture (<c>--child-log-dir</c>).</summary>
     public string ChildLogDirectory { get; }
+
+    /// <summary>Trusted directory for durable workspace layout files (<c>--layout-store</c>, v0.5).</summary>
+    public string LayoutStoreDirectory { get; }
 
     public string BrokerStdOutFile { get; }
 
@@ -112,6 +117,7 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         var endpointFile = Path.Combine(runDirectory, "broker-endpoint.json");
         var brokerAuditFile = Path.Combine(runDirectory, "broker-audit.jsonl");
         var childLogDirectory = Path.Combine(runDirectory, "child-logs");
+        var layoutStoreDirectory = Path.Combine(runDirectory, "layouts");
         var brokerStdOutFile = Path.Combine(runDirectory, "broker.out");
         var brokerStdErrFile = Path.Combine(runDirectory, "broker.err");
 
@@ -123,7 +129,7 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         {
             process = new Process
             {
-                StartInfo = CreateBrokerStartInfo(endpointFile, brokerAuditFile, childLogDirectory),
+                StartInfo = CreateBrokerStartInfo(endpointFile, brokerAuditFile, childLogDirectory, layoutStoreDirectory),
             };
             if (!process.Start())
             {
@@ -152,6 +158,7 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
                 endpointFile,
                 brokerAuditFile,
                 childLogDirectory,
+                layoutStoreDirectory,
                 brokerStdOutFile,
                 brokerStdErrFile,
                 pumpCancellation,
@@ -285,7 +292,7 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         }
     }
 
-    private static ProcessStartInfo CreateBrokerStartInfo(string endpointFile, string auditFile, string childLogDirectory)
+    private static ProcessStartInfo CreateBrokerStartInfo(string endpointFile, string auditFile, string childLogDirectory, string layoutStoreDirectory)
     {
         var (fileName, prefixAssembly) = DesktopExecutableLocator.ResolveBrokerHost();
         var startInfo = new ProcessStartInfo
@@ -319,6 +326,7 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         AddArgument(startInfo, "--endpoint-file", endpointFile);
         AddArgument(startInfo, "--audit-file", auditFile);
         AddArgument(startInfo, "--child-log-dir", childLogDirectory);
+        AddArgument(startInfo, "--layout-store", layoutStoreDirectory);
         AddArgument(startInfo, "--max-actions", "6");
         return startInfo;
     }

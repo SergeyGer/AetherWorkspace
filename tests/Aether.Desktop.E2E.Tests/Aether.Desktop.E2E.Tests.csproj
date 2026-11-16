@@ -17,6 +17,7 @@
     <IsPackable>false</IsPackable>
     <!-- FlaUI drives the separately built WPF shell process; this assembly has no UI. -->
     <UseWPF>false</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Aether.Desktop.E2E.Tests</RootNamespace>
     <AssemblyName>Aether.Desktop.E2E.Tests</AssemblyName>
   </PropertyGroup>
