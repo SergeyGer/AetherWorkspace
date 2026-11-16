@@ -43,6 +43,10 @@ release tag yet.
   capabilities/context types/classifications, collision-checked against the active registry and
   cannot execute or auto-apply; contracts tests cover valid drafts, collisions, invalid ids and
   schema/proto envelopes.
+- **AW-034 staging CLI + explicit review/apply gate:** `tools/Aether.ContractStudio` with
+  `generate`, `review` and `apply --confirm` commands; drafts live as untrusted envelopes in a
+  staging workspace, review never writes, apply validates first and only writes the confirmed
+  target (path-safe, atomic, correct .json/.proto extension); no compilation or execution.
 
 ## [v0.5.0 — 2026-11-16]
 
