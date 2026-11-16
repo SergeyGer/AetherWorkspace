@@ -27,7 +27,9 @@ public sealed class SampleRuntime : IAsyncDisposable
     private readonly string _instanceId;
     private readonly string _windowId;
     private readonly CancellationTokenSource _subscriptionCancellation = new();
+    private readonly CancellationTokenSource _heartbeatCancellation = new();
     private readonly Task _subscriptionTask;
+    private readonly Task _heartbeatTask;
 
     private SampleRuntime(BrokerClientSession session, string appId, string instanceId, string windowId)
     {
@@ -36,6 +38,7 @@ public sealed class SampleRuntime : IAsyncDisposable
         _instanceId = instanceId;
         _windowId = windowId;
         _subscriptionTask = RunSubscriptionAsync();
+        _heartbeatTask = RunHeartbeatAsync();
     }
 
     public event Action<InstrumentContext, ContextEnvelope>? ContextReceived;
@@ -81,6 +84,33 @@ public sealed class SampleRuntime : IAsyncDisposable
             TraceIdGenerator.NewTraceId()).ConfigureAwait(true);
     }
 
+    private async Task RunHeartbeatAsync()
+    {
+        var intervalSeconds = int.TryParse(Environment.GetEnvironmentVariable("AETHER_HEARTBEAT_INTERVAL_SECONDS"), out var configured)
+            ? Math.Clamp(configured, 1, 60)
+            : 5;
+        try
+        {
+            while (!_heartbeatCancellation.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), _heartbeatCancellation.Token).ConfigureAwait(false);
+                await _session.Client.HeartbeatAsync(_heartbeatCancellation.Token).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (BrokerRpcException)
+        {
+            // Broker health state is authoritative; a transient heartbeat failure must not
+            // close the window. The next tick retries while the session remains valid.
+        }
+        catch (Exception exception)
+        {
+            SampleDiagnostics.Log("heartbeat-failed", exception);
+        }
+    }
+
     private async Task RunSubscriptionAsync()
     {
         try
@@ -119,6 +149,7 @@ public sealed class SampleRuntime : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        await _heartbeatCancellation.CancelAsync().ConfigureAwait(false);
         await _subscriptionCancellation.CancelAsync().ConfigureAwait(false);
         try
         {
@@ -128,6 +159,7 @@ public sealed class SampleRuntime : IAsyncDisposable
         {
         }
 
+        _heartbeatCancellation.Dispose();
         _subscriptionCancellation.Dispose();
         await _session.DisposeAsync().ConfigureAwait(false);
     }

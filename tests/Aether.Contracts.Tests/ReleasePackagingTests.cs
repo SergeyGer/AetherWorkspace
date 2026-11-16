@@ -50,5 +50,15 @@ public class ReleasePackagingTests
         Assert.Contains("No telemetry", readme, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ReleaseVerifierSupportsExplicitPartialDownloadMode()
+    {
+        var verifier = Read("tools", "release", "Verify-Release.ps1");
+
+        Assert.Contains("AllowPartialDownload", verifier, StringComparison.Ordinal);
+        Assert.Contains("PARTIAL VERIFY PASS", verifier, StringComparison.Ordinal);
+        Assert.Contains("full verification requires all release assets", verifier, StringComparison.Ordinal);
+    }
+
     private static string Read(params string[] parts) => File.ReadAllText(TestRepo.PathTo(parts));
 }

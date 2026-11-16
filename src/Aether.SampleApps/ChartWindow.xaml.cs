@@ -36,6 +36,7 @@ public partial class ChartWindow : Window
         }
         catch (Exception exception)
         {
+            SampleDiagnostics.Log("connect-failed", exception);
             StatusText.Text = "Broker unavailable: " + exception.Message;
         }
     }
