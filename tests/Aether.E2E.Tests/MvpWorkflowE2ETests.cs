@@ -76,10 +76,11 @@ public class MvpWorkflowE2ETests
         Assert.DoesNotContain("ACC-00000001", File.ReadAllText(harness.BrokerAuditFile));
 
         // Each sample process independently rendered the typed context with the workflow trace id.
+        // Child stdout is redirected to files; allow a bounded wait for the final flush so the
+        // assertion does not race the child process shutdown on Windows.
         foreach (var appId in TestData.SampleAppIds)
         {
-            var lines = harness.ReadChildLogLines(appId);
-            var contextLines = lines.Where(line => line.Contains("\"event\":\"context\"", StringComparison.Ordinal)).ToArray();
+            var contextLines = await WaitForChildContextLinesAsync(harness, appId, traceId);
             Assert.NotEmpty(contextLines);
             Assert.Contains(contextLines, line => line.Contains($"\"traceId\":\"{traceId}\"", StringComparison.Ordinal));
             Assert.Contains(contextLines, line => line.Contains("\"contextType\":\"fdc3.instrument\"", StringComparison.Ordinal));
@@ -116,5 +117,25 @@ public class MvpWorkflowE2ETests
                 Assert.Equal(firstPlan, plan);
             }
         }
+    }
+
+    private static async Task<string[]> WaitForChildContextLinesAsync(EndToEndHarness harness, string appId, string traceId)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+        string[] contextLines = [];
+        while (DateTime.UtcNow < deadline)
+        {
+            contextLines = harness.ReadChildLogLines(appId)
+                .Where(line => line.Contains("\"event\":\"context\"", StringComparison.Ordinal))
+                .ToArray();
+            if (contextLines.Any(line => line.Contains($"\"traceId\":\"{traceId}\"", StringComparison.Ordinal)))
+            {
+                return contextLines;
+            }
+
+            await Task.Delay(100, CancellationToken.None);
+        }
+
+        return contextLines;
     }
 }
