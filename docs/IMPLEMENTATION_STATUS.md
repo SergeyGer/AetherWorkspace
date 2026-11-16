@@ -62,9 +62,9 @@ exists yet.
 
 | Item | Status | Evidence |
 |---|---|---|
-| AW-036 Reproducible Windows distribution and supply-chain evidence | **Implemented (release workflow + offline verification + docs); R1 final gate pending** | automated tag-driven artifact build (binaries/source/SPDX SBOM/SHA-256); `tools/release/Verify-Release.ps1` verified v0.6.0 assets (VERIFY PASS, SPDX-2.2, 64 packages); `docs/distribution/reproducibility.md` describes verification, rebuild and unsigned-portable boundaries |
-| AW-037 Finalize public docs/Wiki/narrated demo | Planned (after AW-036) | — |
-| AW-038 Final release gate + acceptance report | Planned (after AW-036/037) | — |
+| AW-036 Reproducible Windows distribution and supply-chain evidence | **Done** | automated tag-driven artifact build (binaries/source/SPDX SBOM/SHA-256); `tools/release/Verify-Release.ps1` verified v0.6.0 assets (VERIFY PASS, SPDX-2.2, 64 packages); `docs/distribution/reproducibility.md` describes verification, rebuild and unsigned-portable boundaries |
+| AW-037 Finalize public docs/Wiki/narrated demo | **Done** | concise README with Start-here paths; Wiki project status/layout/limitations/narrated demo; detailed version data moved out of README |
+| AW-038 Final release gate + acceptance report | **Done** | final R1 run `20261116-153831-release-full-b3e064`: PASS 511/511, 2 monitors; `docs/testing/evidence/2026-11-16-windows11-v1.0.0-acceptance.md`; v1.0.0 release |
 
 ## v0.6.0 — released 2026-11-16 (developer contract studio)
 
