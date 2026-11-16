@@ -7,12 +7,14 @@ using Aether.AI.Summarization;
 using Aether.Broker.Client;
 using Aether.Contracts;
 using Aether.Contracts.Broker;
+using Aether.Contracts.Models.Diagnostics;
 using Aether.Execution.Authorization;
 using Aether.Execution.Executor;
 using Aether.Execution.Results;
 using Aether.Execution.Validation;
 using Aether.Security.Audit;
 using Aether.Security.Classification;
+using Aether.Security.Diagnostics;
 using Aether.Security.Egress;
 using Aether.Security.Policy;
 using Aether.Security.Secrets;
@@ -29,17 +31,20 @@ namespace Aether.Shell;
 public partial class MainWindow : Window
 {
     private readonly ObservableCollection<StepRow> _steps = [];
+    private readonly ObservableCollection<InspectorRow> _inspector = [];
     private readonly HashChainAuditLog _auditSink = new();
     private BrokerClient? _client;
     private BrokerEndpointInfo? _endpoint;
     private AetherWorkflowOrchestrator? _orchestrator;
     private CancellationTokenSource? _runCancellation;
     private bool _running;
+    private WorkflowResult? _lastResult;
 
     public MainWindow()
     {
         InitializeComponent();
         StepsList.ItemsSource = _steps;
+        InspectorList.ItemsSource = _inspector;
         Loaded += OnLoaded;
         Closed += OnClosed;
     }
@@ -168,6 +173,68 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnExportDiagnostics(object sender, RoutedEventArgs e)
+    {
+        if (_lastResult is null)
+        {
+            DiagnosticsStatusText.Text = "Run a workflow first.";
+            return;
+        }
+
+        try
+        {
+            var result = _lastResult;
+            var timeline = (result.Execution?.Steps ?? [])
+                .Select((step, index) => new DiagnosticsTimelineEntry(index + 1, step.Action, step.State.ToString().ToLowerInvariant(), step.Code, null))
+                .ToArray();
+            IReadOnlyList<DiagnosticsApp> apps = [];
+            if (_client is not null)
+            {
+                var snapshot = await _client.GetSnapshotAsync(result.TraceId);
+                var health = await _client.HealthProbeAsync();
+                apps = snapshot.Apps
+                    .Select(app => new DiagnosticsApp(
+                        app.AppId,
+                        health.AppHealth.FirstOrDefault(entry => entry.StartsWith(app.AppId + "=", StringComparison.Ordinal)) ?? "UNKNOWN",
+                        0))
+                    .ToArray();
+            }
+
+            var entries = _auditSink.Snapshot();
+            var verification = _auditSink.Verify();
+            var counts = entries
+                .GroupBy(entry => entry.EventType, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+            var cloud = CloudConsentCheck.IsChecked == true;
+            var bundle = DiagnosticsBundleBuilder.Build(
+                new DiagnosticsRun(
+                    result.Success ? "succeeded" : "denied",
+                    result.TraceId,
+                    result.PlanId,
+                    result.Classification.ToWireName(),
+                    result.DenialCode,
+                    result.DurationMs,
+                    result.PlannerProvider,
+                    result.UsedModel),
+                timeline,
+                apps,
+                new DiagnosticsAudit(verification.EntryCount, verification.Valid, 0, true, counts),
+                new DiagnosticsProviders(cloud ? "cloud-consent" : "local-private", "DeterministicLocal", null, null, null, cloud, cloud, false, false),
+                offline: true,
+                generatedAtUtc: DateTimeOffset.UtcNow);
+            var path = DiagnosticsBundleBuilder.WriteFile(
+                bundle,
+                Path.Combine(Path.GetTempPath(), "aether-diagnostics-" + result.TraceId + ".json"));
+            DiagnosticsStatusText.Text = "Saved: " + path;
+            AppendStatus("Sanitized diagnostics exported to " + path + " (no telemetry upload).");
+        }
+        catch (Exception exception)
+        {
+            DiagnosticsStatusText.Text = "Export failed: " + exception.Message;
+            AppendStatus("Diagnostics export failed: " + exception.Message);
+        }
+    }
+
     private void OnCancelClick(object sender, RoutedEventArgs e)
     {
         _runCancellation?.Cancel();
@@ -176,6 +243,17 @@ public partial class MainWindow : Window
 
     private void RenderResult(WorkflowResult result)
     {
+        _lastResult = result;
+        _inspector.Clear();
+        foreach (var step in result.Execution?.Steps ?? [])
+        {
+            _inspector.Add(new InspectorRow(
+                step.Index + 1,
+                step.Action,
+                step.State.ToString().ToLowerInvariant(),
+                step.Code ?? ""));
+        }
+
         foreach (var step in result.Execution?.Steps ?? [])
         {
             _steps.Add(new StepRow(
@@ -264,3 +342,5 @@ public partial class MainWindow : Window
 
     private sealed record StepRow(int Index, string Action, string State, string Code);
 }
+
+public sealed record InspectorRow(int Sequence, string Action, string State, string Code);

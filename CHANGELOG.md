@@ -54,8 +54,9 @@ release tag yet.
   audit-chain facts, provider routing flags) with synthetic account-id/secret/JWT redaction,
   atomic file write, `.json`/size validation and explicit `rawPayloadsIncluded=false` /
   `telemetryUploads=false` flags; no telemetry uploads, off by default.
-- **AW-032 trace timeline (headless):** shell output now includes a redacted per-step
-  `timeline` (sequence/action/state/code) for Inspector consumers; WPF Inspector tab pending.
+- **AW-032 Live Inspector (WPF + headless):** shell output includes a redacted per-step
+  `timeline`; the WPF shell gained an **Inspector** tab with the timeline list and an explicit
+  **Export diagnostics** action that writes the same sanitized bundle locally (no telemetry).
 - **WT-05 layout desktop tests:** new `Category=Layout05` scenarios in
   `tests/Aether.Desktop.E2E.Tests` — single-monitor save/restore with bounds assertions,
   two-monitor placement on real dual-monitor hardware, missing-monitor primary fallback and

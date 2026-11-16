@@ -82,6 +82,31 @@
                        AutomationProperties.AutomationId="TraceBox"
                        AutomationProperties.Name="Trace and audit" />
             </TabItem>
+            <TabItem Header="Inspector">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
+                  <Button x:Name="ExportDiagnosticsButton" Content="Export diagnostics" Padding="10,3"
+                          AutomationProperties.AutomationId="ExportDiagnosticsButton"
+                          AutomationProperties.Name="Export diagnostics"
+                          Click="OnExportDiagnostics" />
+                  <TextBlock x:Name="DiagnosticsStatusText" Margin="10,0,0,0" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis"
+                             AutomationProperties.AutomationId="DiagnosticsStatusText" />
+                </StackPanel>
+                <ListView x:Name="InspectorList" BorderThickness="0"
+                          AutomationProperties.AutomationId="InspectorList"
+                          AutomationProperties.Name="Redacted trace timeline">
+                  <ListView.View>
+                    <GridView>
+                      <GridViewColumn Header="#" Width="36" DisplayMemberBinding="{Binding Sequence}" />
+                      <GridViewColumn Header="Action" Width="150" DisplayMemberBinding="{Binding Action}" />
+                      <GridViewColumn Header="State" Width="120" DisplayMemberBinding="{Binding State}" />
+                      <GridViewColumn Header="Code" Width="200" DisplayMemberBinding="{Binding Code}" />
+                    </GridView>
+                  </ListView.View>
+                </ListView>
+              </DockPanel>
+            </TabItem>
           </TabControl>
         </DockPanel>
       </Border>
