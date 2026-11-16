@@ -47,6 +47,11 @@ release tag yet.
   `generate`, `review` and `apply --confirm` commands; drafts live as untrusted envelopes in a
   staging workspace, review never writes, apply validates first and only writes the confirmed
   target (path-safe, atomic, correct .json/.proto extension); no compilation or execution.
+- **AW-035 validation gate:** classified contract-change detection against the active registry
+  (new app/capability = non-breaking; removed capability/context-type/classification, reduced
+  instances or changed launch definition = breaking and rejected), forbidden output-path checks
+  (`.git`, `bin`, `obj`, `.ssh`, `secrets`, `node_modules`, `.env`) and target-extension checks
+  with actionable diagnostics, wired into `review`/`apply`; contracts suite 63/63.
 
 ## [v0.5.0 — 2026-11-16]
 
