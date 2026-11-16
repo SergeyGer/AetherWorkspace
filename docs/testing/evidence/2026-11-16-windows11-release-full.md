@@ -59,10 +59,28 @@ The run itself passed; the counter aggregation needed two iterations:
    duplicate copy under `bin/` and a stale TRX: only the 2 valid project files were counted
    (total 5), duplicates/stale files ignored.
 
-Authoritative suite composition on this commit: **445 portable + 2 windows-ui + 2
-desktop-e2e = 449 passed**. A final control `release-full` rerun on v0.4.2 is the remaining
-evidence step for the corrected counters; until then the PASS statuses above are authoritative
-from suite process exit codes and per-project logs.
+**Authoritative portable counters are confirmed from the v0.4.1 control-run suite log**
+(`logs/test-portable.log`), independent of the harness aggregation bug:
+
+| Test project | Passed |
+|---|---:|
+| Aether.AI.Tests | 37 |
+| Aether.Contracts.Tests | 41 |
+| Aether.Execution.Tests | 140 |
+| Aether.Workflow.Tests | 9 |
+| Aether.Security.Tests | 126 |
+| Aether.Fdc3.Tests | 20 |
+| Aether.Broker.Tests | 56 |
+| Aether.E2E.Tests | 16 |
+| **portable total** | **445** |
+| windows-ui | 2 |
+| desktop-e2e (WT-04-01 + WT-04-02) | 2 |
+| **run total** | **449 passed, 0 failed, 0 skipped** |
+
+The v0.4.2 harness fix (project-scoped TRX discovery + freshness filter + SHA-256 de-duplication)
+is validated with a synthetic worktree; it will be exercised on the next physical R1 run. A
+rerun on v0.4.2 is optional for evidence closure because the per-project suite log already
+provides the authoritative executed-test counts for this PASS run.
 
 ## What this evidences (and what it does not)
 

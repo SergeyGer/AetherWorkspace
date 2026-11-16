@@ -44,8 +44,9 @@ release tag yet.
   identical files by SHA-256. Validated with a synthetic worktree containing a duplicate
   `bin/` copy and a stale TRX: only the 2 valid files were counted (total 5).
 - Recorded the v0.4.1 control `release-full` run (`20261116-091552...`, commit `4a2796e`) as
-  PASS in the R1 evidence doc; authoritative totals: 445 portable + 2 windows-ui + 2
-  desktop-e2e = 449 passed (final rerun on v0.4.2 remains the evidence-closing step).
+  PASS in the R1 evidence doc; authoritative totals confirmed from the per-project suite log:
+  445 portable + 2 windows-ui + 2 desktop-e2e = 449 passed. The v0.4.2 collector fix is
+  validated synthetically and will be exercised on the next physical R1 run.
 
 ## [Unreleased] — v0.4.1 physical Windows 11 R1 evidence and harness counter fix (2026-11-16)
 
