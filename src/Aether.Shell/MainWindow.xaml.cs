@@ -142,10 +142,15 @@ public partial class MainWindow : Window
             }
         }
 
-        if (_orchestrator is null)
+        if (_orchestrator is null || _client is null)
         {
             return;
         }
+
+        // Planner mode and cloud consent are UI controls that can change after the initial broker
+        // connection (for example the Track B demo enables LLM-assisted planning + PUBLIC). Rebuild
+        // the orchestrator per run so those settings take effect instead of being frozen at connect.
+        _orchestrator = BuildOrchestrator(_client);
 
         if (!DataClassificationExtensions.TryParseWire(SelectedClassification(), out var classification))
         {
