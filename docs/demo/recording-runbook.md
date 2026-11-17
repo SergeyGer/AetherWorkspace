@@ -22,6 +22,13 @@ FFmpeg. Implementation (AW-055/AW-056) lives in `tools/demo/`: `Prepare-Demo.ps1
 Suggested install (then verify manually): `winget install OBSProject.OBSStudio Gyan.FFmpeg Microsoft.PowerShell`.
 Never commit the OBS WebSocket password, `.env`, endpoint handshake or raw media.
 
+## One-command gate
+
+The recommended path is `tools/windows-test/Run-PhysicalReleaseGate.ps1` (see
+`tools/demo/README.md`), which runs the reference suite, WT ledger, 100-cycle UI measurement and the
+Track B capture/build/validate in one local gate directory. OBS must be running with WebSocket
+enabled and the MKV/1080p profile configured.
+
 ## Local OBS credential
 
 Set the OBS WebSocket password only in the local process environment before recording:

@@ -37,6 +37,15 @@ if (Test-Path -LiteralPath $EnvironmentFile) {
     }
 }
 
+if ($Scenario -eq 'TrackB') {
+    $cloudEndpoint = $env:AETHER_CLOUD_ENDPOINT
+    $cloudKey = $env:AETHER_CLOUD_API_KEY
+    $cloudModel = $env:AETHER_CLOUD_MODEL
+    if ([string]::IsNullOrWhiteSpace($cloudEndpoint) -or [string]::IsNullOrWhiteSpace($cloudKey) -or [string]::IsNullOrWhiteSpace($cloudModel)) {
+        throw 'FAIL_HARNESS: Track B requires AETHER_CLOUD_ENDPOINT, AETHER_CLOUD_API_KEY and AETHER_CLOUD_MODEL loaded from the local .env; no secrets are printed.'
+    }
+}
+
 . (Join-Path $PSScriptRoot 'Obs-Control.ps1')
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $eventsPath = Join-Path $run "demo-events-$Scenario-$stamp.json"

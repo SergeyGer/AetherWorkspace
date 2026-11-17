@@ -13,6 +13,10 @@ exposes sanitized telemetry (`UiTelemetryText` AutomationId and an optional JSON
 - trace id and planner/usedModel provenance are recorded by the optional JSONL writer
   (`AETHER_UI_TELEMETRY_FILE`).
 
+The complete physical gate can be run in one command with
+`tools/windows-test/Run-PhysicalReleaseGate.ps1`; the UI section can also be run standalone as shown
+below.
+
 ## Reproduce on the physical Windows 11 reference laptop
 
 ```powershell
