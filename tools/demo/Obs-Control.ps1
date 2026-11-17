@@ -5,8 +5,10 @@
 .DESCRIPTION
   Connects only to an explicitly configured localhost OBS WebSocket endpoint, authenticates with a
   local secret from the environment, and starts/stops recording. Secrets are never written to the
-  repository or evidence. Dot-source this file from Record-Demo.ps1.
+  repository or evidence. Dot-source this file from Record-Demo.ps1 or for a local sanity check.
 #>
+
+$ErrorActionPreference = 'Stop'
 
 function Get-ObsSettings {
     $url = $env:AETHER_OBS_WEBSOCKET_URL
@@ -20,56 +22,91 @@ function Get-ObsSettings {
 }
 
 function Receive-ObsMessage($socket) {
+    if ($socket.State -ne [System.Net.WebSockets.WebSocketState]::Open) {
+        throw "OBS WebSocket is not open (state: $($socket.State)); reconnect and verify the WebSocket password."
+    }
+
     $buffer = New-Object byte[] 1048576
     $segment = New-Object System.ArraySegment[byte] -ArgumentList @(,$buffer)
     $stream = New-Object System.IO.MemoryStream
-    do {
-        $result = $socket.ReceiveAsync($segment, [System.Threading.CancellationToken]::None).GetAwaiter().GetResult()
-        if ($result.MessageType -eq [System.Net.WebSockets.WebSocketMessageType]::Close) {
-            throw 'OBS WebSocket closed the connection.'
-        }
-        $stream.Write($buffer, 0, $result.Count)
-    } while (-not $result.EndOfMessage)
+    $timeout = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(15))
+    try {
+        do {
+            try {
+                $result = $socket.ReceiveAsync($segment, $timeout.Token).GetAwaiter().GetResult()
+            }
+            catch {
+                throw "OBS WebSocket receive failed: $($_.Exception.Message). Reconnect and verify the local password; no secrets are printed."
+            }
 
-    $text = [System.Text.Encoding]::UTF8.GetString($stream.ToArray())
-    return $text | ConvertFrom-Json
+            if ($result.MessageType -eq [System.Net.WebSockets.WebSocketMessageType]::Close) {
+                throw 'OBS WebSocket closed the connection; verify the WebSocket password and that OBS is running.'
+            }
+
+            if ($result.Count -gt 0) {
+                $stream.Write($buffer, 0, $result.Count)
+            }
+        } while (-not $result.EndOfMessage)
+
+        $text = [System.Text.Encoding]::UTF8.GetString($stream.ToArray())
+        return $text | ConvertFrom-Json
+    }
+    finally {
+        $timeout.Dispose()
+        $stream.Dispose()
+    }
 }
 
 function Send-ObsFrame($socket, $payload) {
+    if ($socket.State -ne [System.Net.WebSockets.WebSocketState]::Open) {
+        throw "OBS WebSocket is not open (state: $($socket.State)); reconnect before sending commands."
+    }
+
     $json = $payload | ConvertTo-Json -Depth 8 -Compress
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
     $segment = New-Object System.ArraySegment[byte] -ArgumentList @(,$bytes)
-    $socket.SendAsync($segment, [System.Net.WebSockets.WebSocketMessageType]::Text, $true, [System.Threading.CancellationToken]::None).GetAwaiter().GetResult()
+    $socket.SendAsync($segment, [System.Net.WebSockets.WebSocketMessageType]::Text, $true, [System.Threading.CancellationToken]::None).GetAwaiter().GetResult() | Out-Null
 }
 
 function Connect-Obs {
     $settings = Get-ObsSettings
     $socket = [System.Net.WebSockets.ClientWebSocket]::new()
-    $socket.ConnectAsync([Uri]$settings.Url, [System.Threading.CancellationToken]::None).GetAwaiter().GetResult()
-    $hello = Receive-ObsMessage $socket
-    if ($hello.op -ne 0) { throw "Unexpected OBS hello message: $($hello.d)" }
+    try {
+        $socket.ConnectAsync([Uri]$settings.Url, [System.Threading.CancellationToken]::None).GetAwaiter().GetResult()
+        $hello = Receive-ObsMessage $socket
+        if ($hello.op -ne 0) { throw "Unexpected OBS hello message (op $($hello.op))." }
 
-    $identify = @{ op = 1; d = @{ rpcVersion = 1 } }
-    $auth = $hello.d.authentication
-    if ($auth) {
-        $secret = [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::HashData(
-            [System.Text.Encoding]::UTF8.GetBytes($settings.Password + $auth.salt)))
-        $authentication = [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::HashData(
-            [System.Text.Encoding]::UTF8.GetBytes($secret + $auth.challenge)))
-        $identify.d.authentication = $authentication
+        $identify = @{ op = 1; d = @{ rpcVersion = 1 } }
+        $auth = $hello.d.authentication
+        if ($auth) {
+            $secret = [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::HashData(
+                [System.Text.Encoding]::UTF8.GetBytes($settings.Password + $auth.salt)))
+            $authentication = [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::HashData(
+                [System.Text.Encoding]::UTF8.GetBytes($secret + $auth.challenge)))
+            $identify.d.authentication = $authentication
+        }
+
+        Send-ObsFrame $socket $identify
+        $identified = Receive-ObsMessage $socket
+        if ($identified.op -ne 2) {
+            throw "OBS authentication/identify failed (op $($identified.op)); verify AETHER_OBS_WEBSOCKET_PASSWORD matches OBS Tools > WebSocket Server Settings."
+        }
+
+        return [pscustomobject]@{ Socket = $socket; RequestId = 0 }
     }
-
-    Send-ObsFrame $socket $identify
-    $identified = Receive-ObsMessage $socket
-    if ($identified.op -ne 2) { throw "OBS authentication/identify failed: $($identified.d | ConvertTo-Json -Compress)" }
-    return [pscustomobject]@{ Socket = $socket; RequestId = 0 }
+    catch {
+        try { $socket.Dispose() } catch { }
+        throw
+    }
 }
 
 function Invoke-ObsRequest($connection, [string] $requestType, $requestData = @{}) {
     $connection.RequestId++
     $id = "aether-$($connection.RequestId)"
     Send-ObsFrame $connection.Socket @{ op = 6; d = @{ requestType = $requestType; requestId = $id; requestData = $requestData } }
-    while ($true) {
+
+    $deadline = (Get-Date).AddSeconds(20)
+    while ((Get-Date) -lt $deadline) {
         $message = Receive-ObsMessage $connection.Socket
         if ($message.op -eq 7 -and $message.d.requestId -eq $id) {
             if (-not $message.d.requestStatus.result) {
@@ -78,7 +115,10 @@ function Invoke-ObsRequest($connection, [string] $requestType, $requestData = @{
 
             return [pscustomobject]@{ Data = $message.d.responseData; Status = $message.d.requestStatus }
         }
+        # OBS event frames (op 5) are intentionally ignored while waiting for our response.
     }
+
+    throw "OBS request '$requestType' timed out after 20 seconds."
 }
 
 function Start-ObsRecording($connection) {
@@ -93,12 +133,15 @@ function Start-ObsRecording($connection) {
 }
 
 function Stop-ObsRecording($connection) {
+    $before = (Invoke-ObsRequest $connection 'GetRecordStatus').Data
     $result = Invoke-ObsRequest $connection 'StopRecord'
     $deadline = (Get-Date).AddSeconds(15)
     while ((Get-Date) -lt $deadline) {
         $status = (Invoke-ObsRequest $connection 'GetRecordStatus').Data
         if (-not $status.outputActive) {
-            $path = if ($result.Data.outputPath) { $result.Data.outputPath } else { $status.outputPath }
+            $path = $result.Data.outputPath
+            if ([string]::IsNullOrWhiteSpace($path)) { $path = $before.outputPath }
+            if ([string]::IsNullOrWhiteSpace($path)) { $path = $status.outputPath }
             return $path
         }
         Start-Sleep -Milliseconds 200
@@ -107,6 +150,16 @@ function Stop-ObsRecording($connection) {
 }
 
 function Disconnect-Obs($connection) {
-    try { $connection.Socket.CloseAsync([System.Net.WebSockets.WebSocketCloseStatus]::NormalClosure, 'done', [System.Threading.CancellationToken]::None).GetAwaiter().GetResult() } catch { }
-    $connection.Socket.Dispose()
+    if ($null -eq $connection) { return }
+    try {
+        if ($connection.Socket.State -eq [System.Net.WebSockets.WebSocketState]::Open) {
+            $connection.Socket.CloseAsync([System.Net.WebSockets.WebSocketCloseStatus]::NormalClosure, 'done', [System.Threading.CancellationToken]::None).GetAwaiter().GetResult() | Out-Null
+        }
+    }
+    catch {
+        // Best effort close; the caller only cares that the recording has stopped.
+    }
+    finally {
+        $connection.Socket.Dispose()
+    }
 }
