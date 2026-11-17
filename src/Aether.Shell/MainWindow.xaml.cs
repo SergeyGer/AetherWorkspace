@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using Aether.AI.Planner;
 using Aether.AI.Providers;
@@ -40,6 +41,8 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _runCancellation;
     private bool _running;
     private WorkflowResult? _lastResult;
+    private readonly UiFrameTelemetry _uiTelemetry = new();
+    private UiTelemetrySnapshot? _lastTelemetry;
 
     public MainWindow()
     {
@@ -151,15 +154,24 @@ public partial class MainWindow : Window
         SetRunningState(true);
         _steps.Clear();
         SummaryBox.Text = string.Empty;
+        if (_lastTelemetry is not null)
+        {
+            RenderTelemetry(_lastTelemetry);
+        }
+
         TraceBox.Text = string.Empty;
         StatusBox.Text = string.Empty;
         _runCancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
+        _uiTelemetry.Start();
+        UiTelemetryText.Text = "ui telemetry: capturing…";
         try
         {
             var request = new WorkflowRequest(CommandBox.Text, classification);
             var result = await _orchestrator.ExecuteAsync(request, _runCancellation.Token);
+            _lastTelemetry = _uiTelemetry.Stop(result.DurationMs);
             RenderResult(result);
+            WriteTelemetryIfConfigured(result, _lastTelemetry);
         }
         catch (OperationCanceledException)
         {
@@ -171,6 +183,8 @@ public partial class MainWindow : Window
         }
         finally
         {
+            _lastTelemetry ??= _uiTelemetry.Stop(0);
+            RenderTelemetry(_lastTelemetry);
             SetRunningState(false);
             _runCancellation?.Dispose();
             _runCancellation = null;
@@ -267,6 +281,57 @@ public partial class MainWindow : Window
         }
     }
 
+    private void RenderTelemetry(UiTelemetrySnapshot? telemetry)
+    {
+        if (telemetry is null || telemetry.FrameCount == 0)
+        {
+            UiTelemetryText.Text = "ui telemetry: no frames captured";
+            return;
+        }
+
+        UiTelemetryText.Text =
+            $"ui frames={telemetry.FrameCount} p50={telemetry.P50FrameMs:0.##}ms p95={telemetry.P95FrameMs:0.##}ms " +
+            $"p99={telemetry.P99FrameMs:0.##}ms max={telemetry.MaxFrameMs:0.##}ms long={telemetry.LongFrames} " +
+            $"command={telemetry.CommandDurationMs}ms ws={telemetry.WorkingSetMb:0.#}MB gc={telemetry.ManagedMemoryMb:0.#}MB";
+    }
+
+    private static void WriteTelemetryIfConfigured(WorkflowResult result, UiTelemetrySnapshot telemetry)
+    {
+        var path = Environment.GetEnvironmentVariable("AETHER_UI_TELEMETRY_FILE");
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        try
+        {
+            var line = JsonSerializer.Serialize(new
+            {
+                timestampUtc = DateTimeOffset.UtcNow,
+                traceId = result.TraceId,
+                success = result.Success,
+                planner = result.PlannerProvider,
+                usedModel = result.UsedModel,
+                commandDurationMs = telemetry.CommandDurationMs,
+                frameCount = telemetry.FrameCount,
+                p50FrameMs = telemetry.P50FrameMs,
+                p95FrameMs = telemetry.P95FrameMs,
+                p99FrameMs = telemetry.P99FrameMs,
+                maxFrameMs = telemetry.MaxFrameMs,
+                longFrames = telemetry.LongFrames,
+                workingSetMb = telemetry.WorkingSetMb,
+                managedMemoryMb = telemetry.ManagedMemoryMb,
+            });
+            File.AppendAllText(path, line + Environment.NewLine);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
     private void OnCancelClick(object sender, RoutedEventArgs e)
     {
         _runCancellation?.Cancel();
@@ -309,6 +374,11 @@ public partial class MainWindow : Window
         }
 
         var verification = _auditSink.Verify();
+        if (_lastTelemetry is not null)
+        {
+            RenderTelemetry(_lastTelemetry);
+        }
+
         TraceBox.Text =
             $"trace: {result.TraceId}{Environment.NewLine}" +
             $"plan: {result.PlanId ?? "n/a"} ({result.PlannerProvider}, model={result.UsedModel}){Environment.NewLine}" +
@@ -323,7 +393,10 @@ public partial class MainWindow : Window
                 : $"denial: {result.DenialCode} ({result.DenialCategory}){Environment.NewLine}") +
             (result.PlanningNotes.Count == 0
                 ? ""
-                : "planning notes: " + string.Join("; ", result.PlanningNotes) + Environment.NewLine);
+                : "planning notes: " + string.Join("; ", result.PlanningNotes) + Environment.NewLine) +
+            (_lastTelemetry is null || _lastTelemetry.FrameCount == 0
+                ? ""
+                : $"ui: frames={_lastTelemetry.FrameCount} p50={_lastTelemetry.P50FrameMs:0.##}ms p95={_lastTelemetry.P95FrameMs:0.##}ms p99={_lastTelemetry.P99FrameMs:0.##}ms max={_lastTelemetry.MaxFrameMs:0.##}ms long={_lastTelemetry.LongFrames} command={_lastTelemetry.CommandDurationMs}ms{Environment.NewLine}");
 
         if (result.Success)
         {

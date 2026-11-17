@@ -31,7 +31,7 @@
         "RESTRICTED"
       ],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 30,
+      "launchTimeoutSeconds": 60,
       "intents": [
         "ViewInstrument"
       ]
@@ -66,7 +66,7 @@
         "RESTRICTED"
       ],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 30,
+      "launchTimeoutSeconds": 60,
       "intents": [
         "ViewAnalysis"
       ]
@@ -101,7 +101,7 @@
         "RESTRICTED"
       ],
       "maxInstances": 1,
-      "launchTimeoutSeconds": 30,
+      "launchTimeoutSeconds": 60,
       "intents": [
         "ViewChart"
       ]
