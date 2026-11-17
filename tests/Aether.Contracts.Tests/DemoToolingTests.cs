@@ -44,6 +44,8 @@ public class DemoToolingTests
         Assert.Contains("Category=DemoCapture", record, StringComparison.Ordinal);
         Assert.Contains("DemoCapture", capture, StringComparison.Ordinal);
         Assert.Contains("AETHER_DEMO_EVENTS_OUT", capture, StringComparison.Ordinal);
+        Assert.Contains("OPENAI_API_KEY", record, StringComparison.Ordinal);
+        Assert.Contains("GEMINI_API_KEY", record, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -38,11 +38,21 @@ if (Test-Path -LiteralPath $EnvironmentFile) {
 }
 
 if ($Scenario -eq 'TrackB') {
-    $cloudEndpoint = $env:AETHER_CLOUD_ENDPOINT
-    $cloudKey = $env:AETHER_CLOUD_API_KEY
-    $cloudModel = $env:AETHER_CLOUD_MODEL
-    if ([string]::IsNullOrWhiteSpace($cloudEndpoint) -or [string]::IsNullOrWhiteSpace($cloudKey) -or [string]::IsNullOrWhiteSpace($cloudModel)) {
-        throw 'FAIL_HARNESS: Track B requires AETHER_CLOUD_ENDPOINT, AETHER_CLOUD_API_KEY and AETHER_CLOUD_MODEL loaded from the local .env; no secrets are printed.'
+    $provider = if ([string]::IsNullOrWhiteSpace($env:AETHER_MODEL_PROVIDER)) { 'openai' } else { $env:AETHER_MODEL_PROVIDER.Trim().ToLowerInvariant() }
+    if ($provider -eq 'gemini') {
+        if ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY) -or
+            [string]::IsNullOrWhiteSpace($env:GEMINI_BASE_URL) -or
+            [string]::IsNullOrWhiteSpace($env:GEMINI_MODEL)) {
+            throw 'FAIL_HARNESS: Track B with provider gemini requires GEMINI_API_KEY, GEMINI_BASE_URL and GEMINI_MODEL loaded from the local .env; no secrets are printed.'
+        }
+    }
+    else {
+        $openAiKey = $env:OPENAI_API_KEY
+        $openAiEndpoint = if ($env:OPENAI_BASE_URL) { $env:OPENAI_BASE_URL } else { $env:AETHER_CLOUD_ENDPOINT }
+        $openAiModel = if ($env:OPENAI_MODEL) { $env:OPENAI_MODEL } else { $env:AETHER_CLOUD_MODEL }
+        if ([string]::IsNullOrWhiteSpace($openAiKey) -or [string]::IsNullOrWhiteSpace($openAiEndpoint) -or [string]::IsNullOrWhiteSpace($openAiModel)) {
+            throw 'FAIL_HARNESS: Track B with provider openai requires OPENAI_API_KEY plus OPENAI_BASE_URL/OPENAI_MODEL (AETHER_CLOUD_* may be used as endpoint/model fallbacks) loaded from the local .env; no secrets are printed.'
+        }
     }
 }
 
