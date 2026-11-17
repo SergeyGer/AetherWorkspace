@@ -364,7 +364,8 @@ public sealed partial class ShellUiAutomationTests
 
             // v1.1 demo surface: compact demo-layout action and explicit planning mode reachable by AutomationId.
             WaitForElement(window, "DemoLayoutButton", ElementTimeout);
-            WaitForElement(window, "PlannerCombo", ElementTimeout);
+            var plannerCombo = WaitForElement(window, "PlannerCombo", ElementTimeout).AsComboBox();
+            Assert.Equal("Deterministic (offline)", plannerCombo.SelectedItem?.Name);
         }
         finally
         {
