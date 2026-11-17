@@ -9,6 +9,7 @@
 #>
 
 $ErrorActionPreference = 'Stop'
+$script:AetherObsRequestId = 0
 
 function Get-ObsSettings {
     $url = $env:AETHER_OBS_WEBSOCKET_URL
@@ -92,7 +93,7 @@ function Connect-Obs {
             throw "OBS authentication/identify failed (op $($identified.op)); verify AETHER_OBS_WEBSOCKET_PASSWORD matches OBS Tools > WebSocket Server Settings."
         }
 
-        return [pscustomobject]@{ Socket = $socket; RequestId = 0 }
+        return [pscustomobject]@{ Socket = $socket; Url = $settings.Url }
     }
     catch {
         try { $socket.Dispose() } catch { }
@@ -101,8 +102,12 @@ function Connect-Obs {
 }
 
 function Invoke-ObsRequest($connection, [string] $requestType, $requestData = @{}) {
-    $connection.RequestId++
-    $id = "aether-$($connection.RequestId)"
+    if ($null -eq $connection -or $null -eq $connection.PSObject.Properties['Socket']) {
+        throw 'OBS connection object is missing; dot-source Obs-Control.ps1 and call Connect-Obs first.'
+    }
+
+    $script:AetherObsRequestId++
+    $id = "aether-$script:AetherObsRequestId"
     Send-ObsFrame $connection.Socket @{ op = 6; d = @{ requestType = $requestType; requestId = $id; requestData = $requestData } }
 
     $deadline = (Get-Date).AddSeconds(20)
