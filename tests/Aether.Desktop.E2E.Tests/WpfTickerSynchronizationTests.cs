@@ -68,7 +68,8 @@ public sealed class WpfTickerSynchronizationTests
 
         SelectTicker(windows["sample.watchlist"], "VEGA", harness);
         WaitForText(windows["sample.watchlist"], "WatchlistPublishStatus", text => text.Contains("Published VEGA", StringComparison.Ordinal), "watchlist publish VEGA");
-        WaitForText(windows["sample.risk"], "RiskSelectedMetrics", text => text.Contains("VEGA", StringComparison.Ordinal) && text.Contains("Selected notional", StringComparison.Ordinal), "risk VEGA metrics");
+        WaitForText(windows["sample.risk"], "RiskSelectedInstrument", text => text.Contains("VEGA", StringComparison.Ordinal), "risk VEGA selection");
+        WaitForText(windows["sample.risk"], "RiskSelectedMetrics", text => text.Contains("Selected notional", StringComparison.Ordinal), "risk VEGA metrics");
         WaitForText(windows["sample.chart"], "ChartPlottedSeries", text => text.Contains("VEGA", StringComparison.Ordinal), "chart VEGA series");
 
         await Task.Delay(TimeSpan.FromSeconds(2));
@@ -76,7 +77,8 @@ public sealed class WpfTickerSynchronizationTests
 
         SelectTicker(windows["sample.watchlist"], "ORIN", harness);
         WaitForText(windows["sample.watchlist"], "WatchlistPublishStatus", text => text.Contains("Published ORIN", StringComparison.Ordinal), "watchlist publish ORIN");
-        WaitForText(windows["sample.risk"], "RiskSelectedMetrics", text => text.Contains("ORIN", StringComparison.Ordinal) && text.Contains("Selected notional", StringComparison.Ordinal), "risk ORIN metrics");
+        WaitForText(windows["sample.risk"], "RiskSelectedInstrument", text => text.Contains("ORIN", StringComparison.Ordinal), "risk ORIN selection");
+        WaitForText(windows["sample.risk"], "RiskSelectedMetrics", text => text.Contains("Selected notional", StringComparison.Ordinal), "risk ORIN metrics");
         WaitForText(windows["sample.chart"], "ChartPlottedSeries", text => text.Contains("ORIN", StringComparison.Ordinal), "chart ORIN series");
 
         await Task.Delay(TimeSpan.FromSeconds(2));
