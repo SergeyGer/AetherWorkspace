@@ -29,6 +29,13 @@ public sealed class WpfTickerSynchronizationTests
         ["sample.chart"] = "Synthetic Bond Chart",
     };
 
+    private static readonly Dictionary<string, string> ProcessBadgeIds = new(StringComparer.Ordinal)
+    {
+        ["sample.watchlist"] = "WatchlistProcessBadge",
+        ["sample.risk"] = "RiskProcessBadge",
+        ["sample.chart"] = "ChartProcessBadge",
+    };
+
     private readonly ITestOutputHelper _output;
 
     public WpfTickerSynchronizationTests(ITestOutputHelper output)
@@ -64,6 +71,17 @@ public sealed class WpfTickerSynchronizationTests
         foreach (var appId in TestData.SampleAppIds)
         {
             windows[appId] = WaitForWindow(automation, processes[appId], WindowTitles[appId]);
+        }
+
+        foreach (var appId in TestData.SampleAppIds)
+        {
+            WaitForText(
+                windows[appId],
+                ProcessBadgeIds[appId],
+                text => text.Contains("PID ", StringComparison.Ordinal)
+                        && text.Contains(appId, StringComparison.Ordinal)
+                        && text.Contains("gRPC", StringComparison.Ordinal),
+                $"real process badge for {appId}");
         }
 
         SelectTicker(windows["sample.watchlist"], "VEGA", harness);

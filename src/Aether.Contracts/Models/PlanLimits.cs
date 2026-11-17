@@ -22,9 +22,13 @@ public static class Layouts
 {
     public const string SideBySide = "side-by-side";
 
+    /// <summary>Demo grid: three windows tiled below a reserved top command-surface strip.</summary>
+    public const string DemoGrid = "demo-grid";
+
     public static readonly IReadOnlySet<string> Supported = new HashSet<string>(StringComparer.Ordinal)
     {
         SideBySide,
+        DemoGrid,
     };
 }
 

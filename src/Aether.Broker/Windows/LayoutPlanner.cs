@@ -12,6 +12,8 @@ public static class LayoutPlanner
 {
     public const int MinimumWindowWidth = 320;
 
+    public const int MinimumWindowHeight = 240;
+
     public static WindowLayout Plan(
         IReadOnlyList<WindowState> windows,
         IReadOnlyList<RegisteredApp> appOrder,
@@ -44,6 +46,11 @@ public static class LayoutPlanner
             return new WindowLayout(layout, [], options.MonitorId);
         }
 
+        if (string.Equals(layout, Layouts.DemoGrid, StringComparison.Ordinal))
+        {
+            return PlanDemoGrid(orderedWindows, options);
+        }
+
         var count = orderedWindows.Length;
         var gap = options.WindowGapPixels;
         var available = options.WorkAreaWidth;
@@ -73,5 +80,34 @@ public static class LayoutPlanner
         }
 
         return new WindowLayout(layout, placements, options.MonitorId);
+    }
+
+    private static WindowLayout PlanDemoGrid(IReadOnlyList<WindowState> orderedWindows, BrokerOptions options)
+    {
+        var count = orderedWindows.Count;
+        var gap = Math.Max(0, options.WindowGapPixels);
+        var reserve = Math.Clamp(options.DemoLayoutTopReservePixels, 0, Math.Max(0, options.WorkAreaHeight - MinimumWindowHeight));
+        var availableWidth = options.WorkAreaWidth;
+        var availableHeight = Math.Max(MinimumWindowHeight, options.WorkAreaHeight - reserve);
+        var width = Math.Max(MinimumWindowWidth, (availableWidth - (gap * (count - 1))) / count);
+        var placements = new List<WindowPlacement>(count);
+        var x = 0;
+        for (var index = 0; index < count; index++)
+        {
+            var window = orderedWindows[index];
+            var isLast = index == count - 1;
+            var placementWidth = isLast ? Math.Max(MinimumWindowWidth, availableWidth - x) : width;
+            placements.Add(new WindowPlacement(
+                window.AppId,
+                window.InstanceId,
+                window.WindowId,
+                window.Title,
+                new WindowBounds(x, reserve, placementWidth, availableHeight),
+                options.MonitorId,
+                Visible: true));
+            x += placementWidth + gap;
+        }
+
+        return new WindowLayout(Layouts.DemoGrid, placements, options.MonitorId);
     }
 }

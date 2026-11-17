@@ -40,7 +40,7 @@ public sealed class BrokerOptions
 
     public int MaxActionsPerPlan { get; init; } = PlanLimits.DefaultMaxActions;
 
-    public IReadOnlyList<string> SupportedLayouts { get; init; } = [Layouts.SideBySide];
+    public IReadOnlyList<string> SupportedLayouts { get; init; } = [Layouts.SideBySide, Layouts.DemoGrid];
 
     public int SessionTtlMinutes { get; init; } = 120;
 
@@ -65,6 +65,9 @@ public sealed class BrokerOptions
     public string MonitorId { get; init; } = "virtual-monitor-1";
 
     public int WindowGapPixels { get; init; } = 8;
+
+    /// <summary>Vertical strip (pixels) reserved above the demo grid for the compact command surface.</summary>
+    public int DemoLayoutTopReservePixels { get; init; } = 240;
 
     public int MaxRestartAttempts { get; init; } = 3;
 

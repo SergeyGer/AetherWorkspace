@@ -7,6 +7,7 @@ using Aether.AI.Summarization;
 using Aether.Broker.Client;
 using Aether.Contracts;
 using Aether.Contracts.Broker;
+using Aether.Contracts.Models;
 using Aether.Contracts.Models.Diagnostics;
 using Aether.Execution.Authorization;
 using Aether.Execution.Executor;
@@ -235,6 +236,34 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnDemoLayoutClick(object sender, RoutedEventArgs e)
+    {
+        if (_client is null)
+        {
+            AppendStatus("Broker is not connected; demo layout cannot be arranged.");
+            return;
+        }
+
+        try
+        {
+            var area = SystemParameters.WorkArea;
+            this.WindowState = System.Windows.WindowState.Normal;
+            Left = area.Left;
+            Top = area.Top;
+            Width = Math.Max(720, area.Width);
+            Height = 220;
+
+            var reply = await _client.ArrangeWindowsAsync(Layouts.DemoGrid, TraceIdGenerator.NewTraceId());
+            AppendStatus(reply.Applied
+                ? $"Demo layout: {reply.Layout?.Placements.Count ?? 0} windows arranged below the command surface."
+                : $"Demo layout denied: {reply.DenialCode} {reply.DenialMessage}");
+        }
+        catch (Exception exception)
+        {
+            AppendStatus("Demo layout failed: " + exception.Message);
+        }
+    }
+
     private void OnCancelClick(object sender, RoutedEventArgs e)
     {
         _runCancellation?.Cancel();
@@ -245,13 +274,21 @@ public partial class MainWindow : Window
     {
         _lastResult = result;
         _inspector.Clear();
+        var sequence = 1;
+        _inspector.Add(new InspectorRow(sequence++, "Broker IPC", "connected", _endpoint?.Transport ?? "local"));
+        _inspector.Add(new InspectorRow(sequence++, "Plan validated", result.Success ? "succeeded" : "denied", result.DenialCode ?? ""));
         foreach (var step in result.Execution?.Steps ?? [])
         {
             _inspector.Add(new InspectorRow(
-                step.Index + 1,
-                step.Action,
+                sequence++,
+                ReadableAction(step.Action),
                 step.State.ToString().ToLowerInvariant(),
                 step.Code ?? ""));
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.DenialCode))
+        {
+            _inspector.Add(new InspectorRow(sequence, "Policy denied", "denied", result.DenialCode));
         }
 
         foreach (var step in result.Execution?.Steps ?? [])
@@ -341,6 +378,16 @@ public partial class MainWindow : Window
     }
 
     private sealed record StepRow(int Index, string Action, string State, string Code);
+
+    private static string ReadableAction(string action) => action switch
+    {
+        "LaunchApp" => "Apps registered",
+        "PublishContext" => "Context published",
+        "ArrangeWindows" => "Layout completed",
+        "SummarizeContext" => "Summary produced",
+        "ValidatePlan" => "Plan validated",
+        _ => action,
+    };
 }
 
 public sealed record InspectorRow(int Sequence, string Action, string State, string Code);

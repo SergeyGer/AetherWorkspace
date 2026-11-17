@@ -177,6 +177,9 @@ public sealed partial class ShellUiAutomationTests
             var traceBox = WaitForElement(window, "TraceBox", ElementTimeout);
             var traceText = ReadTextBox(traceBox);
             Assert.Contains("trace: " + traceId, traceText, StringComparison.Ordinal);
+
+            // v1.1 demo surface: the compact demo-layout action must be reachable by AutomationId.
+            WaitForElement(window, "DemoLayoutButton", ElementTimeout);
         }
         finally
         {

@@ -45,6 +45,18 @@ public sealed class SampleRuntime : IAsyncDisposable
 
     public string InstanceId => _instanceId;
 
+    public int ProcessId => Environment.ProcessId;
+
+    public string DisplayAppId => _appId;
+
+    public string TransportLabel => Environment.GetEnvironmentVariable("AETHER_BROKER_TRANSPORT") switch
+    {
+        "named-pipe" => "gRPC / Windows Named Pipes",
+        "unix-domain-socket" => "gRPC / Unix Domain Socket",
+        var transport when !string.IsNullOrWhiteSpace(transport) => "gRPC / " + transport,
+        _ => "local IPC",
+    };
+
     public static async Task<SampleRuntime> ConnectAsync(SampleUiOptions options, Window window)
     {
         var transport = Environment.GetEnvironmentVariable("AETHER_BROKER_TRANSPORT");

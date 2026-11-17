@@ -31,6 +31,7 @@ public partial class ChartWindow : Window
             _fixture = Fixtures.LoadChart(_options.FixturesDirectory);
             DrawChart(null);
             _runtime = await SampleRuntime.ConnectAsync(_options, this);
+            ProcessBadgeText.Text = $"PID {_runtime.ProcessId} · {_runtime.DisplayAppId} · {_runtime.TransportLabel}";
             _runtime.ContextReceived += OnContextReceived;
             StatusText.Text = "Registered. Waiting for typed instrument context on the default channel…";
         }

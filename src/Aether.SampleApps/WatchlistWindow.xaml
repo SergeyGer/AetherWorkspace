@@ -6,6 +6,8 @@
     <StackPanel DockPanel.Dock="Top">
       <TextBlock Text="Synthetic Watchlist" FontSize="16" FontWeight="SemiBold" />
       <TextBlock Text="Fixture data only — no live market connectivity, no customer records." FontSize="11" Foreground="#FF6B6B6B" />
+      <TextBlock x:Name="ProcessBadgeText" Margin="0,4,0,0" FontSize="10" Foreground="#FF6B6B6B"
+                 AutomationProperties.AutomationId="WatchlistProcessBadge" />
       <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…"
                  AutomationProperties.AutomationId="WatchlistStatus" />
       <TextBlock x:Name="PublishStatusText" Margin="0,2,0,0" FontSize="11" Foreground="#FF44505C"
