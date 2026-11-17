@@ -1,0 +1,14 @@
+[
+  {
+    "id": "WT-05-03",
+    "status": "PASS",
+    "evidence": "sanitized local note",
+    "notes": "display disconnected/reconnected; restore fallback observed; baseline restored"
+  },
+  {
+    "id": "WT-05-05",
+    "status": "SKIPPED_HARDWARE",
+    "evidence": "no approved DPI change window",
+    "notes": "formal exception recorded in release notes"
+  }
+]

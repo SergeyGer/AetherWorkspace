@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Aether.Contracts;
 using Aether.Testing;
@@ -73,6 +74,127 @@ public sealed partial class ShellUiAutomationTests
         }
 
         await RunWorkflowScenarioAsync();
+    }
+
+    /// <summary>
+    /// AW-066 measurement run: executes the reference workflow repeatedly through the real WPF
+    /// shell, reads the per-run render-frame/command telemetry rendered by the shell, and writes a
+    /// sanitized JSONL for the local measurement runner. Set AETHER_UI_CYCLES=100 on the physical
+    /// Windows 11 reference laptop; CI uses the default three-cycle smoke.
+    /// </summary>
+    [Fact(Timeout = 1_800_000)]
+    public async Task RepeatedWorkflowReportsUiTelemetry()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var cycles = int.TryParse(Environment.GetEnvironmentVariable("AETHER_UI_CYCLES"), out var configured)
+            ? Math.Clamp(configured, 1, 100)
+            : 3;
+        var outputPath = Environment.GetEnvironmentVariable("AETHER_UI_TELEMETRY_OUT");
+        if (string.IsNullOrWhiteSpace(outputPath))
+        {
+            outputPath = Path.Combine(Path.GetTempPath(), $"aether-ui-telemetry-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.jsonl");
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+        if (File.Exists(outputPath))
+        {
+            File.Delete(outputPath);
+        }
+
+        await using var harness = await EndToEndHarness.StartAsync("ui-telemetry");
+        var shellExecutable = ShellExecutableLocator.Resolve();
+        Application? application = null;
+        try
+        {
+            application = LaunchShell(shellExecutable, harness.EndpointFile);
+            using var automation = new UIA3Automation();
+            var window = AttachToMainWindow(application, automation);
+
+            var backendMode = WaitForElement(window, "BackendModeText", ElementTimeout);
+            await WaitForBackendModeAsync(window, backendMode, ConnectionTimeout);
+            var statusBox = WaitForElement(window, "StatusBox", ElementTimeout);
+            await WaitForTextAsync(
+                () => ReadTextBox(statusBox),
+                text => text.Contains(RegistrationMarker, StringComparison.Ordinal),
+                RegistrationTimeout);
+
+            var classificationCombo = WaitForElement(window, "ClassificationCombo", ElementTimeout).AsComboBox();
+            EnsureRestrictedClassification(classificationCombo);
+            var telemetryElement = WaitForElement(window, "UiTelemetryText", ElementTimeout);
+            var records = new List<Dictionary<string, object?>>();
+
+            for (var cycle = 1; cycle <= cycles; cycle++)
+            {
+                WaitForElement(window, "RunButton", ElementTimeout).AsButton().Invoke();
+                var status = await WaitForTextAsync(
+                    () => ReadTextBox(statusBox),
+                    text => CountOccurrences(text, SuccessMarker) >= cycle || IsTerminalFailure(text),
+                    WorkflowTimeout);
+                Assert.True(
+                    CountOccurrences(status, SuccessMarker) >= cycle,
+                    $"Cycle {cycle}/{cycles} did not succeed." + Environment.NewLine + status);
+
+                var telemetry = await WaitForTextAsync(
+                    () => ReadTextBlock(telemetryElement),
+                    text => text.Contains("frames=", StringComparison.Ordinal) && text.Contains("command=", StringComparison.Ordinal) && text.Contains("gc=", StringComparison.Ordinal),
+                    ElementTimeout);
+                var match = UiTelemetryPattern().Match(telemetry);
+                Assert.True(match.Success, "Could not parse UI telemetry: " + telemetry);
+                var record = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["cycle"] = cycle,
+                    ["timestampUtc"] = DateTimeOffset.UtcNow,
+                    ["traceId"] = TraceIdPattern().Match(status).Groups["trace"].Value,
+                    ["frames"] = int.Parse(match.Groups["frames"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["p50FrameMs"] = double.Parse(match.Groups["p50"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["p95FrameMs"] = double.Parse(match.Groups["p95"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["p99FrameMs"] = double.Parse(match.Groups["p99"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["maxFrameMs"] = double.Parse(match.Groups["max"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["longFrames"] = int.Parse(match.Groups["long"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["commandDurationMs"] = long.Parse(match.Groups["command"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["workingSetMb"] = double.Parse(match.Groups["ws"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["managedMemoryMb"] = double.Parse(match.Groups["gc"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                };
+                records.Add(record);
+                Assert.True((int)record["frames"]! > 0, $"Cycle {cycle} captured no UI frames.");
+                File.AppendAllText(outputPath, JsonSerializer.Serialize(record) + Environment.NewLine);
+            }
+
+            Assert.Equal(cycles, records.Count);
+            var summary = new
+            {
+                schemaVersion = "1.0",
+                kind = "wpf-ui-telemetry",
+                cycles,
+                outputPath,
+                records,
+            };
+            File.WriteAllText(outputPath + ".summary.json", JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        finally
+        {
+            CloseShell(application);
+        }
+    }
+
+    [GeneratedRegex(@"frames=(?<frames>\d+)\s+p50=(?<p50>[\d.]+)ms\s+p95=(?<p95>[\d.]+)ms\s+p99=(?<p99>[\d.]+)ms\s+max=(?<max>[\d.]+)ms\s+long=(?<long>\d+)\s+command=(?<command>\d+)ms\s+ws=(?<ws>[\d.]+)MB\s+gc=(?<gc>[\d.]+)MB", RegexOptions.CultureInvariant)]
+    private static partial Regex UiTelemetryPattern();
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 
     private static async Task RunSmokeScenarioAsync()

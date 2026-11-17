@@ -6,6 +6,20 @@ operates the desktop. Tooling: PowerShell 7, FlaUI, OBS Studio (local WebSocket 
 FFmpeg. Scripts are specified by AW-055 (#83) and AW-056 (#84); commands below are the target
 contract and are **not** claimed available until implemented.
 
+## 0. Prerequisites (install/verify on the laptop)
+
+| Tool | Minimum | Verify |
+|---|---|---|
+| Windows 11 x64, unlocked interactive session | reference build | sign in normally; no RDP/unattended unlock |
+| .NET 10 Desktop Runtime (x64) | 10.0.x | `dotnet --list-runtimes` shows `Microsoft.WindowsDesktop.App 10.*` |
+| PowerShell 7 | 7.4+ | `pwsh -v` |
+| OBS Studio | 30+ x64 | launch once, set Tools → WebSocket Server Settings → **Enable**, bind `127.0.0.1`, auth on; keep the password local only |
+| FFmpeg | 7.x on PATH | `ffmpeg -version` |
+| Git | any recent | `git --version` |
+
+Suggested install (then verify manually): `winget install OBSProject.OBSStudio Gyan.FFmpeg Microsoft.PowerShell`.
+Never commit the OBS WebSocket password, `.env`, endpoint handshake or raw media.
+
 ## 1. Trust and preparation
 
 ```powershell
