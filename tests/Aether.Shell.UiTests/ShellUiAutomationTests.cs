@@ -187,15 +187,15 @@ public sealed partial class ShellUiAutomationTests
                     ["cycle"] = cycle,
                     ["timestampUtc"] = DateTimeOffset.UtcNow,
                     ["traceId"] = TraceIdPattern().Match(status).Groups["trace"].Value,
-                    ["frames"] = int.Parse(match.Groups["frames"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["p50FrameMs"] = double.Parse(match.Groups["p50"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["p95FrameMs"] = double.Parse(match.Groups["p95"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["p99FrameMs"] = double.Parse(match.Groups["p99"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["maxFrameMs"] = double.Parse(match.Groups["max"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["longFrames"] = int.Parse(match.Groups["long"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["commandDurationMs"] = long.Parse(match.Groups["command"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["workingSetMb"] = double.Parse(match.Groups["ws"].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    ["managedMemoryMb"] = double.Parse(match.Groups["gc"].Value, System.Globalization.CultureInfo.InvariantCulture),
+                    ["frames"] = ParseInvariantInt(match.Groups["frames"].Value),
+                    ["p50FrameMs"] = ParseInvariantDouble(match.Groups["p50"].Value),
+                    ["p95FrameMs"] = ParseInvariantDouble(match.Groups["p95"].Value),
+                    ["p99FrameMs"] = ParseInvariantDouble(match.Groups["p99"].Value),
+                    ["maxFrameMs"] = ParseInvariantDouble(match.Groups["max"].Value),
+                    ["longFrames"] = ParseInvariantInt(match.Groups["long"].Value),
+                    ["commandDurationMs"] = ParseInvariantLong(match.Groups["command"].Value),
+                    ["workingSetMb"] = ParseInvariantDouble(match.Groups["ws"].Value),
+                    ["managedMemoryMb"] = ParseInvariantDouble(match.Groups["gc"].Value),
                 };
                 records.Add(record);
                 File.AppendAllText(outputPath, JsonSerializer.Serialize(record) + Environment.NewLine);
@@ -218,7 +218,7 @@ public sealed partial class ShellUiAutomationTests
         }
     }
 
-    [GeneratedRegex(@"frames=(?<frames>\d+)\s+p50=(?<p50>[\d.]+)ms\s+p95=(?<p95>[\d.]+)ms\s+p99=(?<p99>[\d.]+)ms\s+max=(?<max>[\d.]+)ms\s+long=(?<long>\d+)\s+command=(?<command>\d+)ms\s+ws=(?<ws>[\d.]+)MB\s+gc=(?<gc>[\d.]+)MB", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"frames=(?<frames>\d+)\s+p50=(?<p50>[\d.,]+)ms\s+p95=(?<p95>[\d.,]+)ms\s+p99=(?<p99>[\d.,]+)ms\s+max=(?<max>[\d.,]+)ms\s+long=(?<long>\d+)\s+command=(?<command>\d+)ms\s+ws=(?<ws>[\d.,]+)MB\s+gc=(?<gc>[\d.,]+)MB", RegexOptions.CultureInvariant)]
     private static partial Regex UiTelemetryPattern();
 
     private static async Task WaitForElementEnabledAsync(AutomationElement element, string description, TimeSpan timeout)
@@ -236,6 +236,15 @@ public sealed partial class ShellUiAutomationTests
 
         Assert.Fail($"The '{description}' control did not become enabled within {timeout.TotalSeconds:0}s.");
     }
+
+    private static int ParseInvariantInt(string value) =>
+        int.Parse(value.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+
+    private static long ParseInvariantLong(string value) =>
+        long.Parse(value.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+
+    private static double ParseInvariantDouble(string value) =>
+        double.Parse(value.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
 
     private static int CountOccurrences(string text, string value)
     {

@@ -48,8 +48,11 @@ public class MeasurementToolingTests
         Assert.Contains("SKIPPED_ENVIRONMENT", runner, StringComparison.Ordinal);
         Assert.Contains("p95FrameMs", runner, StringComparison.Ordinal);
         Assert.Contains("InvokeAsync", shell, StringComparison.Ordinal);
+        Assert.Contains("IsPathRooted", File.ReadAllText(TestRepo.PathTo("tools", "windows-test", "Export-WtLedger.ps1")), StringComparison.Ordinal);
         Assert.Contains("ProbeInterval", shell, StringComparison.Ordinal);
         Assert.Contains("WorkingSetMb", shell, StringComparison.Ordinal);
+        var mainWindow = File.ReadAllText(TestRepo.PathTo("src", "Aether.Shell", "MainWindow.xaml.cs"));
+        Assert.Contains("FormattableString.Invariant", mainWindow, StringComparison.Ordinal);
         Assert.Contains("100-cycle", doc, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -289,10 +290,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        UiTelemetryText.Text =
-            $"ui frames={telemetry.FrameCount} p50={telemetry.P50FrameMs:0.##}ms p95={telemetry.P95FrameMs:0.##}ms " +
-            $"p99={telemetry.P99FrameMs:0.##}ms max={telemetry.MaxFrameMs:0.##}ms long={telemetry.LongFrames} " +
-            $"command={telemetry.CommandDurationMs}ms ws={telemetry.WorkingSetMb:0.#}MB gc={telemetry.ManagedMemoryMb:0.#}MB";
+        // Machine-readable evidence must stay locale-independent (Russian Windows uses comma decimals).
+        UiTelemetryText.Text = FormattableString.Invariant($"ui frames={telemetry.FrameCount} p50={telemetry.P50FrameMs:0.##}ms p95={telemetry.P95FrameMs:0.##}ms p99={telemetry.P99FrameMs:0.##}ms max={telemetry.MaxFrameMs:0.##}ms long={telemetry.LongFrames} command={telemetry.CommandDurationMs}ms ws={telemetry.WorkingSetMb:0.#}MB gc={telemetry.ManagedMemoryMb:0.#}MB");
     }
 
     private static void WriteTelemetryIfConfigured(WorkflowResult result, UiTelemetrySnapshot telemetry)
@@ -396,7 +395,7 @@ public partial class MainWindow : Window
                 : "planning notes: " + string.Join("; ", result.PlanningNotes) + Environment.NewLine) +
             (_lastTelemetry is null || _lastTelemetry.FrameCount == 0
                 ? ""
-                : $"ui: frames={_lastTelemetry.FrameCount} p50={_lastTelemetry.P50FrameMs:0.##}ms p95={_lastTelemetry.P95FrameMs:0.##}ms p99={_lastTelemetry.P99FrameMs:0.##}ms max={_lastTelemetry.MaxFrameMs:0.##}ms long={_lastTelemetry.LongFrames} command={_lastTelemetry.CommandDurationMs}ms{Environment.NewLine}");
+                : FormattableString.Invariant($"ui: frames={_lastTelemetry.FrameCount} p50={_lastTelemetry.P50FrameMs:0.##}ms p95={_lastTelemetry.P95FrameMs:0.##}ms p99={_lastTelemetry.P99FrameMs:0.##}ms max={_lastTelemetry.MaxFrameMs:0.##}ms long={_lastTelemetry.LongFrames} command={_lastTelemetry.CommandDurationMs}ms{Environment.NewLine}"));
 
         if (result.Success)
         {
