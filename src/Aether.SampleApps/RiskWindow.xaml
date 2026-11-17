@@ -6,6 +6,8 @@
     <StackPanel DockPanel.Dock="Top">
       <TextBlock Text="Synthetic Risk View" FontSize="16" FontWeight="SemiBold" />
       <TextBlock Text="Fictitious exposures only. Synthetic account identifiers are not rendered." FontSize="11" Foreground="#FF6B6B6B" />
+      <TextBlock x:Name="ProcessBadgeText" Margin="0,4,0,0" FontSize="10" Foreground="#FF6B6B6B"
+                 AutomationProperties.AutomationId="RiskProcessBadge" />
       <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…"
                  AutomationProperties.AutomationId="RiskStatus" />
       <TextBlock x:Name="SelectedInstrumentText" Margin="0,6,0,0" FontWeight="SemiBold" FontSize="12"

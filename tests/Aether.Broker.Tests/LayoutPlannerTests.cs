@@ -52,6 +52,30 @@ public class LayoutPlannerTests
     }
 
     [Fact]
+    public void DemoGridReservesTopStripForCommandSurfaceAndStaysWithinWorkArea()
+    {
+        var options = Options();
+        var windows = new[] { Window("sample.watchlist"), Window("sample.risk"), Window("sample.chart") };
+
+        var layout = LayoutPlanner.Plan(windows, options.Registry.Ordered, Layouts.DemoGrid, options);
+
+        Assert.Equal(Layouts.DemoGrid, layout.Layout);
+        Assert.Equal(3, layout.Placements.Count);
+        Assert.All(layout.Placements, placement =>
+        {
+            Assert.Equal(240, placement.Bounds.Y);
+            Assert.Equal(840, placement.Bounds.Height);
+            Assert.True(placement.Bounds.X >= 0);
+            Assert.True(placement.Bounds.X + placement.Bounds.Width <= options.WorkAreaWidth);
+            Assert.True(placement.Bounds.Height >= LayoutPlanner.MinimumWindowHeight);
+        });
+        Assert.Equal(0, layout.Placements[0].Bounds.X);
+        Assert.Equal(642, layout.Placements[1].Bounds.X);
+        Assert.Equal(1284, layout.Placements[2].Bounds.X);
+        Assert.Equal([ "sample.watchlist", "sample.risk", "sample.chart" ], layout.Placements.Select(placement => placement.AppId));
+    }
+
+    [Fact]
     public void PlacementsDoNotOverlap()
     {
         var options = Options();

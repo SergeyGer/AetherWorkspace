@@ -31,6 +31,7 @@ public partial class RiskWindow : Window
             NetText.Text = "Net market value: " + _fixture.Positions.Sum(position => position.MarketValue).ToString("N0", CultureInfo.InvariantCulture);
             Dv01Text.Text = "Total DV01: " + _fixture.Positions.Sum(position => position.Dv01).ToString("N0", CultureInfo.InvariantCulture);
             _runtime = await SampleRuntime.ConnectAsync(_options, this);
+            ProcessBadgeText.Text = $"PID {_runtime.ProcessId} · {_runtime.DisplayAppId} · {_runtime.TransportLabel}";
             _runtime.ContextReceived += OnContextReceived;
             StatusText.Text = "Registered. Waiting for typed instrument context on the default channel…";
         }

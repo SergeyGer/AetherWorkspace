@@ -32,6 +32,7 @@ public partial class WatchlistWindow : Window
             _fixture = Fixtures.LoadWatchlist(_options.FixturesDirectory);
             Grid.ItemsSource = _fixture.Instruments;
             _runtime = await SampleRuntime.ConnectAsync(_options, this);
+            ProcessBadgeText.Text = $"PID {_runtime.ProcessId} · {_runtime.DisplayAppId} · {_runtime.TransportLabel}";
             _runtime.ContextReceived += OnContextReceived;
             StatusText.Text = "Registered. Waiting for typed instrument context on the default channel…";
         }

@@ -6,6 +6,8 @@
     <StackPanel DockPanel.Dock="Top">
       <TextBlock Text="Synthetic Bond Chart" FontSize="16" FontWeight="SemiBold" />
       <TextBlock Text="Vector chart of deterministic synthetic yield series (WebView2 not required for the MVP)." FontSize="11" Foreground="#FF6B6B6B" />
+      <TextBlock x:Name="ProcessBadgeText" Margin="0,4,0,0" FontSize="10" Foreground="#FF6B6B6B"
+                 AutomationProperties.AutomationId="ChartProcessBadge" />
       <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…"
                  AutomationProperties.AutomationId="ChartStatus" />
       <TextBlock x:Name="PlottedSeriesText" Margin="0,2,0,0" FontSize="11" Foreground="#FF44505C"
