@@ -28,7 +28,7 @@ if ($video.codec_name -ne 'h264') { $problems.Add("codec is $($video.codec_name)
 if ($video.width -ne 1920 -or $video.height -ne 1080) { $problems.Add("dimensions are $($video.width)x$($video.height), expected 1920x1080") }
 if ($video.pix_fmt -ne 'yuv420p') { $problems.Add("pixel format is $($video.pix_fmt), expected yuv420p") }
 $duration = [double]$video.duration
-if ($duration -lt 80 -or $duration -gt 95) { $problems.Add("MP4 duration is $duration s, expected 80-95 s") }
+if ($duration -lt 60 -or $duration -gt 95) { $problems.Add("MP4 duration is $duration s, expected 60-95 s") }
 
 $gifInfo = Get-Item -LiteralPath $gif
 if ($gifInfo.Length -gt 8MB) { $problems.Add("GIF is $([Math]::Round($gifInfo.Length / 1MB, 2)) MB, expected <= 8 MB") }

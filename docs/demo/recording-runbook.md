@@ -80,7 +80,7 @@ Failures retain raw local media/logs for operator review; no “successful” vi
 
 ## 5. Editing and validation
 
-- MKV source → FFmpeg 1080p H.264/yuv420p MP4 (80–95 s) + 8–12 s GIF (≤8 MB), captions keyed to
+- MKV source → FFmpeg 1080p H.264/yuv420p MP4 (60–95 s) + 8–12 s GIF (≤8 MB), captions keyed to
   measured event timestamps.
 - Validate codec, dimensions, duration, audio policy, black frames, caption readability, real
   PIDs/trace/tickers against the manifest; scan for synthetic-only content and secrets.

@@ -12,9 +12,13 @@ produced by the same local capture harness (`tools/demo/`); captions come from `
 
 ## Delivery targets
 
+**Operator decision (2026-11-17): shorter is fine.** Accepted hero-video duration is 60-95 s
+(no artificial padding); the 80 s floor was relaxed after a real capture produced ~72 s of clean
+content after trimming leading black. Track B remains the primary track.
+
 | Asset | Target |
 |---|---|
-| `demo-hero.mp4` | 80–95 s, H.264, yuv420p, 1920×1080, silent-first with English lower-third captions |
+| `demo-hero.mp4` | 60–95 s, H.264, yuv420p, 1920×1080, silent-first with English lower-third captions |
 | `demo-preview.gif` | 8–12 s crop of command → arrange → ticker switch, ≤8 MB |
 | Manifest | commit SHA, run id, environment, event times, plan provider/usedModel, window PIDs, tickers, trace id, policy outcome, output hashes |
 

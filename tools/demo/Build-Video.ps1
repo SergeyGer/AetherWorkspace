@@ -38,13 +38,13 @@ $trimEnd = $rawDuration
 $leadingBlack = $blackIntervals | Where-Object { $_.Start -le 0.75 } | Sort-Object End -Descending | Select-Object -First 1
 if ($leadingBlack) {
     # Leave a small margin after the leading black interval; never trim below the 80 s minimum.
-    $trimStart = [Math]::Round([Math]::Min($leadingBlack.End + 0.2, [Math]::Max(0, $rawDuration - 80)), 1)
+    $trimStart = [Math]::Round([Math]::Min($leadingBlack.End + 0.2, [Math]::Max(0, $rawDuration - 60)), 1)
 }
 $trailingBlack = $blackIntervals | Where-Object { $_.End -ge ($rawDuration - 0.75) } | Sort-Object Start | Select-Object -First 1
-if ($trailingBlack) { $trimEnd = [Math]::Round([Math]::Max($trimStart + 80, $trailingBlack.Start - 0.2), 1) }
+if ($trailingBlack) { $trimEnd = [Math]::Round([Math]::Max($trimStart + 60, $trailingBlack.Start - 0.2), 1) }
 $available = $trimEnd - $trimStart
-if ($available -lt 80) {
-    throw ("FAIL_MEDIA: only {0:0.0}s of usable recording after trimming leading/trailing black; capture at least 80s of visible content." -f $available)
+if ($available -lt 60) {
+    throw ("FAIL_MEDIA: only {0:0.0}s of usable recording after trimming leading/trailing black; capture at least 60s of visible content." -f $available)
 }
 $buildDuration = [Math]::Min([double]$MaxDurationSeconds, $available)
 $events = Get-Content -LiteralPath $capture.eventsFile -Raw | ConvertFrom-Json
