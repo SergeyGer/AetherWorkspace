@@ -260,13 +260,45 @@ internal sealed class ShellWindowSession : IDisposable
     /// <summary>Sets the cloud consent checkbox to the requested state through UIA.</summary>
     public void SetCloudConsent(bool consented)
     {
-        var checkBox = WaitForElement(CloudConsentElement, ElementTimeout).AsCheckBox();
-        if ((checkBox.IsChecked == true) != consented)
+        var deadline = DateTime.UtcNow + ElementTimeout;
+        Exception? lastError = null;
+        while (DateTime.UtcNow < deadline)
         {
-            checkBox.Click();
+            try
+            {
+                var checkBox = WaitForElement(CloudConsentElement, ElementTimeout).AsCheckBox();
+                if ((checkBox.IsChecked == true) == consented)
+                {
+                    return;
+                }
+
+                // TogglePattern is more reliable than Click() when the shell window is not the
+                // foreground window (the local capture gate runs minimized to keep the terminal
+                // out of the recording).
+                var toggle = checkBox.Patterns.Toggle.PatternOrDefault;
+                if (toggle is not null)
+                {
+                    toggle.Toggle();
+                }
+                else
+                {
+                    checkBox.Click();
+                }
+
+                Thread.Sleep(150);
+                if ((WaitForElement(CloudConsentElement, ElementTimeout).AsCheckBox().IsChecked == true) == consented)
+                {
+                    return;
+                }
+            }
+            catch (Exception exception)
+            {
+                lastError = exception;
+            }
         }
 
-        Assert.Equal(consented, WaitForElement(CloudConsentElement, ElementTimeout).AsCheckBox().IsChecked == true);
+        Assert.Fail($"The cloud consent checkbox could not be set to {consented} within {ElementTimeout.TotalSeconds:0}s."
+            + (lastError is null ? string.Empty : " Last error: " + lastError.Message));
     }
 
     /// <summary>Replaces the command text through UIA.</summary>
