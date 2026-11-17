@@ -28,6 +28,7 @@ public static class TestBrokerFactory
         AuditFile = auditFile,
         ChildLogDirectory = childLogDirectory,
         LayoutStoreDirectory = layoutStoreDirectory,
+        AppReadinessTimeoutSeconds = 60,
         TimeProvider = timeProvider ?? TimeProvider.System,
         ProcessIdentityResolver = identityResolver,
         HeartbeatIntervalSeconds = heartbeatIntervalSeconds,
