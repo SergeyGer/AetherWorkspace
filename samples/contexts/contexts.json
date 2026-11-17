@@ -28,6 +28,19 @@
       }
     },
     {
+      "contextRef": "synthetic.instrument.orin",
+      "contextType": "fdc3.instrument",
+      "classification": "INTERNAL",
+      "payload": {
+        "type": "fdc3.instrument",
+        "name": "Orion Utilities 2031 Note",
+        "id": {
+          "ticker": "ORIN",
+          "isin": "SYN00000ORIN1"
+        }
+      }
+    },
+    {
       "contextRef": "synthetic.exposure.northstar",
       "contextType": "aether.exposure",
       "classification": "RESTRICTED",
