@@ -63,3 +63,11 @@ The reference orchestrator profiles include the `layout05` suite (WT‑05‑01/0
 `tests/Aether.Desktop.E2E.Tests`, `Category=Layout05`). `release-full` and `daily-smoke` run
 `portable`, `windows-ui`, `desktop-e2e` and `layout05`; the two-monitor scenario executes only
 when a second physical display is attached (otherwise the run log records SKIPPED_HARDWARE).
+
+## Packaged bundle smoke gate (v1.1 AW-054)
+
+The release workflow now runs `tools/windows-test/Invoke-PackagedBundleSmoke.ps1` against the
+freshly created Windows desktop ZIP: clean extraction, bundled headless reference workflow,
+structured result validation (`status=succeeded`, six steps), leaked-owned-process check and a
+sanitized `smoke-<stamp>.json` manifest uploaded as the `windows-desktop-smoke` artifact. This is
+the automated clean-bundle gate; physical visual confirmation remains part of the recording runbook.

@@ -25,6 +25,21 @@ public class ReleasePackagingTests
         Assert.Contains("Test-AetherWorkflow.ps1", workflow, StringComparison.Ordinal);
         Assert.Contains("Collect-Diagnostics.ps1", workflow, StringComparison.Ordinal);
         Assert.Contains("packaging/windows/*.ps1", workflow, StringComparison.Ordinal);
+        Assert.Contains("Invoke-PackagedBundleSmoke.ps1", workflow, StringComparison.Ordinal);
+        Assert.Contains("windows-desktop-smoke", workflow, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PackagedBundleSmokeVerifiesFreshExtractionWorkflowAndCleanup()
+    {
+        var script = Read("tools", "windows-test", "Invoke-PackagedBundleSmoke.ps1");
+
+        Assert.Contains("Expand-Archive", script, StringComparison.Ordinal);
+        Assert.Contains("Test-AetherWorkflow.ps1", script, StringComparison.Ordinal);
+        Assert.Contains("bundleSha256", script, StringComparison.Ordinal);
+        Assert.Contains("workflowStatus", script, StringComparison.Ordinal);
+        Assert.Contains("Aether.SampleApps", script, StringComparison.Ordinal);
+        Assert.Contains("PACKAGED SMOKE PASS", script, StringComparison.Ordinal);
     }
 
     [Fact]
