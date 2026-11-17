@@ -152,7 +152,14 @@ work continues; run `dotnet test` for the authoritative current number.
 
 The execution brief `AW-DP-001` (demo-ready hero, WebView2, hybrid AI, privacy gateway,
 extensions) is tracked as GitHub milestones **v1.1 … v1.5** with issues **AW-047…AW-067**
-(#75–#95), including the four v1.0 measurement gaps (G-02/G-04/G-06/G-10). Plan index:
+(#75–#95), including the four v1.0 measurement gaps (G-02/G-04/G-06/G-10).
+
+**v1.1 increment 1 (2026-11-17):** AW-047 planning/storyboard/acceptance/runbook; AW-048
+three-instrument catalog (ORIN context + VEGA/ORIN chart series + parity tests); AW-049 Watchlist
+selection publishes approved typed context with echo suppression; AW-050 Risk real metrics and
+Chart actual-series switching. Windows real-WPF GUI test + portable 520/520; evidence
+`docs/testing/evidence/2026-11-17-v1.1-interactive-ticker-sync.md`. Remaining v1.1: AW-051/052/054,
+AW-053 optional, AW-065/066 measurement, AW-055/056 capture/media. Plan index:
 [`docs/planning/v1.1-v1.5-execution-plan.md`](planning/v1.1-v1.5-execution-plan.md). This page
 remains the implementation mapping; the Wiki [Roadmap](https://github.com/SergeyGer/AetherWorkspace/wiki/Roadmap)
 is the short status view.
