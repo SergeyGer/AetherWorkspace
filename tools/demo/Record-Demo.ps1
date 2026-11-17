@@ -57,6 +57,7 @@ if ($Scenario -eq 'TrackB') {
 }
 
 . (Join-Path $PSScriptRoot 'Obs-Control.ps1')
+. (Join-Path $PSScriptRoot 'Taskbar-Control.ps1')
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $eventsPath = Join-Path $run "demo-events-$Scenario-$stamp.json"
 $testLog = Join-Path $run "demo-test-$Scenario-$stamp.log"
@@ -66,13 +67,21 @@ $env:AETHER_DEMO_SHA = $preparation.approvedSha
 $env:AETHER_DEMO_RUN_ID = $preparation.runId
 
 $testExit = 3
-$obsCandidates = @(Connect-Obs | Where-Object { $null -ne $_ -and $null -ne $_.PSObject.Properties['Socket'] })
-if ($obsCandidates.Count -ne 1) {
-    throw "FAIL_HARNESS: Connect-Obs did not return exactly one OBS connection object (got $($obsCandidates.Count))."
-}
-$obs = $obsCandidates[0]
+$taskbarState = $null
+$obs = $null
 $recordingStarted = $false
 try {
+    # Keep the Windows taskbar out of the hero capture; restore the exact previous state in finally.
+    $taskbarState = Get-TaskbarState
+    Set-TaskbarAutoHide -Hidden $true
+    Start-Sleep -Milliseconds 900
+    Write-Host 'Taskbar auto-hidden for the capture (restored afterwards).'
+
+    $obsCandidates = @(Connect-Obs | Where-Object { $null -ne $_ -and $null -ne $_.PSObject.Properties['Socket'] })
+    if ($obsCandidates.Count -ne 1) {
+        throw "FAIL_HARNESS: Connect-Obs did not return exactly one OBS connection object (got $($obsCandidates.Count))."
+    }
+    $obs = $obsCandidates[0]
     Start-ObsRecording $obs
     $recordingStarted = $true
     $recordingStartedUtc = (Get-Date).ToUniversalTime().ToString('o')
@@ -94,7 +103,11 @@ finally {
         try { $obsPath = Stop-ObsRecording $obs } finally { Disconnect-Obs $obs }
     }
     else {
-        try { Disconnect-Obs $obs } catch { }
+        if ($null -ne $obs) { try { Disconnect-Obs $obs } catch { } }
+    }
+    if ($null -ne $taskbarState) {
+        try { Restore-TaskbarState -State $taskbarState; Write-Host 'Taskbar state restored.' }
+        catch { Write-Warning "Could not restore taskbar state: $($_.Exception.Message)" }
     }
 }
 
