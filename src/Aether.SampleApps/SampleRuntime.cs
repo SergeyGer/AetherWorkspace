@@ -147,6 +147,20 @@ public sealed class SampleRuntime : IAsyncDisposable
         }
     }
 
+    /// <summary>Publishes an approved catalog context through this app's authenticated session.</summary>
+    public Task<PublishContextReply> PublishContextAsync(
+        string contextRef,
+        DataClassification classification,
+        string traceId,
+        string clientMessageId,
+        CancellationToken cancellationToken = default) =>
+        _session.Client.PublishContextAsync(
+            contextRef,
+            classification,
+            traceId,
+            clientMessageId,
+            cancellationToken: cancellationToken);
+
     public async ValueTask DisposeAsync()
     {
         await _heartbeatCancellation.CancelAsync().ConfigureAwait(false);

@@ -6,7 +6,12 @@
     <StackPanel DockPanel.Dock="Top">
       <TextBlock Text="Synthetic Risk View" FontSize="16" FontWeight="SemiBold" />
       <TextBlock Text="Fictitious exposures only. Synthetic account identifiers are not rendered." FontSize="11" Foreground="#FF6B6B6B" />
-      <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…" />
+      <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…"
+                 AutomationProperties.AutomationId="RiskStatus" />
+      <TextBlock x:Name="SelectedInstrumentText" Margin="0,6,0,0" FontWeight="SemiBold" FontSize="12"
+                 AutomationProperties.AutomationId="RiskSelectedInstrument" />
+      <TextBlock x:Name="SelectedMetricsText" Margin="0,2,0,0" FontSize="11" Foreground="#FF44505C"
+                 AutomationProperties.AutomationId="RiskSelectedMetrics" />
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
       <TextBlock x:Name="GrossText" FontWeight="SemiBold" Margin="0,0,24,0" />
@@ -14,7 +19,8 @@
       <TextBlock x:Name="Dv01Text" FontWeight="SemiBold" />
     </StackPanel>
     <DataGrid x:Name="Grid" Margin="0,10,0,0" AutoGenerateColumns="False" IsReadOnly="True"
-              SelectionMode="Single" HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+              SelectionMode="Single" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+              AutomationProperties.AutomationId="RiskGrid">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Ticker" Binding="{Binding Ticker}" Width="90" />
         <DataGridTextColumn Header="Issuer (fictitious)" Binding="{Binding Issuer}" Width="240" />
