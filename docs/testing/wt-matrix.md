@@ -44,6 +44,10 @@ run with the documented procedure.
 6. Fill `wt-manual-ledger.example.json` with `status` (`PASS|FAIL|SKIPPED_HARDWARE|EXCLUDED`),
    evidence and notes, then run the ledger exporter below.
 
+The physical gate runner (`tools/windows-test/Run-PhysicalReleaseGate.ps1`) invokes this exporter
+automatically after the approved-SHA release suite. The standalone command below is for partial
+re-runs or manual-ledger updates.
+
 ## Generate the ledger
 
 ```powershell

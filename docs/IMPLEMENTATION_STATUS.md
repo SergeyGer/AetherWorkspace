@@ -174,9 +174,12 @@ planner provenance) and AW-056 media pipeline (`Build-Video.ps1`, `Validate-Vide
 `demo-scenes.json`, `obs-profile.example.json`), with Track B as the primary hero track. Physical
 recording and human review are still required; no video is claimed yet.
 
+A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
+measurement and Track B capture/build/validate:
+`tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.
 AW-054 packaged-bundle smoke (fresh extraction + workflow + manifest) is automated in the release
-workflow and becomes the v1.1.0 release gate. Remaining v1.1: physical WT/UI measurements, physical
-capture/media review. Plan index:
+workflow and becomes the v1.1.0 release gate. Remaining v1.1: run the physical gate, human-review the
+video, close the physical issues and tag v1.1.0. Plan index:
 [`docs/planning/v1.1-v1.5-execution-plan.md`](planning/v1.1-v1.5-execution-plan.md). This page
 remains the implementation mapping; the Wiki [Roadmap](https://github.com/SergeyGer/AetherWorkspace/wiki/Roadmap)
 is the short status view.

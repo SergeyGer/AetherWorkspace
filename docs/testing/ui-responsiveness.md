@@ -13,6 +13,10 @@ exposes sanitized telemetry (`UiTelemetryText` AutomationId and an optional JSON
 - trace id and planner/usedModel provenance are recorded by the optional JSONL writer
   (`AETHER_UI_TELEMETRY_FILE`).
 
+The complete physical gate can be run in one command with
+`tools/windows-test/Run-PhysicalReleaseGate.ps1`; the UI section can also be run standalone as shown
+below.
+
 ## Reproduce on the physical Windows 11 reference laptop
 
 ```powershell
@@ -25,7 +29,10 @@ The runner checks interactive session, Explorer, disk space and records power st
 UI test project, runs `RepeatedWorkflowReportsUiTelemetry`, aggregates per-cycle p50/p95/p99 values
 and writes `ui-responsiveness-<stamp>.json` plus the raw sanitized JSONL.
 
-CI runs a 3-cycle smoke only. The authoritative AW-066 report requires the pinned physical profile:
+CI runs a 3-cycle smoke only. If the CI desktop cannot schedule dispatcher probes, the smoke records
+`samplesUnavailable` and still passes the wiring check; the runner treats zero measured cycles as
+`FAIL_HARNESS`, so no physical report can be based on a no-sample run. The standalone runner builds
+the solution first (BrokerApp/headless sample apps are required). The authoritative AW-066 report requires the pinned physical profile:
 AC power, unlocked session, 100% DPI baseline, no unrelated workload, same monitor topology.
 
 ## Reporting rules

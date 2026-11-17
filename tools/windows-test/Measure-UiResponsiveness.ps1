@@ -47,9 +47,17 @@ if ($battery -and $battery.BatteryStatus -ne 2) {
 $env:AETHER_UI_CYCLES = $Cycles
 $env:AETHER_UI_TELEMETRY_OUT = $telemetryPath
 
-Write-Host "Building Windows UI test host and running $Cycles workflow cycle(s)..."
-& dotnet build tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release -p:EnableWindowsTargeting=true | Tee-Object -FilePath $testLog
-if ($LASTEXITCODE -ne 0) { Write-Host 'FAIL_HARNESS: UI test build failed.'; exit 3 }
+Write-Host "Building solution prerequisites, Windows UI test host and running $Cycles workflow cycle(s)..."
+Push-Location $repoRoot
+try {
+    & dotnet build AetherWorkspace.slnx -c Release | Tee-Object -FilePath $testLog
+    if ($LASTEXITCODE -ne 0) { Write-Host 'FAIL_HARNESS: solution build failed.'; exit 3 }
+    & dotnet build tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release -p:EnableWindowsTargeting=true | Tee-Object -FilePath $testLog -Append
+    if ($LASTEXITCODE -ne 0) { Write-Host 'FAIL_HARNESS: UI test build failed.'; exit 3 }
+}
+finally {
+    Pop-Location
+}
 
 & dotnet test tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj -c Release --no-build `
     --filter 'FullyQualifiedName~RepeatedWorkflowReportsUiTelemetry' | Tee-Object -FilePath $testLog -Append
@@ -57,7 +65,12 @@ $testExit = $LASTEXITCODE
 if ($testExit -ne 0) { Write-Host "FAIL_PRODUCT: UI telemetry run failed (exit $testExit)."; exit 4 }
 if (-not (Test-Path -LiteralPath $telemetryPath)) { Write-Host 'FAIL_HARNESS: no telemetry file was written.'; exit 3 }
 
-$records = Get-Content -LiteralPath $telemetryPath | ForEach-Object { $_ | ConvertFrom-Json }
+$records = @(Get-Content -LiteralPath $telemetryPath | ForEach-Object { $_ | ConvertFrom-Json })
+$measured = @($records | Where-Object { $_.frames -gt 0 })
+if ($records.Count -eq 0 -or $measured.Count -eq 0) {
+    Write-Host 'FAIL_HARNESS: no UI telemetry samples were captured; the measurement is inconclusive (check interactive session/rendering).'
+    exit 3
+}
 function Percentile($values, [double] $p) {
     if ($values.Count -eq 0) { return 0 }
     $sorted = @($values | Sort-Object)

@@ -47,6 +47,23 @@ public class DemoToolingTests
     }
 
     [Fact]
+    public void PhysicalGateRunnerChainsTrustedMeasurementsAndCapture()
+    {
+        var runner = File.ReadAllText(TestRepo.PathTo("tools", "windows-test", "Run-PhysicalReleaseGate.ps1"));
+
+        Assert.Contains("SKIPPED_UNAPPROVED_SHA", runner, StringComparison.Ordinal);
+        Assert.Contains("Run-AetherTests.ps1", runner, StringComparison.Ordinal);
+        Assert.Contains("Export-WtLedger.ps1", runner, StringComparison.Ordinal);
+        Assert.Contains("Measure-UiResponsiveness.ps1", runner, StringComparison.Ordinal);
+        Assert.Contains("Prepare-Demo.ps1", runner, StringComparison.Ordinal);
+        Assert.Contains("Record-Demo.ps1", runner, StringComparison.Ordinal);
+        Assert.Contains("Build-Video.ps1", runner, StringComparison.Ordinal);
+        Assert.Contains("Validate-Video.ps1", runner, StringComparison.Ordinal);
+        Assert.Contains("gate-summary.json", runner, StringComparison.Ordinal);
+        Assert.Contains("physical release gate", runner, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void VideoPipelineValidatesCodecDurationAndPrivacy()
     {
         var build = File.ReadAllText(TestRepo.PathTo("tools", "demo", "Build-Video.ps1"));

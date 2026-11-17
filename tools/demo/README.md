@@ -56,6 +56,27 @@ Produces `demo-hero.mp4` (H.264/yuv420p/1920×1080, 80–95 s) and `demo-preview
 ≤8 MB), captions keyed to measured event times from `demo-scenes.json`. Validation does not publish:
 human review of the MP4/GIF and provenance is mandatory before README/Wiki publication.
 
+## One-command physical gate (recommended)
+
+`tools/windows-test/Run-PhysicalReleaseGate.ps1` chains the approved-SHA reference-desktop suite,
+per-WT ledger, 100-cycle UI measurement and the Track B capture/build/validate into one local
+`results\physical-gate-<stamp>` directory with `gate-summary.json`:
+
+```powershell
+$env:AETHER_OBS_WEBSOCKET_PASSWORD = '<local OBS password>'
+cd C:\AetherWorkspace\trusted
+pwsh -NoProfile -File tools\windows-test\Run-PhysicalReleaseGate.ps1 `
+  -RepoRoot C:\AetherWorkspace\trusted `
+  -ApprovedRevisionFile C:\AetherWorkspace\automation\approved-revision.txt `
+  -ConfigPath C:\AetherWorkspace\automation\test-config.json `
+  -EnvironmentFile C:\AetherWorkspace\trusted\.env `
+  -ManualLedgerPath C:\AetherWorkspace\wt-manual-ledger.json
+```
+
+OBS must already run with WebSocket enabled and the MKV/1080p profile/scene configured. Add
+`-SkipMeasurements` or `-SkipCapture` for partial runs; `-CaptureScenarios TrackA,TrackB` records both
+tracks. Share `gate-summary.json` and the sanitized manifests only.
+
 ## Failure/skip codes
 
 `SKIPPED_UNAPPROVED_SHA`, `SKIPPED_ENVIRONMENT`, `FAIL_HARNESS`, `FAIL_PRODUCT`, `FAIL_MEDIA`.
