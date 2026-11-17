@@ -78,7 +78,12 @@ public sealed class BrokerOptions
     /// </summary>
     public bool RequireAppReadiness { get; init; } = true;
 
-    public int AppReadinessTimeoutSeconds { get; init; } = 20;
+    /// <summary>
+    /// Maximum wait for a launched app to subscribe/report a window. Reference demo machines and
+    /// constrained CI runners can be slow under load, so the default is deliberately generous;
+    /// production callers may still lower it explicitly.
+    /// </summary>
+    public int AppReadinessTimeoutSeconds { get; init; } = 60;
 
     /// <summary>Optional directory where child app stdout lines are captured for diagnostics/tests.</summary>
     public string? ChildLogDirectory { get; init; }
