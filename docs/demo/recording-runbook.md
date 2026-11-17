@@ -22,6 +22,13 @@ FFmpeg. Implementation (AW-055/AW-056) lives in `tools/demo/`: `Prepare-Demo.ps1
 Suggested install (then verify manually): `winget install OBSProject.OBSStudio Gyan.FFmpeg Microsoft.PowerShell`.
 Never commit the OBS WebSocket password, `.env`, endpoint handshake or raw media.
 
+## Clean frame (no taskbar, readable controls)
+
+`Record-Demo.ps1` auto-hides the Windows taskbar for the recording and restores the previous state
+afterwards (shell API, no restart). Keep the pointer away from the bottom edge. The shell Planner
+combo is widened so `LLM-assisted (PUBLIC, consent)` is fully readable in the capture; verify this in
+the operator preview before publishing.
+
 ## One-command gate
 
 The recommended path is `tools/windows-test/Run-PhysicalReleaseGate.ps1` (see

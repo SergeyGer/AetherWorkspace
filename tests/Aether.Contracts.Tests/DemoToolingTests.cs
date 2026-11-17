@@ -49,6 +49,8 @@ public class DemoToolingTests
         Assert.Contains("AETHER_DEMO_EVENTS_OUT", capture, StringComparison.Ordinal);
         Assert.Contains("OPENAI_API_KEY", record, StringComparison.Ordinal);
         Assert.Contains("GEMINI_API_KEY", record, StringComparison.Ordinal);
+        Assert.Contains("Set-TaskbarAutoHide", record, StringComparison.Ordinal);
+        Assert.Contains("Restore-TaskbarState", record, StringComparison.Ordinal);
     }
 
     [Fact]

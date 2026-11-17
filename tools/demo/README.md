@@ -17,6 +17,13 @@ reference laptop** in an unlocked interactive session under an operator-approved
   used as endpoint/model fallbacks. For Gemini use `AETHER_MODEL_PROVIDER=gemini` plus
   `GEMINI_API_KEY/GEMINI_BASE_URL/GEMINI_MODEL`. Never commit or display it.
 
+## Recording hygiene
+
+`Record-Demo.ps1` temporarily enables Windows taskbar auto-hide through the documented shell
+`SHAppBarMessage` API and restores the exact previous state in `finally` (even after a failed
+scenario). Keep the mouse away from the bottom edge while recording so the hidden taskbar does not
+reappear. No permanent setting, process restart or global display change is performed.
+
 ## 1. Prepare (trust + preflight + detached worktree)
 
 ```powershell
