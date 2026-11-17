@@ -40,6 +40,8 @@ public class DemoToolingTests
         Assert.Contains("worktree add --detach", prepare, StringComparison.Ordinal);
         Assert.Contains("SKIPPED_ENVIRONMENT", prepare, StringComparison.Ordinal);
         Assert.Contains("AETHER_OBS_WEBSOCKET_PASSWORD", obs, StringComparison.Ordinal);
+        Assert.Contains("ErrorActionPreference", obs, StringComparison.Ordinal);
+        Assert.Contains("GetRecordStatus", obs, StringComparison.Ordinal);
         Assert.Contains("-join", prepare, StringComparison.Ordinal);
         Assert.Contains("Connect-Obs", record, StringComparison.Ordinal);
         Assert.Contains("Category=DemoCapture", record, StringComparison.Ordinal);
