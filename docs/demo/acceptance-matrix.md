@@ -7,9 +7,9 @@ is the v1.1 release gate; it is intentionally stricter than a “CI is green” 
 
 | Scene | Requirement | Automated / manual evidence | Status |
 |---|---|---|---|
-| Launch + three independent processes | Three distinct Windows PIDs own visible top-level windows; no impostor tabs | Windows GUI E2E (`DesktopGuiE2ETests`), real-WPF-sample tests (`WpfSampleAppPersistenceTests`, `GuiWorkflowWithRealWpfSampleAppsKeepsWindowsOpen`), packaged self-test; physical Windows 11 run | Existing baseline + re-verified per release |
+| Launch + three independent processes | Three distinct Windows PIDs own visible top-level windows; no impostor tabs | Windows GUI E2E (`DesktopGuiE2ETests`), real-WPF-sample tests (`WpfSampleAppPersistenceTests`, `GuiWorkflowWithRealWpfSampleAppsKeepsWindowsOpen`), packaged self-test; physical Windows 11 run | Automated baseline PASS; per-release re-verification required |
 | Plan validated + arrangement | Plan schema/authorization/executor evidence; windows tile within real work areas | Portable execution/authorization suites; `layout05`; Windows GUI E2E; physical geometry check | Layout evidence recorded; demo layout polish pending AW-051 |
-| Ticker synchronization | VEGA and ORIN selection updates Watchlist label, Risk KPI/selection and actual Chart series within bounded waits; no echo loop | Unit tests for mapping/dedupe + click-driven Windows GUI test; physical run | **Pending AW-049/AW-050** |
+| Ticker synchronization | VEGA and ORIN selection updates Watchlist label, Risk KPI/selection and actual Chart series within bounded waits; no echo loop | Windows GUI test `WatchlistSelectionSynchronizesRiskAndChartWithoutEchoPublish`; catalog parity tests; audit publish count 1→2 | **Automated (CI PASS, 2026-11-17)**; physical capture pending AW-055 |
 | IPC provenance | Real PIDs, transport label, publish/delivery events, shared trace id | AW-052 Inspector assertions + redaction tests | Pending AW-052 |
 | Policy denial | Denied before side effects; exact denial code; zero cloud attempts for restricted/unknown | Unsafe-plan corpus, E2E denials, egress instrumentation | Existing; capture in demo pending |
 | Provider provenance | `deterministic-grammar`/`usedModel=false` for Track A; real provider/model for Track B only | Shell output/Inspector assertions; AW-053 tests | Existing deterministic evidence; Track B pending AW-053 |
