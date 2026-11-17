@@ -26,7 +26,18 @@ New-Item -ItemType Directory -Force -Path $output | Out-Null
 $ffmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue
 if (-not $ffmpeg) { throw 'FAIL_HARNESS: FFmpeg is not on PATH.' }
 
-$recordingStart = [DateTimeOffset]::Parse($capture.recordingStartedUtc)
+function ConvertTo-DateTimeOffsetValue($value) {
+    # PowerShell 7.5+ ConvertFrom-Json auto-converts ISO strings to DateTime; parsing that again
+    # with [DateTimeOffset]::Parse uses the current culture and fails on e.g. Russian Windows.
+    if ($value -is [DateTimeOffset]) { return $value }
+    if ($value -is [DateTime]) { return [DateTimeOffset]::new($value) }
+    return [DateTimeOffset]::Parse(
+        [string]$value,
+        [System.Globalization.CultureInfo]::InvariantCulture,
+        [System.Globalization.DateTimeStyles]::RoundtripKind)
+}
+
+$recordingStart = ConvertTo-DateTimeOffsetValue $capture.recordingStartedUtc
 $captionById = @{}
 foreach ($scene in $scenes.scenes) { $captionById[$scene.event] = $scene }
 
@@ -41,7 +52,7 @@ $index = 1
 foreach ($event in ($events.events | Sort-Object timestampUtc)) {
     $scene = $captionById[$event.name]
     if (-not $scene) { continue }
-    $start = ([DateTimeOffset]::Parse($event.timestampUtc) - $recordingStart).TotalSeconds
+    $start = ((ConvertTo-DateTimeOffsetValue $event.timestampUtc) - $recordingStart).TotalSeconds
     if ($start -lt 0) { $start = 0 }
     $end = $start + [double]$scene.durationSeconds
     $srt.Add([string]$index)
@@ -62,7 +73,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'FAIL_MEDIA: FFmpeg MP4 build failed.' }
     $gifStart = 0.0
     $firstTicker = $events.events | Where-Object { $_.name -eq 'ticker-vega' } | Select-Object -First 1
-    if ($firstTicker) { $gifStart = [Math]::Max(0, ([DateTimeOffset]::Parse($firstTicker.timestampUtc) - $recordingStart).TotalSeconds - 2) }
+    if ($firstTicker) { $gifStart = [Math]::Max(0, ((ConvertTo-DateTimeOffsetValue $firstTicker.timestampUtc) - $recordingStart).TotalSeconds - 2) }
     & ffmpeg -y -ss $gifStart -t 10 -i $mp4Path -vf 'fps=12,scale=960:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse' -loop 0 $gifPath
     if ($LASTEXITCODE -ne 0) { throw 'FAIL_MEDIA: FFmpeg GIF build failed.' }
 }
