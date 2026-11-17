@@ -66,6 +66,7 @@ public class DemoToolingTests
         Assert.Contains("Validate-Video.ps1", runner, StringComparison.Ordinal);
         Assert.Contains("gate-summary.json", runner, StringComparison.Ordinal);
         Assert.Contains("physical release gate", runner, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("PromptObsPassword", runner, StringComparison.Ordinal);
     }
 
     [Fact]

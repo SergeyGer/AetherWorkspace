@@ -77,7 +77,9 @@ pwsh -NoProfile -File tools\windows-test\Run-PhysicalReleaseGate.ps1 `
 
 OBS must already run with WebSocket enabled and the MKV/1080p profile/scene configured. Add
 `-SkipMeasurements` or `-SkipCapture` for partial runs; `-CaptureScenarios TrackA,TrackB` records both
-tracks. Share `gate-summary.json` and the sanitized manifests only.
+tracks. Add `-PromptObsPassword` if the OBS WebSocket password is not already in this PowerShell
+process: the runner prompts once (hidden input) and passes it to child processes. Share
+`gate-summary.json` and the sanitized manifests only.
 
 ## Failure/skip codes
 
