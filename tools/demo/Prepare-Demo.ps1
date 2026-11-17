@@ -45,7 +45,7 @@ if ($battery -and $battery.BatteryStatus -ne 2) { throw 'SKIPPED_ENVIRONMENT: AC
 
 $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
 if (-not $dotnet) { throw 'SKIPPED_ENVIRONMENT: dotnet is not on PATH.' }
-$runtimes = & dotnet --list-runtimes
+$runtimes = (& dotnet --list-runtimes) -join "`n"
 if ($runtimes -notmatch 'Microsoft\.WindowsDesktop\.App 10\.') { throw 'SKIPPED_ENVIRONMENT: .NET 10 Desktop Runtime is missing.' }
 $ffmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue
 if (-not $ffmpeg) { throw 'SKIPPED_ENVIRONMENT: FFmpeg is not on PATH.' }
