@@ -19,7 +19,8 @@ param(
     [string[]] $CaptureScenarios = @('TrackB'),
     [string] $ManualLedgerPath,
     [switch] $SkipCapture,
-    [switch] $SkipMeasurements
+    [switch] $SkipMeasurements,
+    [switch] $PromptObsPassword
 )
 
 $ErrorActionPreference = 'Stop'
@@ -94,7 +95,11 @@ if (-not $SkipMeasurements) {
 
 $capturePass = $true
 if (-not $SkipCapture) {
-    if (-not $env:AETHER_OBS_WEBSOCKET_PASSWORD) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'AETHER_OBS_WEBSOCKET_PASSWORD is not set'; $capturePass = $false }
+    if (-not $env:AETHER_OBS_WEBSOCKET_PASSWORD -and $PromptObsPassword) {
+        $securePassword = Read-Host -Prompt 'OBS WebSocket password' -AsSecureString
+        $env:AETHER_OBS_WEBSOCKET_PASSWORD = [System.Net.NetworkCredential]::new('', $securePassword).Password
+    }
+    if (-not $env:AETHER_OBS_WEBSOCKET_PASSWORD) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'AETHER_OBS_WEBSOCKET_PASSWORD is not set (use -PromptObsPassword or run in the same PowerShell process where it is set)'; $capturePass = $false }
     elseif (-not $EnvironmentFile) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'EnvironmentFile is required for Track B'; $capturePass = $false }
     else {
         $runsRoot = Join-Path (Split-Path -Parent $repo) 'runs'
