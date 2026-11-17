@@ -38,6 +38,9 @@ public sealed record WorkflowResult(
     bool UsedModel,
     long DurationMs)
 {
+    /// <summary>Truthful, redacted planner provenance notes (for example a cloud-plan fallback reason).</summary>
+    public IReadOnlyList<string> PlanningNotes { get; init; } = [];
+
     public static WorkflowResult Denied(
         string traceId,
         DataClassification classification,
@@ -53,6 +56,17 @@ public sealed record WorkflowResult(
             AetherErrorCodes.GetDenialCategory(denialCode), plannerProvider, usedModel, durationMs);
 }
 
+/// <summary>Explicit planning preference for the truthful demo tracks.</summary>
+public enum PlanGenerationMode
+{
+    /// <summary>Offline deterministic grammar first; an optional cloud planner is only a fallback.</summary>
+    DeterministicPreferred = 0,
+
+    /// <summary>Explicit LLM-assisted opt-in: try the configured cloud planner first, fall back to
+    /// deterministic planning with truthful provider/usedModel labels if it fails.</summary>
+    CloudPreferred = 1,
+}
+
 public sealed record WorkflowOrchestratorOptions
 {
     /// <summary>
@@ -65,4 +79,7 @@ public sealed record WorkflowOrchestratorOptions
     public ExecutionOptions Execution { get; init; } = new();
 
     public bool PreferCloudForPublicSummaries { get; init; }
+
+    /// <summary>DeterministicPreferred by default; CloudPreferred only in an explicit demo opt-in.</summary>
+    public PlanGenerationMode PlanningMode { get; init; } = PlanGenerationMode.DeterministicPreferred;
 }

@@ -3,6 +3,7 @@ using Aether.AI.Providers;
 using Aether.AI.Summarization;
 using Aether.Contracts;
 using Aether.Contracts.Errors;
+using Aether.Contracts.Json;
 using Aether.Execution.Authorization;
 using Aether.Execution.Executor;
 using Aether.Execution.Validation;
@@ -23,7 +24,8 @@ public class OrchestratorTests
     private static (AetherWorkflowOrchestrator Orchestrator, FakeWorkflowBroker Broker, HashChainAuditLog Audit, RecordingCloudTransport Cloud) Create(
         bool withCloudPlanner = false,
         bool cloudEnabled = true,
-        bool cloudConsent = true)
+        bool cloudConsent = true,
+        PlanGenerationMode planningMode = PlanGenerationMode.DeterministicPreferred)
     {
         var audit = new HashChainAuditLog();
         var egress = new EgressGateway(new PolicyEngine(PolicyDocument.CreateDefault()), audit);
@@ -41,7 +43,7 @@ public class OrchestratorTests
             summaryService,
             new ActionPlanValidator(new ActionPlanValidationOptions { MaxActions = 6 }),
             new CapabilityPlanAuthorizationPolicy(),
-            new WorkflowOrchestratorOptions { MaxActionsPerPlan = 6 },
+            new WorkflowOrchestratorOptions { MaxActionsPerPlan = 6, PlanningMode = planningMode },
             audit);
         return (orchestrator, broker, audit, cloudTransport);
     }
@@ -62,6 +64,43 @@ public class OrchestratorTests
         Assert.Equal(0, cloud.Calls);
         Assert.True(audit.Verify().Valid);
         Assert.True(TraceContext.IsValidTraceId(result.TraceId));
+    }
+
+    [Fact]
+    public async Task CloudPreferredUsesModelPlanAndReportsTruthfulProvenance()
+    {
+        var (orchestrator, _, _, cloud) = Create(
+            withCloudPlanner: true,
+            planningMode: PlanGenerationMode.CloudPreferred);
+        var reference = await new DeterministicCommandPlanner().GeneratePlanAsync(
+            new PlanningRequest(ReferenceCommand, DataClassification.Public, TraceIdGenerator.NewTraceId()));
+        Assert.NotNull(reference.Plan);
+        cloud.Responder = _ => CloudModelResponse.Ok(AetherJson.Serialize(reference.Plan!));
+
+        var result = await orchestrator.ExecuteAsync(new WorkflowRequest(ReferenceCommand, DataClassification.Public));
+
+        Assert.True(result.Success, result.DenialCode + ": " + result.DenialMessage);
+        Assert.True(result.UsedModel);
+        Assert.Equal("cloud-plan", result.PlannerProvider);
+        Assert.Equal(1, cloud.Calls);
+        Assert.Equal(6, result.Execution!.Steps.Count);
+    }
+
+    [Fact]
+    public async Task CloudPreferredFallbackIsClearlyLabelledAsDeterministic()
+    {
+        var (orchestrator, _, _, cloud) = Create(
+            withCloudPlanner: true,
+            planningMode: PlanGenerationMode.CloudPreferred);
+        cloud.Responder = _ => CloudModelResponse.Ok("this is not a valid plan");
+
+        var result = await orchestrator.ExecuteAsync(new WorkflowRequest(ReferenceCommand, DataClassification.Public));
+
+        Assert.True(result.Success, result.DenialCode + ": " + result.DenialMessage);
+        Assert.False(result.UsedModel);
+        Assert.Equal(DeterministicCommandPlanner.ProviderName, result.PlannerProvider);
+        Assert.Equal(1, cloud.Calls);
+        Assert.Contains(result.PlanningNotes, note => note.Contains("fell back", StringComparison.Ordinal));
     }
 
     [Fact]

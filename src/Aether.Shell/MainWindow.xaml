@@ -22,6 +22,13 @@
             </ComboBox>
             <CheckBox x:Name="CloudConsentCheck" Content="Cloud opt-in (consent)" VerticalAlignment="Center" Margin="0,0,16,0"
                       AutomationProperties.AutomationId="CloudConsent" />
+            <TextBlock Text="Planner:" Style="{StaticResource Caption}" VerticalAlignment="Center" />
+            <ComboBox x:Name="PlannerCombo" Width="170" Margin="4,0,16,0"
+                      AutomationProperties.AutomationId="PlannerCombo"
+                      AutomationProperties.Name="Planning mode">
+              <ComboBoxItem Content="Deterministic (offline)" IsSelected="True" />
+              <ComboBoxItem Content="LLM-assisted (PUBLIC, consent)" />
+            </ComboBox>
           </StackPanel>
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="DemoLayoutButton" Content="Demo layout" Width="110" Margin="0,0,8,0" Click="OnDemoLayoutClick"

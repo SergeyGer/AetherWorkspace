@@ -29,7 +29,10 @@ captured with the local Windows 11 harness (AW-055/AW-056).
 ## Claim guardrails
 
 - Track A wording only unless AW-053 provides a real validated LLM run; never caption a
-  deterministic plan as “AI-generated”.
+  deterministic plan as “AI-generated”. A real PUBLIC provider smoke has now succeeded
+  (`planner=cloud-plan`, `usedModel=true`, six validated steps — see
+  `docs/testing/evidence/2026-11-17-v1.1-live-llm-public-smoke.md`); Track B still requires its own
+  captured, reviewed video run.
 - No sub-15 ms synchronization or 60 FPS promises; latency claims only from AW-066 measurements.
 - FDC3 = “FDC3-aligned supported subset”; no conformance claim.
 - No real customer data, credentials, personal notifications or full-desktop capture.

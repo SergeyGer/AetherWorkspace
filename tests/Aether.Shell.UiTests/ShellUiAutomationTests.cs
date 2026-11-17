@@ -178,8 +178,9 @@ public sealed partial class ShellUiAutomationTests
             var traceText = ReadTextBox(traceBox);
             Assert.Contains("trace: " + traceId, traceText, StringComparison.Ordinal);
 
-            // v1.1 demo surface: the compact demo-layout action must be reachable by AutomationId.
+            // v1.1 demo surface: compact demo-layout action and explicit planning mode reachable by AutomationId.
             WaitForElement(window, "DemoLayoutButton", ElementTimeout);
+            WaitForElement(window, "PlannerCombo", ElementTimeout);
         }
         finally
         {
