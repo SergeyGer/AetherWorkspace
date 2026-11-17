@@ -27,7 +27,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $results = (Resolve-Path -LiteralPath $ResultsDirectory).Path
-$output = Join-Path $RepoRoot $OutputDirectory
+$output = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) { $OutputDirectory } else { Join-Path $RepoRoot $OutputDirectory }
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 

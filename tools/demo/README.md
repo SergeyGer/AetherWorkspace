@@ -11,9 +11,11 @@ reference laptop** in an unlocked interactive session under an operator-approved
 - OBS Studio 30+ with **Tools → WebSocket Server Settings** enabled, bound to `127.0.0.1`,
   authentication on. Set the password only in the local environment:
   `$env:AETHER_OBS_WEBSOCKET_PASSWORD = '<local password>'`.
-- Local LLM provider configuration for Track B in a git-ignored `.env`
-  (`AETHER_MODEL_PROVIDER`, `AETHER_CLOUD_ENDPOINT`, `AETHER_CLOUD_MODEL`, `AETHER_CLOUD_API_KEY`
-  or `OPENAI_API_KEY`). Never commit or display it.
+- Local LLM provider configuration for Track B in a git-ignored `.env` at the trusted repository
+  root. For the default OpenAI-compatible path the WPF shell reads **`OPENAI_API_KEY`,
+  `OPENAI_BASE_URL` and `OPENAI_MODEL`** (`AETHER_MODEL_PROVIDER=openai`); `AETHER_CLOUD_*` may be
+  used as endpoint/model fallbacks. For Gemini use `AETHER_MODEL_PROVIDER=gemini` plus
+  `GEMINI_API_KEY/GEMINI_BASE_URL/GEMINI_MODEL`. Never commit or display it.
 
 ## 1. Prepare (trust + preflight + detached worktree)
 
