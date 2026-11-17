@@ -6,6 +6,12 @@ release tag yet.
 
 ## [Unreleased] — v0.1.0 vertical slice (2026-11-14)
 
+### Changed
+
+- Local demo video acceptance is now **60-95 s** (operator decision 2026-11-17: shorter is fine);
+  Build-Video trims leading/trailing black automatically instead of padding the recording.
+  Track B remains the primary hero track.
+
 ### Added
 
 - .NET 10 solution with warnings-as-errors, central package management, pinned SDK, and

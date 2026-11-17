@@ -472,7 +472,7 @@ public sealed class DesktopGuiE2ETests
         }
 
         Mark("workflow-succeeded", "planner=" + (usedModel ? "cloud-plan" : "deterministic-grammar"));
-        await Hold(8);
+        await Hold(10);
 
         shell.ClickDemoLayout();
         Mark("demo-layout");
@@ -484,7 +484,7 @@ public sealed class DesktopGuiE2ETests
             .Where(process => !process.HasExited)
             .ToArray();
         Mark("sample-windows", string.Join(",", windows.Keys));
-        await Hold(10);
+        await Hold(8);
 
         foreach (var ticker in new[] { "VEGA", "ORIN" })
         {

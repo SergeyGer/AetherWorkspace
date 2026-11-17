@@ -28,13 +28,17 @@ if ($video.codec_name -ne 'h264') { $problems.Add("codec is $($video.codec_name)
 if ($video.width -ne 1920 -or $video.height -ne 1080) { $problems.Add("dimensions are $($video.width)x$($video.height), expected 1920x1080") }
 if ($video.pix_fmt -ne 'yuv420p') { $problems.Add("pixel format is $($video.pix_fmt), expected yuv420p") }
 $duration = [double]$video.duration
-if ($duration -lt 80 -or $duration -gt 95) { $problems.Add("MP4 duration is $duration s, expected 80-95 s") }
+if ($duration -lt 60 -or $duration -gt 95) { $problems.Add("MP4 duration is $duration s, expected 60-95 s") }
 
 $gifInfo = Get-Item -LiteralPath $gif
 if ($gifInfo.Length -gt 8MB) { $problems.Add("GIF is $([Math]::Round($gifInfo.Length / 1MB, 2)) MB, expected <= 8 MB") }
 $black = (& ffmpeg -i $mp4 -vf 'blackdetect=d=0.4:pix_th=0.10' -an -f null - 2>&1) -join "`n"
-$blackCount = ([regex]::Matches($black, 'black_start')).Count
-if ($blackCount -gt 0) { $problems.Add("MP4 contains $blackCount black-frame interval(s) >= 0.4 s") }
+$blackMatches = [regex]::Matches($black, 'black_start:(?<s>[\d.]+) black_end:(?<e>[\d.]+)')
+$blackIntervals = @($blackMatches | ForEach-Object {
+        [ordered]@{ startSeconds = [double]$_.Groups['s'].Value; endSeconds = [double]$_.Groups['e'].Value }
+    })
+$blackCount = $blackIntervals.Count
+if ($blackCount -gt 0) { $problems.Add("MP4 contains $blackCount black-frame interval(s) >= 0.4 s: " + (($blackIntervals | ForEach-Object { "$($_.startSeconds)-$($_.endSeconds)" }) -join ', ')) }
 
 $report = [ordered]@{
     schemaVersion = '1.0'
@@ -43,7 +47,7 @@ $report = [ordered]@{
     pass = ($problems.Count -eq 0)
     mp4 = [ordered]@{
         path = $mp4; sha256 = $build.mp4Sha256; codec = $video.codec_name; width = [int]$video.width; height = [int]$video.height
-        pixFmt = $video.pix_fmt; durationSeconds = $duration; blackIntervals = $blackCount
+        pixFmt = $video.pix_fmt; durationSeconds = $duration; blackIntervals = $blackIntervals
     }
     gif = [ordered]@{ path = $gif; sha256 = $build.gifSha256; bytes = $gifInfo.Length }
     problems = @($problems)

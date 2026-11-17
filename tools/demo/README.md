@@ -54,7 +54,7 @@ pwsh -NoProfile -File tools/demo/Validate-Video.ps1 `
   -VideoBuildManifest C:\AetherWorkspace\runs\<demo-run>\video-build.json
 ```
 
-Produces `demo-hero.mp4` (H.264/yuv420p/1920×1080, 80–95 s) and `demo-preview.gif` (8–12 s,
+Produces `demo-hero.mp4` (H.264/yuv420p/1920×1080, 60–95 s) and `demo-preview.gif` (8–12 s,
 ≤8 MB), captions keyed to measured event times from `demo-scenes.json`. Validation does not publish:
 human review of the MP4/GIF and provenance is mandatory before README/Wiki publication.
 

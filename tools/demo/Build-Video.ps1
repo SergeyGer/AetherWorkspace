@@ -16,8 +16,37 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+function Get-BlackIntervals([string] $path) {
+    $output = & ffmpeg -hide_banner -i $path -vf 'blackdetect=d=0.4:pix_th=0.10' -an -f null - 2>&1
+    $intervals = @()
+    foreach ($line in ($output | Select-String 'black_start:(?<s>[\d.]+) black_end:(?<e>[\d.]+)')) {
+        $intervals += [pscustomobject]@{
+            Start = [double]$line.Matches[0].Groups['s'].Value
+            End = [double]$line.Matches[0].Groups['e'].Value
+        }
+    }
+    return $intervals
+}
+
 $capture = Get-Content -LiteralPath $CaptureManifest -Raw | ConvertFrom-Json
 $raw = (Resolve-Path -LiteralPath $capture.rawRecording).Path
+$rawDuration = [double](& ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $raw)
+$blackIntervals = @(Get-BlackIntervals $raw)
+$trimStart = 0.0
+$trimEnd = $rawDuration
+$leadingBlack = $blackIntervals | Where-Object { $_.Start -le 0.75 } | Sort-Object End -Descending | Select-Object -First 1
+if ($leadingBlack) {
+    # Leave a small margin after the leading black interval; never trim below the 80 s minimum.
+    $trimStart = [Math]::Round([Math]::Min($leadingBlack.End + 0.2, [Math]::Max(0, $rawDuration - 60)), 1)
+}
+$trailingBlack = $blackIntervals | Where-Object { $_.End -ge ($rawDuration - 0.75) } | Sort-Object Start | Select-Object -First 1
+if ($trailingBlack) { $trimEnd = [Math]::Round([Math]::Max($trimStart + 60, $trailingBlack.Start - 0.2), 1) }
+$available = $trimEnd - $trimStart
+if ($available -lt 60) {
+    throw ("FAIL_MEDIA: only {0:0.0}s of usable recording after trimming leading/trailing black; capture at least 60s of visible content." -f $available)
+}
+$buildDuration = [Math]::Min([double]$MaxDurationSeconds, $available)
 $events = Get-Content -LiteralPath $capture.eventsFile -Raw | ConvertFrom-Json
 $scenes = Get-Content -LiteralPath $ScenesFile -Raw | ConvertFrom-Json
 $output = if ($OutputDirectory) { $OutputDirectory } else { Split-Path -Parent $raw }
@@ -52,7 +81,7 @@ $index = 1
 foreach ($event in ($events.events | Sort-Object timestampUtc)) {
     $scene = $captionById[$event.name]
     if (-not $scene) { continue }
-    $start = ((ConvertTo-DateTimeOffsetValue $event.timestampUtc) - $recordingStart).TotalSeconds
+    $start = ((ConvertTo-DateTimeOffsetValue $event.timestampUtc) - $recordingStart).TotalSeconds - $trimStart
     if ($start -lt 0) { $start = 0 }
     $end = $start + [double]$scene.durationSeconds
     $srt.Add([string]$index)
@@ -69,11 +98,11 @@ $gifPath = Join-Path $output 'demo-preview.gif'
 $filter = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,subtitles=captions.srt:force_style='Fontname=DejaVu Sans,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,Outline=1,Shadow=1'"
 Push-Location $output
 try {
-    & ffmpeg -y -i $raw -t $MaxDurationSeconds -vf $filter -r 30 -c:v libx264 -pix_fmt yuv420p -an $mp4Path
+    & ffmpeg -y -ss $trimStart -i $raw -t $buildDuration -vf $filter -r 30 -c:v libx264 -pix_fmt yuv420p -an $mp4Path
     if ($LASTEXITCODE -ne 0) { throw 'FAIL_MEDIA: FFmpeg MP4 build failed.' }
     $gifStart = 0.0
     $firstTicker = $events.events | Where-Object { $_.name -eq 'ticker-vega' } | Select-Object -First 1
-    if ($firstTicker) { $gifStart = [Math]::Max(0, ((ConvertTo-DateTimeOffsetValue $firstTicker.timestampUtc) - $recordingStart).TotalSeconds - 2) }
+    if ($firstTicker) { $gifStart = [Math]::Max(0, ((ConvertTo-DateTimeOffsetValue $firstTicker.timestampUtc) - $recordingStart).TotalSeconds - $trimStart - 2) }
     & ffmpeg -y -ss $gifStart -t 10 -i $mp4Path -vf 'fps=12,scale=960:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse' -loop 0 $gifPath
     if ($LASTEXITCODE -ne 0) { throw 'FAIL_MEDIA: FFmpeg GIF build failed.' }
 }
@@ -86,6 +115,11 @@ $result = [ordered]@{
     kind = 'windows11-demo-video'
     builtAtUtc = (Get-Date).ToUniversalTime().ToString('o')
     capture = $capture
+    sourceDurationSeconds = [Math]::Round($rawDuration, 2)
+    trimStartSeconds = [Math]::Round($trimStart, 2)
+    trimEndSeconds = [Math]::Round($trimEnd, 2)
+    builtDurationSeconds = [Math]::Round($buildDuration, 2)
+    detectedBlackIntervals = $blackIntervals
     mp4 = $mp4Path
     mp4Sha256 = (Get-FileHash -LiteralPath $mp4Path -Algorithm SHA256).Hash.ToLowerInvariant()
     gif = $gifPath
