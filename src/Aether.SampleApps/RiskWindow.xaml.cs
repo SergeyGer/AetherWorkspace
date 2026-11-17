@@ -46,10 +46,17 @@ public partial class RiskWindow : Window
         StatusText.Text =
             $"Risk view synced to {instrument.Name} ({instrument.Id.Ticker}) | classification {envelope.Classification} | trace {envelope.TraceId}";
         var match = _fixture?.Positions.FirstOrDefault(position => position.Ticker == instrument.Id.Ticker);
+        SelectedInstrumentText.Text = $"{instrument.Id.Ticker} — {instrument.Name}";
         if (match is not null)
         {
             Grid.SelectedItem = match;
             Grid.ScrollIntoView(match);
+            SelectedMetricsText.Text =
+                $"Selected notional {match.Notional:N0} {_fixture!.Currency} · market value {match.MarketValue:N0} · DV01 {match.Dv01:N0}";
+        }
+        else
+        {
+            SelectedMetricsText.Text = "No matching synthetic position for the selected instrument.";
         }
     }
 

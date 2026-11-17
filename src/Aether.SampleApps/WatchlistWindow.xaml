@@ -6,10 +6,15 @@
     <StackPanel DockPanel.Dock="Top">
       <TextBlock Text="Synthetic Watchlist" FontSize="16" FontWeight="SemiBold" />
       <TextBlock Text="Fixture data only — no live market connectivity, no customer records." FontSize="11" Foreground="#FF6B6B6B" />
-      <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…" />
+      <TextBlock x:Name="StatusText" Margin="0,8,0,0" FontSize="11" Text="Connecting to local broker…"
+                 AutomationProperties.AutomationId="WatchlistStatus" />
+      <TextBlock x:Name="PublishStatusText" Margin="0,2,0,0" FontSize="11" Foreground="#FF44505C"
+                 AutomationProperties.AutomationId="WatchlistPublishStatus" />
     </StackPanel>
     <DataGrid x:Name="Grid" Margin="0,10,0,0" AutoGenerateColumns="False" IsReadOnly="True"
-              SelectionMode="Single" HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+              SelectionMode="Single" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+              SelectionChanged="OnSelectionChanged"
+              AutomationProperties.AutomationId="WatchlistGrid">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Ticker" Binding="{Binding Ticker}" Width="90" />
         <DataGridTextColumn Header="Instrument" Binding="{Binding Name}" Width="220" />

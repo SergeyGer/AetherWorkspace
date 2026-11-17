@@ -1,4 +1,6 @@
 using System.Text.Json.Nodes;
+using Aether.Contracts;
+using Aether.Contracts.Synthetic;
 using Aether.Testing;
 using Xunit;
 
@@ -64,6 +66,26 @@ public class InstrumentCatalogParityTests
 
         var labels = series.Select(item => item["label"]!.GetValue<string>()).ToArray();
         Assert.Equal(labels.Length, labels.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
+    public void DemoInstrumentCatalogMatchesApprovedContexts()
+    {
+        var contexts = LoadArray("samples", "contexts", "contexts.json", "contexts");
+
+        Assert.Equal(ExpectedTickers, DemoInstrumentCatalog.All.Select(instrument => instrument.Ticker).ToArray());
+        foreach (var demo in DemoInstrumentCatalog.All)
+        {
+            var context = contexts.Single(entry => entry["contextRef"]!.GetValue<string>() == demo.ContextRef);
+            Assert.Equal("fdc3.instrument", context["contextType"]!.GetValue<string>());
+            Assert.Equal(demo.Ticker, context["payload"]!["id"]!["ticker"]!.GetValue<string>());
+            Assert.Equal(demo.Classification.ToWireName(), context["classification"]!.GetValue<string>());
+            Assert.True(DemoInstrumentCatalog.TryGet(demo.Ticker, out var found));
+            Assert.Equal(demo.ContextRef, found.ContextRef);
+        }
+
+        Assert.False(DemoInstrumentCatalog.TryGet("NOT-A-TICKER", out _));
+        Assert.False(DemoInstrumentCatalog.TryGet(null, out _));
     }
 
     [Fact]

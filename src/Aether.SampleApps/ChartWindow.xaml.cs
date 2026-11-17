@@ -46,6 +46,10 @@ public partial class ChartWindow : Window
         StatusText.Text =
             $"Chart synced to {instrument.Name} ({instrument.Id.Ticker}) | classification {envelope.Classification} | trace {envelope.TraceId}";
         DrawChart(instrument.Id.Ticker);
+        var series = _fixture?.Series.FirstOrDefault(item => item.Ticker == instrument.Id.Ticker);
+        PlottedSeriesText.Text = series is null
+            ? "No matching synthetic chart series for the selected instrument."
+            : $"Plotted series: {series.Ticker} — {series.Label}";
     }
 
     private void DrawChart(string? highlightedTicker)
