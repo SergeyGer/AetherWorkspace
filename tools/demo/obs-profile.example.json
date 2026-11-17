@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "documentation": "Example OBS Studio setup for the AetherWorkspace v1.1 local capture. Configure this in OBS Studio on the Windows 11 laptop; never commit the WebSocket password or raw media.",
+  "obsVersionMinimum": "30.0",
+  "websocket": {
+    "enabled": true,
+    "bindAddress": "127.0.0.1",
+    "port": 4455,
+    "authentication": true,
+    "passwordEnvironmentVariable": "AETHER_OBS_WEBSOCKET_PASSWORD"
+  },
+  "profile": {
+    "name": "AetherWorkspace-Hero",
+    "outputMode": "Advanced",
+    "recording": {
+      "format": "mkv",
+      "encoder": "hardware or x264",
+      "canvas": { "width": 1920, "height": 1080 },
+      "fps": 30,
+      "audio": "disabled (silent-first design)",
+      "outputDirectory": "local capture directory, never inside the repository"
+    }
+  },
+  "scene": {
+    "name": "AetherWorkspace Demo",
+    "sources": [
+      { "type": "display_capture", "note": "Capture only the demo monitor/region; exclude personal notifications and unrelated windows." }
+    ]
+  },
+  "safety": [
+    "Do not bind the WebSocket to 0.0.0.0 or expose it through a firewall.",
+    "Do not store the WebSocket password in the public repository; use the local environment variable.",
+    "Raw MKV/MP4/GIF files stay local until human review and explicit publication approval."
+  ]
+}

@@ -3,8 +3,10 @@
 **Scope:** local interactive execution on the physical Windows 11 reference laptop. The remote
 Linux engineering environment (DeepSeek Harness/Hetzner) authors and reviews these steps but never
 operates the desktop. Tooling: PowerShell 7, FlaUI, OBS Studio (local WebSocket on 127.0.0.1),
-FFmpeg. Scripts are specified by AW-055 (#83) and AW-056 (#84); commands below are the target
-contract and are **not** claimed available until implemented.
+FFmpeg. Implementation (AW-055/AW-056) lives in `tools/demo/`: `Prepare-Demo.ps1`, `Obs-Control.ps1`,
+`Record-Demo.ps1`, `Build-Video.ps1`, `Validate-Video.ps1`, `demo-scenes.json` and
+`obs-profile.example.json`. See `tools/demo/README.md` for the exact local commands; Track B
+(LLM-assisted PUBLIC) is the primary hero track and Track A the deterministic secondary track.
 
 ## 0. Prerequisites (install/verify on the laptop)
 
@@ -19,6 +21,12 @@ contract and are **not** claimed available until implemented.
 
 Suggested install (then verify manually): `winget install OBSProject.OBSStudio Gyan.FFmpeg Microsoft.PowerShell`.
 Never commit the OBS WebSocket password, `.env`, endpoint handshake or raw media.
+
+## Local OBS credential
+
+Set the OBS WebSocket password only in the local process environment before recording:
+`$env:AETHER_OBS_WEBSOCKET_PASSWORD = '<local password>'`. It is never committed or written to
+evidence; OBS WebSocket binds to `127.0.0.1` only.
 
 ## 1. Trust and preparation
 

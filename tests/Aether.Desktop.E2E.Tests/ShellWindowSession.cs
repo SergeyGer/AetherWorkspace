@@ -218,6 +218,85 @@ internal sealed class ShellWindowSession : IDisposable
             "The classification combo could not be set to RESTRICTED; the reference workflow must run restricted.");
     }
 
+    /// <summary>Sets the trusted source classification through UIA.</summary>
+    public void SetClassification(string wireName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(wireName);
+        var comboBox = WaitForElement(ClassificationElement, ElementTimeout).AsComboBox();
+        comboBox.Expand();
+        try
+        {
+            comboBox.Select(wireName);
+        }
+        finally
+        {
+            try { comboBox.Collapse(); } catch (Exception) { }
+        }
+
+        Assert.Equal(
+            wireName,
+            WaitForElement(ClassificationElement, ElementTimeout).AsComboBox().SelectedItem?.Name ?? string.Empty);
+    }
+
+    /// <summary>Selects deterministic (index 0) or LLM-assisted (index 1) planning mode.</summary>
+    public void SetPlanningMode(bool llmAssisted)
+    {
+        var comboBox = WaitForElement("PlannerCombo", ElementTimeout).AsComboBox();
+        comboBox.Expand();
+        try
+        {
+            comboBox.Select(llmAssisted ? "LLM-assisted (PUBLIC, consent)" : "Deterministic (offline)");
+        }
+        finally
+        {
+            try { comboBox.Collapse(); } catch (Exception) { }
+        }
+
+        Assert.Equal(
+            llmAssisted ? "LLM-assisted (PUBLIC, consent)" : "Deterministic (offline)",
+            WaitForElement("PlannerCombo", ElementTimeout).AsComboBox().SelectedItem?.Name ?? string.Empty);
+    }
+
+    /// <summary>Sets the cloud consent checkbox to the requested state through UIA.</summary>
+    public void SetCloudConsent(bool consented)
+    {
+        var checkBox = WaitForElement(CloudConsentElement, ElementTimeout).AsCheckBox();
+        if ((checkBox.IsChecked == true) != consented)
+        {
+            checkBox.Click();
+        }
+
+        Assert.Equal(consented, WaitForElement(CloudConsentElement, ElementTimeout).AsCheckBox().IsChecked == true);
+    }
+
+    /// <summary>Replaces the command text through UIA.</summary>
+    public void SetCommand(string command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        WaitForElement(CommandElement, ElementTimeout).AsTextBox().Text = command;
+    }
+
+    /// <summary>Reads the trace/audit panel text (selects the tab first).</summary>
+    public string ReadTrace()
+    {
+        SelectTraceTab();
+        return ReadText(WaitForElement(TraceElement, ElementTimeout));
+    }
+
+    /// <summary>Selects the Trace / audit tab through UIA.</summary>
+    public void SelectTraceTab()
+    {
+        var tabs = Window.FindAllDescendants(cf => cf.ByControlType(ControlType.TabItem));
+        var traceTab = tabs.FirstOrDefault(tab => string.Equals(tab.Name, "Trace / audit", StringComparison.Ordinal));
+        if (traceTab is null)
+        {
+            return;
+        }
+
+        var selection = traceTab.Patterns.SelectionItem.PatternOrDefault;
+        selection?.Select();
+    }
+
     /// <summary>Waits until the Run button is enabled, then clicks/invokes it.</summary>
     public void ClickRun()
     {
@@ -231,6 +310,13 @@ internal sealed class ShellWindowSession : IDisposable
 
         Assert.True(runButton.IsEnabled, "The Run workflow button stayed disabled; the shell is not ready to run the reference workflow.");
         runButton.Invoke();
+    }
+
+    /// <summary>Invokes the compact demo-layout action (broker demo-grid arrangement).</summary>
+    public void ClickDemoLayout()
+    {
+        var button = WaitForElement("DemoLayoutButton", ElementTimeout).AsButton();
+        button.Invoke();
     }
 
     /// <summary>Finds a descendant by automation id, returning null when absent.</summary>

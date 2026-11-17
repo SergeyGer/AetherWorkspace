@@ -6,6 +6,10 @@ Baseline: published **v1.0.2** Windows desktop bundle
 production time. Video assets are **not yet produced** — everything below is a target until
 captured with the local Windows 11 harness (AW-055/AW-056).
 
+**Video priority (operator decision, 2026-11-17): Track B (LLM-assisted PUBLIC) is the primary hero
+video; Track A (deterministic, `usedModel=false`) is the secondary truthful track.** Both are
+produced by the same local capture harness (`tools/demo/`); captions come from `demo-scenes.json`.
+
 ## Delivery targets
 
 | Asset | Target |

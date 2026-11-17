@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Text.Json;
 using System.Text;
 using Aether.Broker.Client;
 using Aether.Contracts;
 using Aether.Contracts.Broker;
 using Aether.Security.Audit;
 using Aether.Testing;
+using FlaUI.Core.AutomationElements;
 using Xunit;
 using Xunit.Sdk;
 
@@ -377,4 +379,195 @@ public sealed class DesktopGuiE2ETests
         });
     }
 
+    /// <summary>
+    /// AW-055/AW-056 local capture scenario: runs a real named-pipe desktop workflow (Track A
+    /// deterministic or Track B LLM-assisted PUBLIC), drives the real WPF sample windows for the
+    /// ticker scene, holds video-friendly beats and writes a sanitized event manifest. This test is
+    /// intentionally in Category=DemoCapture and is never run by CI; it is invoked only by the local
+    /// Windows demo-capture harness while OBS records.
+    /// </summary>
+    [Fact(Timeout = 600_000)]
+    [Trait("Category", "DemoCapture")]
+    public async Task CaptureReferenceDemoScenario()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var scenario = Environment.GetEnvironmentVariable("AETHER_DEMO_SCENARIO") ?? "TrackA";
+        var eventsPath = Environment.GetEnvironmentVariable("AETHER_DEMO_EVENTS_OUT");
+        if (string.IsNullOrWhiteSpace(eventsPath))
+        {
+            eventsPath = Path.Combine(Path.GetTempPath(), $"aether-demo-events-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.json");
+        }
+
+        const string northstarCommand = "Open Northstar bond analytics, show the associated risk view, synchronize this instrument across the workspace and summarize the exposure privately.";
+        const string vegaCommand = "Open Vega bond analytics, show the associated risk view, synchronize this instrument across the workspace and summarize the exposure privately.";
+        var started = DateTimeOffset.UtcNow;
+        var holdScale = double.TryParse(Environment.GetEnvironmentVariable("AETHER_DEMO_HOLD_SCALE"), out var configuredScale)
+            ? Math.Clamp(configuredScale, 0.2, 3.0)
+            : 1.0;
+        Task Hold(double seconds) => Task.Delay(TimeSpan.FromSeconds(seconds * holdScale), CancellationToken.None);
+        var events = new List<object>();
+        void Mark(string name, string? detail = null) =>
+            events.Add(new { name, timestampUtc = DateTimeOffset.UtcNow, detail });
+
+        var samplesExecutable = DesktopExecutableLocator.ResolveWpfSampleApps();
+        await using var broker = await NamedPipeBrokerHarness.StartAsync(
+            "demo-capture-" + scenario.ToLowerInvariant(),
+            useWindowsRegistry: true,
+            wpfSamplesExe: samplesExecutable);
+        using var shell = ShellWindowSession.Launch(broker.EndpointFile);
+
+        _ = shell.WaitForBackendModeContaining("named-pipe", ShellWindowSession.BackendTimeout);
+        shell.WaitForStatus(text => text.Contains("Registered", StringComparison.Ordinal), ShellWindowSession.RegistrationTimeout, "shell registration");
+        Mark("shell-ready");
+        await Hold(4);
+
+        string traceText;
+        string traceId;
+        bool usedModel;
+        if (string.Equals(scenario, "TrackB", StringComparison.OrdinalIgnoreCase))
+        {
+            shell.SetClassification("PUBLIC");
+            shell.SetPlanningMode(llmAssisted: true);
+            shell.SetCloudConsent(true);
+            shell.SetCommand(vegaCommand);
+            Mark("track-b-configured");
+        }
+        else
+        {
+            shell.EnsureRestrictedClassification();
+            shell.SetPlanningMode(llmAssisted: false);
+            shell.SetCloudConsent(false);
+            shell.SetCommand(northstarCommand);
+            Mark("track-a-configured");
+        }
+
+        await Hold(5);
+        shell.ClickRun();
+        Mark("workflow-started");
+        var status = shell.WaitForStatus(
+            text => text.Contains("Workflow succeeded", StringComparison.Ordinal) || IsTerminalFailure(text),
+            ShellWindowSession.WorkflowTimeout,
+            "captured workflow result");
+        Assert.True(status.Contains("Workflow succeeded", StringComparison.Ordinal), "The captured scenario failed: " + status);
+        traceId = ExtractTraceId(status);
+        var summary = shell.WaitForSummary(text => text.Contains("Private summary", StringComparison.Ordinal), ShellWindowSession.SummaryTimeout, "private summary");
+        Assert.Contains("Private summary", summary, StringComparison.Ordinal);
+        traceText = shell.ReadTrace();
+        usedModel = traceText.Contains("deterministic-grammar, model=False", StringComparison.Ordinal) ? false
+            : traceText.Contains("cloud-plan, model=True", StringComparison.Ordinal) ? true
+            : throw new Xunit.Sdk.XunitException("The captured trace does not expose truthful planner provenance: " + traceText);
+        if (string.Equals(scenario, "TrackB", StringComparison.OrdinalIgnoreCase))
+        {
+            Assert.True(usedModel, "Track B capture did not use the LLM-assisted planner.");
+            Assert.Contains("cloud-plan", traceText, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.False(usedModel, "Track A capture must not claim model output.");
+            Assert.Contains("deterministic-grammar", traceText, StringComparison.Ordinal);
+        }
+
+        Mark("workflow-succeeded", "planner=" + (usedModel ? "cloud-plan" : "deterministic-grammar"));
+        await Hold(8);
+
+        shell.ClickDemoLayout();
+        Mark("demo-layout");
+        await Hold(6);
+
+        using var automation = new FlaUI.UIA3.UIA3Automation();
+        var windows = WaitForSampleWindows(automation, TimeSpan.FromSeconds(30));
+        var sampleProcesses = Process.GetProcessesByName("Aether.SampleApps")
+            .Where(process => !process.HasExited)
+            .ToArray();
+        Mark("sample-windows", string.Join(",", windows.Keys));
+        await Hold(10);
+
+        foreach (var ticker in new[] { "VEGA", "ORIN" })
+        {
+            SelectWatchlistTicker(windows["watchlist"], ticker);
+            Mark("ticker-" + ticker.ToLowerInvariant());
+            await Hold(10);
+        }
+
+        shell.SelectTraceTab();
+        Mark("inspector");
+        await Hold(10);
+        Mark("ticker-scene-complete");
+        await Hold(6);
+
+        var completed = DateTimeOffset.UtcNow;
+        var manifest = new
+        {
+            schemaVersion = "1.0",
+            kind = "windows11-demo-capture",
+            scenario,
+            startedAtUtc = started,
+            completedAtUtc = completed,
+            commitSha = Environment.GetEnvironmentVariable("AETHER_DEMO_SHA") ?? string.Empty,
+            runId = Environment.GetEnvironmentVariable("AETHER_DEMO_RUN_ID") ?? string.Empty,
+            traceId,
+            planner = usedModel ? "cloud-plan" : "deterministic-grammar",
+            usedModel,
+            pids = sampleProcesses.Select(process => process!.Id).ToArray(),
+            tickers = new[] { "VEGA", "ORIN" },
+            events,
+        };
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(eventsPath))!);
+        File.WriteAllText(eventsPath, JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }));
+        Mark("manifest-written");
+    }
+
+    private static Dictionary<string, FlaUI.Core.AutomationElements.Window> WaitForSampleWindows(
+        FlaUI.UIA3.UIA3Automation automation,
+        TimeSpan timeout)
+    {
+        var titles = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["watchlist"] = "Synthetic Watchlist",
+            ["risk"] = "Synthetic Risk View",
+            ["chart"] = "Synthetic Bond Chart",
+        };
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            var found = new Dictionary<string, FlaUI.Core.AutomationElements.Window>(StringComparer.Ordinal);
+            foreach (var process in Process.GetProcessesByName("Aether.SampleApps").Where(process => !process.HasExited))
+            {
+                var windows = FlaUI.Core.Application.Attach(process.Id).GetAllTopLevelWindows(automation);
+                foreach (var (key, title) in titles)
+                {
+                    var window = windows.FirstOrDefault(candidate => candidate.Title.Contains(title, StringComparison.Ordinal));
+                    if (window is not null)
+                    {
+                        found[key] = window;
+                    }
+                }
+            }
+
+            if (found.Count == titles.Count)
+            {
+                return found;
+            }
+
+            Thread.Sleep(250);
+        }
+
+        throw new Xunit.Sdk.XunitException("The real WPF sample windows did not appear for the demo capture scenario.");
+    }
+
+    private static void SelectWatchlistTicker(FlaUI.Core.AutomationElements.Window watchlist, string ticker)
+    {
+        var grid = watchlist.FindFirstDescendant(criteria => criteria.ByAutomationId("WatchlistGrid"))?.AsDataGridView()
+            ?? throw new Xunit.Sdk.XunitException("WatchlistGrid was not found in the demo capture scenario.");
+        var row = grid.Rows.FirstOrDefault(candidate =>
+            candidate.Cells.Any(cell => string.Equals(cell.Value?.ToString(), ticker, StringComparison.Ordinal)))
+            ?? throw new Xunit.Sdk.XunitException($"Watchlist row '{ticker}' was not found in the demo capture scenario.");
+        var selection = row.Patterns.SelectionItem.PatternOrDefault
+            ?? throw new Xunit.Sdk.XunitException($"Watchlist row '{ticker}' does not expose SelectionItem.");
+        selection.Select();
+    }
 }

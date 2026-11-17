@@ -1,0 +1,60 @@
+#!/usr/bin/env pwsh
+<#
+.SYNOPSIS
+  Validates the generated hero MP4/GIF and emits a QA report (v1.1 AW-056).
+.DESCRIPTION
+  Checks codec, dimensions, pixel format, duration, GIF size, black frames and SHA-256. Publication
+  still requires human review; this script never auto-publishes.
+#>
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [string] $VideoBuildManifest,
+    [string] $OutputPath
+)
+
+$ErrorActionPreference = 'Stop'
+$build = Get-Content -LiteralPath $VideoBuildManifest -Raw | ConvertFrom-Json
+$mp4 = (Resolve-Path -LiteralPath $build.mp4).Path
+$gif = (Resolve-Path -LiteralPath $build.gif).Path
+$ffprobe = Get-Command ffprobe -ErrorAction SilentlyContinue
+if (-not $ffprobe) { throw 'FAIL_HARNESS: ffprobe is not on PATH.' }
+
+$problems = New-Object System.Collections.Generic.List[string]
+$probe = & ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,pix_fmt,duration -of json $mp4 | ConvertFrom-Json
+$video = $probe.streams | Select-Object -First 1
+if (-not $video) { throw 'FAIL_MEDIA: no video stream found in the MP4.' }
+if ($video.codec_name -ne 'h264') { $problems.Add("codec is $($video.codec_name), expected h264") }
+if ($video.width -ne 1920 -or $video.height -ne 1080) { $problems.Add("dimensions are $($video.width)x$($video.height), expected 1920x1080") }
+if ($video.pix_fmt -ne 'yuv420p') { $problems.Add("pixel format is $($video.pix_fmt), expected yuv420p") }
+$duration = [double]$video.duration
+if ($duration -lt 80 -or $duration -gt 95) { $problems.Add("MP4 duration is $duration s, expected 80-95 s") }
+
+$gifInfo = Get-Item -LiteralPath $gif
+if ($gifInfo.Length -gt 8MB) { $problems.Add("GIF is $([Math]::Round($gifInfo.Length / 1MB, 2)) MB, expected <= 8 MB") }
+$black = (& ffmpeg -i $mp4 -vf 'blackdetect=d=0.4:pix_th=0.10' -an -f null - 2>&1) -join "`n"
+$blackCount = ([regex]::Matches($black, 'black_start')).Count
+if ($blackCount -gt 0) { $problems.Add("MP4 contains $blackCount black-frame interval(s) >= 0.4 s") }
+
+$report = [ordered]@{
+    schemaVersion = '1.0'
+    kind = 'windows11-demo-video-validation'
+    validatedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+    pass = ($problems.Count -eq 0)
+    mp4 = [ordered]@{
+        path = $mp4; sha256 = $build.mp4Sha256; codec = $video.codec_name; width = [int]$video.width; height = [int]$video.height
+        pixFmt = $video.pix_fmt; durationSeconds = $duration; blackIntervals = $blackCount
+    }
+    gif = [ordered]@{ path = $gif; sha256 = $build.gifSha256; bytes = $gifInfo.Length }
+    problems = @($problems)
+    humanReviewRequired = $true
+}
+$target = if ($OutputPath) { $OutputPath } else { Join-Path (Split-Path -Parent $mp4) 'video-validation.json' }
+$report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $target -Encoding utf8
+Write-Host "video validation: $target"
+if ($problems.Count -gt 0) {
+    $problems | ForEach-Object { Write-Host "FAIL_MEDIA: $_" }
+    exit 6
+}
+Write-Host 'VIDEO VALIDATION PASS — human review is still required before publication.'
+exit 0
