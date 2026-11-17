@@ -83,6 +83,25 @@ public partial class MainWindow : Window
         _orchestrator = BuildOrchestrator(_client);
     }
 
+    private static ICloudModelTransport CreateCloudTransportFromEnvironment()
+    {
+        // Match the headless provider resolution: OPENAI_* by default, GEMINI_* for Gemini, with the
+        // generic AETHER_CLOUD_* names still accepted as endpoint/model fallbacks by the adapter.
+        var settings = ModelProviderSettings.FromEnvironment();
+        var secrets = new EnvironmentSecretProvider();
+        return settings.ProviderId == "gemini"
+            ? new GeminiCloudModelTransport(
+                secrets,
+                baseUrl: settings.ReadEndpoint(),
+                model: settings.Model,
+                apiKeyEnvironmentVariable: settings.ApiKeyEnvironmentVariable)
+            : new HttpCloudModelTransport(
+                secrets,
+                endpoint: settings.ReadEndpoint(),
+                modelId: settings.Model,
+                apiKeyEnvironmentVariable: settings.ApiKeyEnvironmentVariable);
+    }
+
     private AetherWorkflowOrchestrator BuildOrchestrator(BrokerClient client)
     {
         var policy = PolicyDocument.CreateDefault().EnsureValid();
@@ -105,7 +124,7 @@ public partial class MainWindow : Window
         if (CloudConsentCheck.IsChecked == true)
         {
             cloudPlanner = new CloudPlanProvider(
-                new HttpCloudModelTransport(new EnvironmentSecretProvider()),
+                CreateCloudTransportFromEnvironment(),
                 egressGateway,
                 new PlanProviderOptions(CloudEnabled: true, CloudConsentGranted: true));
         }
