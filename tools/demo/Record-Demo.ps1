@@ -66,7 +66,11 @@ $env:AETHER_DEMO_SHA = $preparation.approvedSha
 $env:AETHER_DEMO_RUN_ID = $preparation.runId
 
 $testExit = 3
-$obs = Connect-Obs
+$obsCandidates = @(Connect-Obs | Where-Object { $null -ne $_ -and $null -ne $_.PSObject.Properties['Socket'] })
+if ($obsCandidates.Count -ne 1) {
+    throw "FAIL_HARNESS: Connect-Obs did not return exactly one OBS connection object (got $($obsCandidates.Count))."
+}
+$obs = $obsCandidates[0]
 $recordingStarted = $false
 try {
     Start-ObsRecording $obs
