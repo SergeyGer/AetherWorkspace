@@ -158,8 +158,12 @@ extensions) is tracked as GitHub milestones **v1.1 … v1.5** with issues **AW-0
 three-instrument catalog (ORIN context + VEGA/ORIN chart series + parity tests); AW-049 Watchlist
 selection publishes approved typed context with echo suppression; AW-050 Risk real metrics and
 Chart actual-series switching. Windows real-WPF GUI test + portable 520/520; evidence
-`docs/testing/evidence/2026-11-17-v1.1-interactive-ticker-sync.md`. Remaining v1.1: AW-051/052/054,
-AW-053 optional, AW-065/066 measurement, AW-055/056 capture/media. Plan index:
+`docs/testing/evidence/2026-11-17-v1.1-interactive-ticker-sync.md`. **v1.1 increment 2 (2026-11-17):** AW-051 deterministic `demo-grid` layout + compact
+Demo layout shell action; AW-052 real PID/app-id/transport badges and readable Inspector evidence
+events. Windows UI CI PASS; evidence `docs/testing/evidence/2026-11-17-v1.1-demo-layout-process-evidence.md`.
+AW-054 packaged-bundle smoke (fresh extraction + workflow + manifest) is automated in the release
+workflow and becomes the v1.1.0 release gate. Remaining v1.1: AW-053 optional LLM, AW-065/066
+measurement, AW-055/056 capture/media. Plan index:
 [`docs/planning/v1.1-v1.5-execution-plan.md`](planning/v1.1-v1.5-execution-plan.md). This page
 remains the implementation mapping; the Wiki [Roadmap](https://github.com/SergeyGer/AetherWorkspace/wiki/Roadmap)
 is the short status view.

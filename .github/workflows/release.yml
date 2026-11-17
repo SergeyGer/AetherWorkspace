@@ -132,6 +132,19 @@ jobs:
             if (-not (Test-Path -LiteralPath $path)) { throw "Desktop bundle is missing $path" }
           }
           Compress-Archive -Path "$desktop/*" -DestinationPath "artifacts/AetherWorkspace-$version-windows-x64-desktop.zip" -CompressionLevel Optimal
+      - name: Packaged bundle smoke (fresh extraction + reference workflow)
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File tools/windows-test/Invoke-PackagedBundleSmoke.ps1 `
+            -BundleZip "artifacts/AetherWorkspace-${{ steps.version.outputs.version }}-windows-x64-desktop.zip" `
+            -ResultsDirectory "artifacts/packaged-smoke"
+      - name: Upload packaged smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-desktop-smoke
+          path: artifacts/packaged-smoke
+          if-no-files-found: warn
       - name: Upload desktop bundle
         uses: actions/upload-artifact@v4
         with:
