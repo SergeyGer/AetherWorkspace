@@ -126,19 +126,36 @@ public sealed partial class ShellUiAutomationTests
             EnsureRestrictedClassification(classificationCombo);
             var telemetryElement = WaitForElement(window, "UiTelemetryText", ElementTimeout);
             var records = new List<Dictionary<string, object?>>();
+            string? previousTraceId = null;
 
             for (var cycle = 1; cycle <= cycles; cycle++)
             {
                 var runButton = WaitForElement(window, "RunButton", ElementTimeout).AsButton();
                 await WaitForElementEnabledAsync(runButton, "RunButton", ElementTimeout);
                 runButton.Invoke();
+                // The shell clears StatusBox at the start of each run, so "workflow succeeded" is
+                // per-run; distinguish cycles by a new trace id instead of accumulated text.
                 var status = await WaitForTextAsync(
-                    () => ReadTextBox(statusBox),
-                    text => CountOccurrences(text, SuccessMarker) >= cycle || IsTerminalFailure(text),
+                    () =>
+                    {
+                        var text = ReadTextBox(statusBox);
+                        var trace = TraceIdPattern().Match(text);
+                        return trace.Success && trace.Groups["trace"].Value != previousTraceId ? text : text;
+                    },
+                    text =>
+                    {
+                        var trace = TraceIdPattern().Match(text);
+                        return (text.Contains(SuccessMarker, StringComparison.Ordinal)
+                                && trace.Success
+                                && trace.Groups["trace"].Value != previousTraceId)
+                            || IsTerminalFailure(text);
+                    },
                     WorkflowTimeout);
+                var cycleTrace = TraceIdPattern().Match(status);
                 Assert.True(
-                    CountOccurrences(status, SuccessMarker) >= cycle,
+                    status.Contains(SuccessMarker, StringComparison.Ordinal) && cycleTrace.Success && cycleTrace.Groups["trace"].Value != previousTraceId,
                     $"Cycle {cycle}/{cycles} did not succeed." + Environment.NewLine + status);
+                previousTraceId = cycleTrace.Groups["trace"].Value;
 
                 var telemetry = await WaitForTextAsync(
                     () => ReadTextBlock(telemetryElement),
