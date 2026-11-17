@@ -14,6 +14,13 @@ release tag yet.
 
 ### Added
 
+- **v1.1 Track B demo gate PASS (physical Windows 11):** real OBS capture + real named-pipe WPF
+  workflow with a validated LLM-assisted plan (`planner=cloud-plan`, `usedModel=true`), FFmpeg hero
+  MP4/GIF build and validation (77.13 s, H.264/1080p/yuv420p, no black intervals), operator human
+  review; evidence at `docs/testing/evidence/2026-11-17-v1.1-track-b-demo-gate.md`, hero assets under
+  `docs/assets/`.
+
+
 - .NET 10 solution with warnings-as-errors, central package management, pinned SDK, and
   Linux + Windows CI workflows.
 - Versioned contracts: Protobuf broker service and context envelope; strict JSON

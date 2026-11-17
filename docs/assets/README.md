@@ -28,3 +28,13 @@ node -e "const sharp=require('sharp');const fs=require('fs');sharp(fs.readFileSy
 [`coverage-badge.svg`](coverage-badge.svg) is generated from measured portable-suite coverage by
 `tools/coverage/summarize-coverage.py` (see [`docs/testing/coverage.md`](../testing/coverage.md)).
 Do not hand-edit it; regenerate after a coverage measurement.
+
+## Demo media (v1.1)
+
+| File | Description | SHA-256 |
+|---|---|---|
+| `demo-hero.mp4` | Validated Track B hero capture (H.264/1080p/yuv420p, 77.13 s) | `322925025a66d8a1646d6125a3f49de211fba496069dc0b1f089103257def3ad` |
+| `demo-preview.gif` | Animated preview derived from the same capture (381 KB) | `92422e552eaadab60d1e64aeaab3f97bd2101859fcd320604cc575211adaa83b` |
+
+Source evidence: `docs/testing/evidence/2026-11-17-v1.1-track-b-demo-gate.md`. The files are local
+Windows 11 captures of synthetic data; raw recordings and provider credentials are not committed.

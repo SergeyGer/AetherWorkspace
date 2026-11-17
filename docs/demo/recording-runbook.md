@@ -22,6 +22,13 @@ FFmpeg. Implementation (AW-055/AW-056) lives in `tools/demo/`: `Prepare-Demo.ps1
 Suggested install (then verify manually): `winget install OBSProject.OBSStudio Gyan.FFmpeg Microsoft.PowerShell`.
 Never commit the OBS WebSocket password, `.env`, endpoint handshake or raw media.
 
+## Delivered capture (2026-11-17)
+
+The first clean Track B physical capture passed the full gate (`188919f`): real OBS recording, real
+named-pipe WPF workflow, validated `cloud-plan`/`usedModel=true` plan, FFmpeg build and validation
+(77.13 s, H.264/1080p/yuv420p, no black intervals), operator review. Evidence:
+`docs/testing/evidence/2026-11-17-v1.1-track-b-demo-gate.md`; hero media under `docs/assets/`.
+
 ## One-command gate
 
 The recommended path is `tools/windows-test/Run-PhysicalReleaseGate.ps1` (see

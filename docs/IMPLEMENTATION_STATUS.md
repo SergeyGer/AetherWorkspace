@@ -174,6 +174,13 @@ planner provenance) and AW-056 media pipeline (`Build-Video.ps1`, `Validate-Vide
 `demo-scenes.json`, `obs-profile.example.json`), with Track B as the primary hero track. Physical
 recording and human review are still required; no video is claimed yet.
 
+**v1.1 Track B demo gate PASS (2026-11-17):** physical OBS capture + real WPF workflow +
+FFmpeg build/validation passed on the reference laptop (`188919f`): `planner=cloud-plan`,
+`usedModel=true`, trace `7d3600497b67491a026c6680a5d1082e`, 3 real PIDs, VEGA/ORIN, 77.13 s
+H.264/1080p/yuv420p, 0 black intervals, operator human review. Hero artifacts:
+`docs/assets/demo-hero.mp4`, `docs/assets/demo-preview.gif`; evidence:
+`docs/testing/evidence/2026-11-17-v1.1-track-b-demo-gate.md`.
+
 A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
 measurement and Track B capture/build/validate:
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.
