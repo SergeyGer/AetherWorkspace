@@ -168,9 +168,15 @@ Planner selector and bounded prompt. Live PUBLIC OpenAI smoke passed all six val
 single PUBLIC-only external attempt. Evidence:
 `docs/testing/evidence/2026-11-17-v1.1-live-llm-public-smoke.md`.
 
+**v1.1 increment 4 (2026-11-17):** AW-055 local capture pipeline (`Prepare-Demo.ps1`,
+`Obs-Control.ps1`, `Record-Demo.ps1`, `Category=DemoCapture` WPF scenario with real PIDs/trace/
+planner provenance) and AW-056 media pipeline (`Build-Video.ps1`, `Validate-Video.ps1`,
+`demo-scenes.json`, `obs-profile.example.json`), with Track B as the primary hero track. Physical
+recording and human review are still required; no video is claimed yet.
+
 AW-054 packaged-bundle smoke (fresh extraction + workflow + manifest) is automated in the release
-workflow and becomes the v1.1.0 release gate. Remaining v1.1: AW-065/066 measurement, AW-055/056
-capture/media. Plan index:
+workflow and becomes the v1.1.0 release gate. Remaining v1.1: physical WT/UI measurements, physical
+capture/media review. Plan index:
 [`docs/planning/v1.1-v1.5-execution-plan.md`](planning/v1.1-v1.5-execution-plan.md). This page
 remains the implementation mapping; the Wiki [Roadmap](https://github.com/SergeyGer/AetherWorkspace/wiki/Roadmap)
 is the short status view.
