@@ -81,6 +81,9 @@ public class DemoToolingTests
         Assert.Contains("captions.srt", build, StringComparison.Ordinal);
         Assert.Contains("ConvertTo-DateTimeOffsetValue", build, StringComparison.Ordinal);
         Assert.Contains("RoundtripKind", build, StringComparison.Ordinal);
+        Assert.Contains("Get-BlackIntervals", build, StringComparison.Ordinal);
+        Assert.Contains("trimStartSeconds", build, StringComparison.Ordinal);
+        Assert.Contains("blackIntervals", validate, StringComparison.Ordinal);
         Assert.Contains("yuv420p", validate, StringComparison.Ordinal);
         Assert.Contains("80-95", validate, StringComparison.Ordinal);
         Assert.Contains("blackdetect", validate, StringComparison.Ordinal);

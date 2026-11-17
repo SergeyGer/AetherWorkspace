@@ -472,11 +472,11 @@ public sealed class DesktopGuiE2ETests
         }
 
         Mark("workflow-succeeded", "planner=" + (usedModel ? "cloud-plan" : "deterministic-grammar"));
-        await Hold(8);
+        await Hold(12);
 
         shell.ClickDemoLayout();
         Mark("demo-layout");
-        await Hold(6);
+        await Hold(7);
 
         using var automation = new FlaUI.UIA3.UIA3Automation();
         var windows = WaitForSampleWindows(automation, TimeSpan.FromSeconds(30));
@@ -490,14 +490,14 @@ public sealed class DesktopGuiE2ETests
         {
             SelectWatchlistTicker(windows["watchlist"], ticker);
             Mark("ticker-" + ticker.ToLowerInvariant());
-            await Hold(10);
+            await Hold(12);
         }
 
         shell.SelectTraceTab();
         Mark("inspector");
-        await Hold(10);
+        await Hold(12);
         Mark("ticker-scene-complete");
-        await Hold(6);
+        await Hold(9);
 
         var completed = DateTimeOffset.UtcNow;
         var manifest = new
