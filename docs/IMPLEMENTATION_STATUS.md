@@ -147,3 +147,12 @@ work continues; run `dotnet test` for the authoritative current number.
 - Linux UDS + headless samples are used for deterministic CI/E2E while Windows paths are
   compile-verified; the Windows CI job provides runtime evidence for named pipes/WPF
   build. This is a documented environment constraint, not a product claim.
+
+## v1.1–v1.5 — demo & development execution (started 2026-11-17)
+
+The execution brief `AW-DP-001` (demo-ready hero, WebView2, hybrid AI, privacy gateway,
+extensions) is tracked as GitHub milestones **v1.1 … v1.5** with issues **AW-047…AW-067**
+(#75–#95), including the four v1.0 measurement gaps (G-02/G-04/G-06/G-10). Plan index:
+[`docs/planning/v1.1-v1.5-execution-plan.md`](planning/v1.1-v1.5-execution-plan.md). This page
+remains the implementation mapping; the Wiki [Roadmap](https://github.com/SergeyGer/AetherWorkspace/wiki/Roadmap)
+is the short status view.
