@@ -320,7 +320,10 @@ public partial class MainWindow : Window
                 : $"summary provider: {result.Summary.Provider}, output classification: {result.Summary.OutputClassification.ToWireName()}{Environment.NewLine}") +
             (result.DenialCode is null
                 ? ""
-                : $"denial: {result.DenialCode} ({result.DenialCategory}){Environment.NewLine}");
+                : $"denial: {result.DenialCode} ({result.DenialCategory}){Environment.NewLine}") +
+            (result.PlanningNotes.Count == 0
+                ? ""
+                : "planning notes: " + string.Join("; ", result.PlanningNotes) + Environment.NewLine);
 
         if (result.Success)
         {

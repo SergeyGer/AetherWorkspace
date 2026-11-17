@@ -100,6 +100,7 @@ public class OrchestratorTests
         Assert.False(result.UsedModel);
         Assert.Equal(DeterministicCommandPlanner.ProviderName, result.PlannerProvider);
         Assert.Equal(1, cloud.Calls);
+        Assert.Contains(result.PlanningNotes, note => note.Contains("fell back", StringComparison.Ordinal));
     }
 
     [Fact]

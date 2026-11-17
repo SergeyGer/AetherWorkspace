@@ -38,6 +38,9 @@ public sealed record WorkflowResult(
     bool UsedModel,
     long DurationMs)
 {
+    /// <summary>Truthful, redacted planner provenance notes (for example a cloud-plan fallback reason).</summary>
+    public IReadOnlyList<string> PlanningNotes { get; init; } = [];
+
     public static WorkflowResult Denied(
         string traceId,
         DataClassification classification,

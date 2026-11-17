@@ -116,6 +116,7 @@ public sealed class AetherWorkflowOrchestrator
         ActionPlan? plan = request.SuppliedPlan;
         var plannerProvider = "supplied-plan";
         var usedModel = false;
+        var planningNotes = new List<string>();
 
         if (plan is null && _options.PlanningMode == PlanGenerationMode.CloudPreferred && _cloudPlanner is not null)
         {
@@ -130,6 +131,12 @@ public sealed class AetherWorkflowOrchestrator
             }
             else
             {
+                planningNotes.Add(
+                    "cloud planning failed ("
+                    + (cloudPreferred.ErrorCode ?? "unknown")
+                    + "); fell back to "
+                    + _deterministicPlanner.ProviderId
+                    + " with usedModel=false");
                 // Explicit LLM mode must not silently relabel a deterministic plan as model output.
                 var fallback = await _deterministicPlanner
                     .GeneratePlanAsync(new PlanningRequest(request.Command, classification.Classification, traceId), cancellationToken)
@@ -274,7 +281,10 @@ public sealed class AetherWorkflowOrchestrator
                 execution.DenialCategory,
                 plannerProvider,
                 usedModel,
-                stopwatch.ElapsedMilliseconds);
+                stopwatch.ElapsedMilliseconds)
+            {
+                PlanningNotes = planningNotes,
+            };
         }
         catch (BrokerRpcException exception)
         {

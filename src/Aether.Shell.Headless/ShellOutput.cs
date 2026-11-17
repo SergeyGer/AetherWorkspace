@@ -22,7 +22,8 @@ public sealed record ShellOutput(
     ShellProvidersOutput Providers,
     IReadOnlyList<string> Limitations,
     IReadOnlyList<ShellTimelineEntry>? Timeline = null,
-    ShellDiagnosticsOutput? Diagnostics = null);
+    ShellDiagnosticsOutput? Diagnostics = null,
+    IReadOnlyList<string>? PlanningNotes = null);
 
 /// <summary>Redacted Inspector timeline entry for one workflow step (v0.5 AW-032).</summary>
 public sealed record ShellTimelineEntry(int Sequence, string Action, string State, string? Code);

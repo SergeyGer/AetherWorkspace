@@ -23,10 +23,11 @@ public sealed class CloudPlanProvider : IPlanGenerator
         "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[...]}. " +
         "Allowed actions and fields: " +
         "LaunchApp requires appId (one of sample.watchlist, sample.risk, sample.chart); " +
-        "PublishContext requires contextRef (one of synthetic.instrument.vega, synthetic.exposure.vega) and classification PUBLIC; " +
-        "ArrangeWindows requires layout \"side-by-side\"; SummarizeContext requires mode \"private\". " +
+        "PublishContext requires contextRef (use synthetic.instrument.vega); " +
+        "ArrangeWindows requires layout \"side-by-side\"; SummarizeContext requires contextRef synthetic.exposure.vega and mode \"private\". " +
         "Produce exactly six steps in this order: LaunchApp sample.watchlist, LaunchApp sample.risk, LaunchApp sample.chart, " +
-        "PublishContext, ArrangeWindows, SummarizeContext. No executable paths, URLs, shell commands, prose or markdown fences; " +
+        "PublishContext with contextRef \"synthetic.instrument.vega\", ArrangeWindows with layout \"side-by-side\", " +
+        "SummarizeContext with contextRef \"synthetic.exposure.vega\" and mode \"private\". No executable paths, URLs, shell commands, prose or markdown fences; " +
         "answer with JSON only.";
 
     private readonly ICloudModelTransport _transport;

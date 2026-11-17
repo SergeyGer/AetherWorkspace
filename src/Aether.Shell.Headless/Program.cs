@@ -245,7 +245,8 @@ public static class Program
                 step.Action,
                 step.State.ToString().ToLowerInvariant(),
                 step.Code)).ToArray() ?? [],
-            diagnostics);
+            diagnostics,
+            result.PlanningNotes);
     }
 
     private static async Task<ShellDiagnosticsOutput> ExportDiagnosticsAsync(
