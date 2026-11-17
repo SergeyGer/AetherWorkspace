@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows.Threading;
 
 namespace Aether.Shell;
@@ -19,39 +20,47 @@ public sealed record UiTelemetrySnapshot(
 }
 
 /// <summary>
-/// Samples WPF UI-thread scheduling intervals with a 16 ms dispatcher heartbeat while a workflow
-/// runs. A delayed tick means the UI thread was busy; this is a measurement only and never changes
-/// UI behavior or turns into a latency claim. Calendar/frame composition events are not claimed.
+/// Probes WPF UI-thread responsiveness while a workflow runs: a background pump enqueues a no-op
+/// dispatcher operation every 16 ms and records how long the UI thread took to process it. This is
+/// a measurement only, never a rendering/frame-rate claim, and it does not alter UI behavior.
 /// </summary>
 public sealed class UiFrameTelemetry
 {
     private const double LongFrameThresholdMs = 50.0;
-    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromMilliseconds(16);
+    private static readonly TimeSpan ProbeInterval = TimeSpan.FromMilliseconds(16);
 
-    private readonly List<double> _intervals = [];
-    private DispatcherTimer? _timer;
-    private DateTime? _lastTickUtc;
+    private readonly object _gate = new();
+    private readonly List<double> _latencies = [];
+    private Dispatcher? _dispatcher;
+    private CancellationTokenSource? _pumpCancellation;
+    private Task? _pumpTask;
 
     public void Start()
     {
-        StopTimer();
-        _intervals.Clear();
-        _lastTickUtc = null;
-        _timer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher.CurrentDispatcher)
+        StopPump();
+        lock (_gate)
         {
-            Interval = HeartbeatInterval,
-        };
-        _timer.Tick += OnTick;
-        _timer.Start();
+            _latencies.Clear();
+        }
+
+        _dispatcher = Dispatcher.CurrentDispatcher;
+        _pumpCancellation = new CancellationTokenSource();
+        _pumpTask = RunProbeAsync(_dispatcher, _pumpCancellation.Token);
     }
 
     public UiTelemetrySnapshot Stop(long commandDurationMs)
     {
-        StopTimer();
-        var process = System.Diagnostics.Process.GetCurrentProcess();
+        StopPump();
+        var process = Process.GetCurrentProcess();
         var workingSetMb = Math.Round(process.WorkingSet64 / 1024.0 / 1024.0, 1);
         var managedMemoryMb = Math.Round(GC.GetTotalMemory(forceFullCollection: false) / 1024.0 / 1024.0, 1);
-        if (_intervals.Count == 0)
+        double[] ordered;
+        lock (_gate)
+        {
+            ordered = _latencies.OrderBy(value => value).ToArray();
+        }
+
+        if (ordered.Length == 0)
         {
             return UiTelemetrySnapshot.Empty(commandDurationMs) with
             {
@@ -60,7 +69,6 @@ public sealed class UiFrameTelemetry
             };
         }
 
-        var ordered = _intervals.OrderBy(value => value).ToArray();
         return new UiTelemetrySnapshot(
             ordered.Length,
             Percentile(ordered, 50),
@@ -73,31 +81,54 @@ public sealed class UiFrameTelemetry
             managedMemoryMb);
     }
 
-    private void OnTick(object? sender, EventArgs e)
+    private async Task RunProbeAsync(Dispatcher dispatcher, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
-        if (_lastTickUtc is { } previous)
+        while (!cancellationToken.IsCancellationRequested)
         {
-            var interval = (now - previous).TotalMilliseconds;
-            if (interval is > 0 and < 10_000)
+            try
             {
-                _intervals.Add(interval);
+                await Task.Delay(ProbeInterval, cancellationToken).ConfigureAwait(false);
+                var stopwatch = Stopwatch.StartNew();
+                await dispatcher.InvokeAsync(() => { }, DispatcherPriority.Normal, cancellationToken).Task.ConfigureAwait(false);
+                stopwatch.Stop();
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    lock (_gate)
+                    {
+                        _latencies.Add(stopwatch.Elapsed.TotalMilliseconds);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+            catch (Exception)
+            {
+                // Measurement must never disturb the workflow.
+                return;
             }
         }
-
-        _lastTickUtc = now;
     }
 
-    private void StopTimer()
+    private void StopPump()
     {
-        if (_timer is null)
+        try
         {
-            return;
+            _pumpCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
         }
 
-        _timer.Stop();
-        _timer.Tick -= OnTick;
-        _timer = null;
+        _pumpCancellation?.Dispose();
+        _pumpCancellation = null;
+        _pumpTask = null;
+        _dispatcher = null;
     }
 
     private static double Percentile(double[] ordered, int percentile)

@@ -47,7 +47,8 @@ public class MeasurementToolingTests
         Assert.Contains("AETHER_UI_TELEMETRY_OUT", runner, StringComparison.Ordinal);
         Assert.Contains("SKIPPED_ENVIRONMENT", runner, StringComparison.Ordinal);
         Assert.Contains("p95FrameMs", runner, StringComparison.Ordinal);
-        Assert.Contains("DispatcherTimer", shell, StringComparison.Ordinal);
+        Assert.Contains("InvokeAsync", shell, StringComparison.Ordinal);
+        Assert.Contains("ProbeInterval", shell, StringComparison.Ordinal);
         Assert.Contains("WorkingSetMb", shell, StringComparison.Ordinal);
         Assert.Contains("100-cycle", doc, StringComparison.OrdinalIgnoreCase);
     }
