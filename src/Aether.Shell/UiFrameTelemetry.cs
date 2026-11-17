@@ -103,10 +103,6 @@ public sealed class UiFrameTelemetry
             {
                 return;
             }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
             catch (Exception)
             {
                 // Measurement must never disturb the workflow.
