@@ -28,11 +28,13 @@ public class HealthAuditSnapshotTests
         Assert.Equal(6, snapshot.MaxActionsPerPlan);
         Assert.Contains(Layouts.SideBySide, snapshot.SupportedLayouts);
         Assert.Equal(4, snapshot.Apps.Count);
-        Assert.Equal(6, snapshot.Contexts.Count);
+        Assert.Equal(7, snapshot.Contexts.Count);
         Assert.All(snapshot.Apps, app => Assert.Contains(app.Capabilities, capability => capability.Length > 0));
         var instrument = snapshot.Contexts.Single(entry => entry.ContextRef == "synthetic.instrument.northstar");
         Assert.Equal("fdcp.instrument".Replace("dcp", "dc3"), instrument.ContextType);
         Assert.Equal(Classification.Restricted, instrument.Classification);
+        var orin = snapshot.Contexts.Single(entry => entry.ContextRef == "synthetic.instrument.orin");
+        Assert.Equal(Classification.Internal, orin.Classification);
     }
 
     [Fact]
