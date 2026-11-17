@@ -117,6 +117,9 @@ public static class Program
             var workflowOptions = new WorkflowOrchestratorOptions
             {
                 MaxActionsPerPlan = options.MaxActions,
+                PlanningMode = options.Planner == "cloud"
+                    ? PlanGenerationMode.CloudPreferred
+                    : PlanGenerationMode.DeterministicPreferred,
                 Execution = new ExecutionOptions
                 {
                     MaxActionsPerPlan = options.MaxActions,

@@ -117,6 +117,47 @@ public sealed class AetherWorkflowOrchestrator
         var plannerProvider = "supplied-plan";
         var usedModel = false;
 
+        if (plan is null && _options.PlanningMode == PlanGenerationMode.CloudPreferred && _cloudPlanner is not null)
+        {
+            var cloudPreferred = await _cloudPlanner
+                .GeneratePlanAsync(new PlanningRequest(request.Command, classification.Classification, traceId), cancellationToken)
+                .ConfigureAwait(false);
+            if (cloudPreferred.Success && cloudPreferred.Plan is not null)
+            {
+                plan = cloudPreferred.Plan;
+                plannerProvider = cloudPreferred.Provider;
+                usedModel = cloudPreferred.UsedModel;
+            }
+            else
+            {
+                // Explicit LLM mode must not silently relabel a deterministic plan as model output.
+                var fallback = await _deterministicPlanner
+                    .GeneratePlanAsync(new PlanningRequest(request.Command, classification.Classification, traceId), cancellationToken)
+                    .ConfigureAwait(false);
+                if (fallback.Success && fallback.Plan is not null)
+                {
+                    plan = fallback.Plan;
+                    plannerProvider = fallback.Provider;
+                    usedModel = fallback.UsedModel;
+                }
+                else
+                {
+                    stopwatch.Stop();
+                    var denialCode = cloudPreferred.ErrorCode ?? fallback.ErrorCode ?? AetherErrorCodes.AiCommandUnsupported;
+                    AppendWorkflowAudit(traceId, classification, AuditOutcomes.Denied, denialCode, stopwatch.ElapsedMilliseconds);
+                    return WorkflowResult.Denied(
+                        traceId,
+                        classification.Classification,
+                        classification.ReasonCodes,
+                        denialCode,
+                        cloudPreferred.Message ?? fallback.Message ?? "The command could not be converted into an allowed plan.",
+                        cloudPreferred.Provider,
+                        usedModel: false,
+                        stopwatch.ElapsedMilliseconds);
+                }
+            }
+        }
+
         if (plan is null)
         {
             var deterministic = await _deterministicPlanner

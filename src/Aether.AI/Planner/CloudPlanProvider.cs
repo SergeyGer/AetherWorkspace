@@ -19,11 +19,15 @@ namespace Aether.AI.Planner;
 public sealed class CloudPlanProvider : IPlanGenerator
 {
     public const string PlannerPrompt =
-        "You are a planning adapter. Return ONLY a JSON object with this exact shape: " +
-        "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[{\"action\":\"LaunchApp\",\"appId\":\"sample.watchlist\"}]}. " +
-        "Rules: schemaVersion must be 1.0; 1-6 steps; every step has an \"action\" field from " +
-        "LaunchApp, PublishContext, ArrangeWindows, SummarizeContext, ShowStatus; no executable paths, URLs, " +
-        "shell commands, prose or markdown fences; answer with JSON only.";
+        "You are a bounded planning adapter for a synthetic desktop demo. Return ONLY a JSON object: " +
+        "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[...]}. " +
+        "Allowed actions and fields: " +
+        "LaunchApp requires appId (one of sample.watchlist, sample.risk, sample.chart); " +
+        "PublishContext requires contextRef (one of synthetic.instrument.vega, synthetic.exposure.vega) and classification PUBLIC; " +
+        "ArrangeWindows requires layout \"side-by-side\"; SummarizeContext requires mode \"private\". " +
+        "Produce exactly six steps in this order: LaunchApp sample.watchlist, LaunchApp sample.risk, LaunchApp sample.chart, " +
+        "PublishContext, ArrangeWindows, SummarizeContext. No executable paths, URLs, shell commands, prose or markdown fences; " +
+        "answer with JSON only.";
 
     private readonly ICloudModelTransport _transport;
     private readonly IEgressGateway _egressGateway;

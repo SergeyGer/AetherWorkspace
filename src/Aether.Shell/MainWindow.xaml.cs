@@ -91,6 +91,9 @@ public partial class MainWindow : Window
         var options = new WorkflowOrchestratorOptions
         {
             MaxActionsPerPlan = 6,
+            PlanningMode = PlannerCombo.SelectedIndex == 1
+                ? PlanGenerationMode.CloudPreferred
+                : PlanGenerationMode.DeterministicPreferred,
             Execution = new ExecutionOptions { MaxActionsPerPlan = 6, StepTimeout = TimeSpan.FromSeconds(20) },
         };
 
