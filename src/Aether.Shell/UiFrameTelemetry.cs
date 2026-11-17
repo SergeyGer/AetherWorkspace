@@ -1,8 +1,8 @@
-using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Aether.Shell;
 
-/// <summary>Sanitized UI frame/command telemetry for one workflow run (v1.1 AW-066).</summary>
+/// <summary>Sanitized UI responsiveness telemetry for one workflow run (v1.1 AW-066).</summary>
 public sealed record UiTelemetrySnapshot(
     int FrameCount,
     double P50FrameMs,
@@ -19,37 +19,35 @@ public sealed record UiTelemetrySnapshot(
 }
 
 /// <summary>
-/// Samples WPF render frame intervals while a workflow runs. This is measurement only:
-/// it never changes UI behavior and publishes percentiles rather than a latency claim.
+/// Samples WPF UI-thread scheduling intervals with a 16 ms dispatcher heartbeat while a workflow
+/// runs. A delayed tick means the UI thread was busy; this is a measurement only and never changes
+/// UI behavior or turns into a latency claim. Calendar/frame composition events are not claimed.
 /// </summary>
 public sealed class UiFrameTelemetry
 {
     private const double LongFrameThresholdMs = 50.0;
+    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromMilliseconds(16);
+
     private readonly List<double> _intervals = [];
-    private DateTime? _lastFrameUtc;
-    private bool _capturing;
+    private DispatcherTimer? _timer;
+    private DateTime? _lastTickUtc;
 
     public void Start()
     {
+        StopTimer();
         _intervals.Clear();
-        _lastFrameUtc = null;
-        if (_capturing)
+        _lastTickUtc = null;
+        _timer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher.CurrentDispatcher)
         {
-            return;
-        }
-
-        _capturing = true;
-        CompositionTarget.Rendering += OnRendering;
+            Interval = HeartbeatInterval,
+        };
+        _timer.Tick += OnTick;
+        _timer.Start();
     }
 
     public UiTelemetrySnapshot Stop(long commandDurationMs)
     {
-        if (_capturing)
-        {
-            CompositionTarget.Rendering -= OnRendering;
-            _capturing = false;
-        }
-
+        StopTimer();
         var process = System.Diagnostics.Process.GetCurrentProcess();
         var workingSetMb = Math.Round(process.WorkingSet64 / 1024.0 / 1024.0, 1);
         var managedMemoryMb = Math.Round(GC.GetTotalMemory(forceFullCollection: false) / 1024.0 / 1024.0, 1);
@@ -75,10 +73,10 @@ public sealed class UiFrameTelemetry
             managedMemoryMb);
     }
 
-    private void OnRendering(object? sender, EventArgs e)
+    private void OnTick(object? sender, EventArgs e)
     {
         var now = DateTime.UtcNow;
-        if (_lastFrameUtc is { } previous)
+        if (_lastTickUtc is { } previous)
         {
             var interval = (now - previous).TotalMilliseconds;
             if (interval is > 0 and < 10_000)
@@ -87,7 +85,19 @@ public sealed class UiFrameTelemetry
             }
         }
 
-        _lastFrameUtc = now;
+        _lastTickUtc = now;
+    }
+
+    private void StopTimer()
+    {
+        if (_timer is null)
+        {
+            return;
+        }
+
+        _timer.Stop();
+        _timer.Tick -= OnTick;
+        _timer = null;
     }
 
     private static double Percentile(double[] ordered, int percentile)

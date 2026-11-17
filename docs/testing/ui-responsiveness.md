@@ -1,13 +1,13 @@
 # UI responsiveness measurement (v1.1 AW-066)
 
-The WPF shell now samples render frame intervals and command duration while a workflow runs and
+The WPF shell samples WPF UI-thread scheduling intervals (16 ms dispatcher heartbeat) and command duration while a workflow runs and
 exposes sanitized telemetry (`UiTelemetryText` AutomationId and an optional JSONL file). This is a
 **measurement**, not a latency claim.
 
 ## Telemetry fields
 
-- `frames` — sampled WPF render frames during the run;
-- `p50/p95/p99/max` frame interval in ms; `long` = frames over 50 ms;
+- `frames` — sampled dispatcher heartbeat ticks during the run (UI-thread responsiveness proxy; not a rendering/CompositionTarget claim);
+- `p50/p95/p99/max` heartbeat interval in ms; `long` = intervals over 50 ms;
 - `command` — workflow duration in ms (from the shell result);
 - `ws` — shell process working set MB; `gc` — managed heap MB at completion;
 - trace id and planner/usedModel provenance are recorded by the optional JSONL writer
