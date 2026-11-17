@@ -129,7 +129,9 @@ public sealed partial class ShellUiAutomationTests
 
             for (var cycle = 1; cycle <= cycles; cycle++)
             {
-                WaitForElement(window, "RunButton", ElementTimeout).AsButton().Invoke();
+                var runButton = WaitForElement(window, "RunButton", ElementTimeout).AsButton();
+                await WaitForElementEnabledAsync(runButton, "RunButton", ElementTimeout);
+                runButton.Invoke();
                 var status = await WaitForTextAsync(
                     () => ReadTextBox(statusBox),
                     text => CountOccurrences(text, SuccessMarker) >= cycle || IsTerminalFailure(text),
@@ -183,6 +185,22 @@ public sealed partial class ShellUiAutomationTests
 
     [GeneratedRegex(@"frames=(?<frames>\d+)\s+p50=(?<p50>[\d.]+)ms\s+p95=(?<p95>[\d.]+)ms\s+p99=(?<p99>[\d.]+)ms\s+max=(?<max>[\d.]+)ms\s+long=(?<long>\d+)\s+command=(?<command>\d+)ms\s+ws=(?<ws>[\d.]+)MB\s+gc=(?<gc>[\d.]+)MB", RegexOptions.CultureInvariant)]
     private static partial Regex UiTelemetryPattern();
+
+    private static async Task WaitForElementEnabledAsync(AutomationElement element, string description, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            if (element.IsEnabled)
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), CancellationToken.None);
+        }
+
+        Assert.Fail($"The '{description}' control did not become enabled within {timeout.TotalSeconds:0}s.");
+    }
 
     private static int CountOccurrences(string text, string value)
     {
