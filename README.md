@@ -28,8 +28,11 @@ Track B (primary, **narrated English video**): an LLM proposes a plan under expl
 the policy-governed executor validates and runs it; typed context synchronizes three independent
 Windows apps over authenticated local IPC. The deterministic Track A path remains available with
 `usedModel=false`.
+
+▶ **[Watch the narrated demo on YouTube](https://youtu.be/CFJJZX-QcnU)** ·
+[MP4 in this repository](docs/assets/demo-hero.mp4) ·
 [Capture evidence](docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md) ·
-[narrated-video evidence](docs/testing/evidence/2026-11-18-v1.1-narrated-demo.md).
+[Narrated-video evidence](docs/testing/evidence/2026-11-18-v1.1-narrated-demo.md).
 
 ## Start here
 

@@ -1,5 +1,7 @@
 # AetherWorkspace narrated demo — voiceover script
 
+Published narrated demo: **https://youtu.be/CFJJZX-QcnU** (operator-approved, 2026-11-18).
+
 Final video structure: social-preview intro (≈12 s) → Track B interface capture (81.37 s) with
 crossfades → GitHub outro card. One continuous professional voiceover (synthetic neural TTS,
 English) with no deliberate gaps; the script below is the production source of truth.
