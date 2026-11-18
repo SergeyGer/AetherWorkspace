@@ -13,5 +13,7 @@
 | [ADR-009](ADR-009-public-only-cloud-policy.md) | v1.x cloud routing is PUBLIC-only; no INTERNAL/RESTRICTED cloud | Accepted |
 | [ADR-010](ADR-010-template-based-contract-studio.md) | Template-based contract studio uses reviewed drafts/apply, no schema writes | Accepted |
 | [ADR-011](ADR-011-reject-sanitized-internal-cloud-routing.md) | Reject sanitized INTERNAL cloud routing for v1.x; hard-disable the latent policy branch | Accepted |
+| [ADR-012](ADR-012-electron-adapter-no-go.md) | Electron adapter PoC: NO-GO for v1.x; measured footprint/IPC complexity | Accepted |
+| [ADR-013](ADR-013-no-broader-fdc3-surface.md) | Keep the bounded FDC3 subset; reject broader channels/contexts/intents/directory surfaces | Accepted |
 
 Format: Status, Date, Context, Decision, Consequences, Alternatives, Evidence.

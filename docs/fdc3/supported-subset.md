@@ -84,6 +84,23 @@ WPF samples through a **host-side, strict JSON projection**:
 - this is a presentation bridge for the demo chart, **not** a general FDC3 JavaScript adapter or a
   conformance claim. See [WebView2 chart sample](../demo/webview2-chart.md).
 
+## v1.5 scope decision — no broader surface (ADR-013)
+
+The v1.5 evaluation **rejects** broadening the runtime FDC3 surface for v1.x. Explicitly rejected:
+
+| Surface | Status |
+|---|---|
+| User/global channels, channel joining/listening | **Rejected** — only the single `default` app channel exists |
+| Intent listeners, arbitrary/third-party intent registration | **Rejected** — only the three declared intents |
+| Full FDC3 context catalogue / arbitrary context types | **Rejected** — only the documented bounded types |
+| App-directory federation, search, third-party directory interop | **Rejected** — bounded snapshot only |
+| Desktop Agent Bridge / external Desktop Agent interop | **Rejected** — no conformance or interoperable-runtime claim |
+| Conformance certification wording | **Rejected without independent evidence** |
+
+See [ADR-013](../adr/ADR-013-no-broader-fdc3-surface.md). Rejection is enforced by tests for unknown
+intents, context mismatch, unapproved preferred targets, unconfigured/non-default channels and the
+bounded snapshot projection.
+
 ## Versioning / compatibility
 
 - Envelope and payload schema versions: major version 1 accepted; other majors rejected.

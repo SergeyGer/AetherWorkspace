@@ -152,3 +152,11 @@ PUBLIC-only; the token vault is a local primitive, not a provider-path sanitizer
 is sent to a cloud provider, and no zero-leak/PII-guarantee or anonymization claim is made. The
 `AllowSanitizedInternal` policy flag is hard-disabled in the engine; re-enabling requires a new ADR
 and independent security evidence.
+
+## v1.5 extension scope
+
+- No Electron adapter is included (ADR-012: measured runtime footprint and duplicate typed-context
+  evidence make the PoC a no-go for v1.x). Revisit only with a specific unmet requirement.
+- The FDC3 runtime surface remains the declared bounded subset (ADR-013); user/global channels,
+  broader contexts/intents/listeners, directory federation and Desktop Agent Bridge are rejected.
+  No FDC3 conformance or external interoperability claim is made.
