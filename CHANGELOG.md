@@ -1,8 +1,23 @@
 # Changelog
 
-All notable changes to this reference implementation are recorded here. The project is
-pre-release; version labels follow the implementation plan milestones. There is no
-release tag yet.
+All notable changes to this reference implementation are recorded here. Version labels follow the
+implementation-plan milestones; release assets are published on GitHub Releases.
+
+## [v1.1.0] — Demo-ready (2026-11-18)
+
+Track B hero demo validated on a physical Windows 11 laptop, local capture/media pipeline, demo
+layout/process evidence, live LLM provenance, and the v1.0 measurement gaps resolved with honest
+evidence.
+
+- **Demo:** clean Track B capture (`cloud-plan`, `usedModel=true`, taskbar hidden, planner readable,
+  81.37 s H.264/1080p/yuv420p, 0 black intervals), hero assets under `docs/assets/`; Track A remains
+  deterministic.
+- **UI responsiveness:** 100-cycle physical report on `8375603` (command 3/8/10 ms p50/p95/p99,
+  zero threshold violations) — `docs/testing/evidence/2026-11-18-v1.1-ui-responsiveness.md`.
+- **WT matrix:** automated rows PASS; manual DPI/focus/topology/crash/privacy rows are
+  **FORMAL_EXCEPTION, not PASS**, tracked by #120 —
+  `docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`.
+- **Release details:** `docs/releases/v1.1.0.md`.
 
 ## [Unreleased] — v0.1.0 vertical slice (2026-11-14)
 
