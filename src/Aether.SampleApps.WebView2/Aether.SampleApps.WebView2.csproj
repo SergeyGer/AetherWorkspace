@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    v1.2 AW-057: independently launched WebView2-hosted chart sample. The host process is
+    separate from the WPF sample apps and receives the same broker-approved typed contexts.
+    This project is part of the solution so Windows CI builds it; Linux CI cross-builds it
+    (compilation only) and never launches WebView2.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Aether.SampleApps.WebView2</RootNamespace>
+    <AssemblyName>Aether.SampleApps.WebView2</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Broker.Client\Aether.Broker.Client.csproj" />
+    <ProjectReference Include="..\Aether.Contracts\Aether.Contracts.csproj" />
+    <ProjectReference Include="..\Aether.Security\Aether.Security.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared, already-tested sample-app plumbing; linked to keep the sample host independent. -->
+    <Compile Include="..\Aether.SampleApps\SampleRuntime.cs" Link="Shared\SampleRuntime.cs" />
+    <Compile Include="..\Aether.SampleApps\SampleUiOptions.cs" Link="Shared\SampleUiOptions.cs" />
+    <Compile Include="..\Aether.SampleApps\SampleDiagnostics.cs" Link="Shared\SampleDiagnostics.cs" />
+    <Compile Include="..\Aether.SampleApps\Fixtures.cs" Link="Shared\Fixtures.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="chart.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="chart.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="chart.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

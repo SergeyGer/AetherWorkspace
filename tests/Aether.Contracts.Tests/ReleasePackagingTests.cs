@@ -19,6 +19,7 @@ public class ReleasePackagingTests
         Assert.Contains("needs: [portable, windows-desktop]", workflow, StringComparison.Ordinal);
         Assert.Contains("Aether.Shell.exe", workflow, StringComparison.Ordinal);
         Assert.Contains("Aether.SampleApps.exe", workflow, StringComparison.Ordinal);
+        Assert.Contains("Aether.SampleApps.WebView2.exe", workflow, StringComparison.Ordinal);
         Assert.Contains("Aether.BrokerApp.exe", workflow, StringComparison.Ordinal);
         Assert.Contains("headless-binaries.zip", workflow, StringComparison.Ordinal);
         Assert.Contains("shell-headless", workflow, StringComparison.Ordinal);
@@ -50,6 +51,8 @@ public class ReleasePackagingTests
         Assert.Contains("Aether.BrokerApp.exe", launcher, StringComparison.Ordinal);
         Assert.Contains("Aether.Shell.exe", launcher, StringComparison.Ordinal);
         Assert.Contains("Aether.SampleApps.exe", launcher, StringComparison.Ordinal);
+        Assert.Contains("Aether.SampleApps.WebView2.exe", launcher, StringComparison.Ordinal);
+        Assert.Contains("WEBVIEW2_CHART_EXE=", launcher, StringComparison.Ordinal);
         Assert.Contains("WPF_SAMPLES_EXE=", launcher, StringComparison.Ordinal);
         Assert.Contains("--transport", launcher, StringComparison.Ordinal);
         Assert.Contains("--endpoint-file", launcher, StringComparison.Ordinal);

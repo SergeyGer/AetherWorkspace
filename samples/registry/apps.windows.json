@@ -107,6 +107,40 @@
       ]
     },
     {
+      "appId": "sample.chart.webview2",
+      "displayName": "Synthetic Bond Chart (WebView2)",
+      "launchable": true,
+      "executable": "{WEBVIEW2_CHART_EXE}",
+      "arguments": [
+        "--app",
+        "webview2-chart",
+        "--fixtures",
+        "{FIXTURES_DIR}"
+      ],
+      "workingDirectory": "{AETHER_HOME}",
+      "capabilities": [
+        "context.subscribe",
+        "context.publish",
+        "window.report"
+      ],
+      "allowedChannels": [
+        "default"
+      ],
+      "allowedContextTypes": [
+        "fdc3.instrument"
+      ],
+      "allowedClassifications": [
+        "PUBLIC",
+        "INTERNAL",
+        "RESTRICTED"
+      ],
+      "maxInstances": 1,
+      "launchTimeoutSeconds": 60,
+      "intents": [
+        "ViewChart"
+      ]
+    },
+    {
       "appId": "aether.shell",
       "displayName": "Aether Workspace Shell",
       "launchable": false,

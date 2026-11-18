@@ -10,7 +10,7 @@ customer data and no external service connectivity.
 | `fixtures/chart.json` | Deterministic synthetic yield series for the Chart sample |
 | `contexts/contexts.json` | Trusted context catalog: `fdc3.instrument`, `fdc3.organization` and `aether.exposure` payloads with explicit classifications (`PUBLIC`/`INTERNAL`/`RESTRICTED`) |
 | `registry/apps.json` | Allowlisted app manifest for the headless sample processes (Linux CI/E2E), including bounded FDC3 `intents` declarations |
-| `registry/apps.windows.json` | Allowlisted app manifest that launches the WPF sample windows on Windows |
+| `registry/apps.windows.json` | Allowlisted app manifest that launches the WPF sample windows and the independent WebView2 chart sample on Windows |
 
 ## Launch templates and tokens
 
@@ -23,6 +23,7 @@ and are **never** derived from model output. The demo scripts supply:
 - `{AETHER_HOME}` — repository root (working directory and allowed executable root)
 - `{FIXTURES_DIR}` — `samples/fixtures`
 - `{WPF_SAMPLES_EXE}` — built `Aether.SampleApps` executable (Windows registry only)
+- `{WEBVIEW2_CHART_EXE}` — built `Aether.SampleApps.WebView2` executable (Windows registry only)
 
 The broker resolves the executable in PATH or as an absolute path, canonicalizes it, and
 refuses to launch it unless it is under a configured `--allowed-root`. Sample apps must

@@ -58,7 +58,7 @@ try {
         }
     }
 
-    $leaked = @(Get-Process Aether.SampleApps, Aether.Shell -ErrorAction SilentlyContinue |
+    $leaked = @(Get-Process Aether.SampleApps, Aether.SampleApps.WebView2, Aether.Shell -ErrorAction SilentlyContinue |
         Where-Object { $_.StartTime -ge $started })
 }
 catch {

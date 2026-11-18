@@ -21,6 +21,7 @@ $headlessShell = Join-Path $root 'shell-headless\Aether.Shell.Headless.exe'
 $registry = Join-Path $root 'samples\registry\apps.windows.json'
 $contexts = Join-Path $root 'samples\contexts\contexts.json'
 $samples = Join-Path $root 'samples\app\Aether.SampleApps.exe'
+$webview2Chart = Join-Path $root 'samples\webview2\Aether.SampleApps.WebView2.exe'
 $fixtures = Join-Path $root 'samples\fixtures'
 $endpointFile = Join-Path $root 'endpoint.json'
 $layoutStore = Join-Path $root 'layouts'
@@ -28,7 +29,7 @@ $logs = Join-Path $root 'logs'
 $diagnostics = Join-Path $root 'diagnostics'
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 
-foreach ($required in @($broker, $headlessShell, $samples, $registry, $contexts)) {
+foreach ($required in @($broker, $headlessShell, $samples, $webview2Chart, $registry, $contexts)) {
     if (-not (Test-Path -LiteralPath $required)) {
         throw "Bundle is incomplete: missing '$required'. Re-extract the release archive."
     }
@@ -48,6 +49,7 @@ $brokerProcess = Start-Process -FilePath $broker -WorkingDirectory $root -PassTh
     '--registry', $registry,
     '--contexts', $contexts,
     '--token', "WPF_SAMPLES_EXE=$samples",
+    '--token', "WEBVIEW2_CHART_EXE=$webview2Chart",
     '--token', "FIXTURES_DIR=$fixtures",
     '--token', "AETHER_HOME=$root",
     '--allowed-root', $root,
@@ -96,7 +98,7 @@ finally {
         # Stop the broker and any WPF sample children launched for this test run.
         $started = $brokerProcess.StartTime
         if (-not $brokerProcess.HasExited) { Stop-Process -Id $brokerProcess.Id -Force -ErrorAction SilentlyContinue }
-        Get-Process Aether.SampleApps -ErrorAction SilentlyContinue |
+        Get-Process Aether.SampleApps, Aether.SampleApps.WebView2 -ErrorAction SilentlyContinue |
             Where-Object { $_.StartTime -ge $started } |
             ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
     }

@@ -70,6 +70,20 @@ trace/span id, timestamp).
   certification.
 - A general-purpose FDC3 runtime or JavaScript adapter.
 
+## WebView2 host bridge (v1.2, bounded)
+
+The v1.2 WebView2 chart sample receives the same catalog-mediated `fdc3.instrument` contexts as the
+WPF samples through a **host-side, strict JSON projection**:
+
+- payload fields are `type`, `schemaVersion`, `ticker`, `name`, `classification`, `traceId` and the
+  local synthetic series; unknown fields are rejected;
+- only the bounded demo tickers `NRST`, `VEGA`, `ORIN` are accepted by the C# host and the local
+  JavaScript renderer;
+- JavaScript runs only from local `chart.html`/`chart.js` (no remote origin, host objects or network
+  fetch), validates the same allowlist and acknowledges the render back to .NET;
+- this is a presentation bridge for the demo chart, **not** a general FDC3 JavaScript adapter or a
+  conformance claim. See [WebView2 chart sample](../demo/webview2-chart.md).
+
 ## Versioning / compatibility
 
 - Envelope and payload schema versions: major version 1 accepted; other majors rejected.

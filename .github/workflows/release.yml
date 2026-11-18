@@ -92,6 +92,22 @@ jobs:
             $version = $env:GITHUB_REF_NAME
           }
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+      - name: Ensure Microsoft Edge WebView2 Runtime
+        shell: pwsh
+        run: |
+          $roots = @(
+            (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\EdgeWebView\Application'),
+            (Join-Path $env:ProgramFiles 'Microsoft\EdgeWebView\Application')
+          )
+          if (@($roots | Where-Object { Test-Path -LiteralPath $_ -PathType Container }).Count -eq 0) {
+            $installer = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebView2Setup.exe'
+            Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=2124701' -OutFile $installer -UseBasicParsing
+            Start-Process -FilePath $installer -ArgumentList @('/silent', '/install') -Wait
+            if (@($roots | Where-Object { Test-Path -LiteralPath $_ -PathType Container }).Count -eq 0) {
+              throw 'WebView2 Runtime installation failed; the desktop bundle tests require it for the v1.2 chart.'
+            }
+          }
+
       - name: Build solution (warnings are errors)
         shell: pwsh
         run: dotnet build AetherWorkspace.slnx -c Release
@@ -111,6 +127,7 @@ jobs:
           dotnet publish src/Aether.Shell -c Release -o "$desktop/shell" -v q
           dotnet publish src/Aether.Shell.Headless -c Release -o "$desktop/shell-headless" -v q
           dotnet publish src/Aether.SampleApps -c Release -o "$desktop/samples/app" -v q
+          dotnet publish src/Aether.SampleApps.WebView2 -c Release -o "$desktop/samples/webview2" -v q
           New-Item -ItemType Directory -Force -Path "$desktop/samples/registry", "$desktop/samples/contexts", "$desktop/samples/fixtures" | Out-Null
           Copy-Item samples/registry/apps.windows.json -Destination "$desktop/samples/registry/apps.windows.json"
           Copy-Item samples/contexts/contexts.json -Destination "$desktop/samples/contexts/contexts.json"
@@ -121,6 +138,7 @@ jobs:
             "$desktop/broker/Aether.BrokerApp.exe",
             "$desktop/shell/Aether.Shell.exe",
             "$desktop/samples/app/Aether.SampleApps.exe",
+            "$desktop/samples/webview2/Aether.SampleApps.WebView2.exe",
             "$desktop/samples/registry/apps.windows.json",
             "$desktop/shell-headless/Aether.Shell.Headless.exe",
             "$desktop/README.txt",

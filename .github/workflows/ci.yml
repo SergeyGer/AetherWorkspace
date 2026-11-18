@@ -127,6 +127,23 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Ensure Microsoft Edge WebView2 Runtime
+        shell: pwsh
+        run: |
+          $roots = @(
+            (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\EdgeWebView\Application'),
+            (Join-Path $env:ProgramFiles 'Microsoft\EdgeWebView\Application')
+          )
+          if (@($roots | Where-Object { Test-Path -LiteralPath $_ -PathType Container }).Count -eq 0) {
+            $installer = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebView2Setup.exe'
+            Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=2124701' -OutFile $installer -UseBasicParsing
+            Start-Process -FilePath $installer -ArgumentList @('/silent', '/install') -Wait
+            if (@($roots | Where-Object { Test-Path -LiteralPath $_ -PathType Container }).Count -eq 0) {
+              throw 'WebView2 Runtime installation did not create an EdgeWebView\Application directory.'
+            }
+          }
+          Write-Host 'Microsoft Edge WebView2 Runtime is available for the UI lane.'
+
       - name: Build solution and Windows UI test projects
         run: |
           if (-not (Test-Path 'tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj')) {

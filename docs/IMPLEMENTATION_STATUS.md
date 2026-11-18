@@ -188,6 +188,13 @@ review. Hero artifacts: `docs/assets/demo-hero.mp4`, `docs/assets/demo-preview.g
 PASS and the manual DPI/focus/topology/crash/privacy rows as **formal exceptions, not PASS**, tracked
 in #120 — evidence `docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`.
 
+**v1.2 WebView2 chart implementation (in review, 2026-11-18):** independent
+`Aether.SampleApps.WebView2` host process, local JS chart with no network, strict
+host→JavaScript projection of approved `fdc3.instrument` contexts, all three tickers, JS render
+acknowledgements, forced-fallback test, Windows named-pipe E2E and packaging/CI wiring. Evidence
+will land after the required CI and physical Windows 11 run. See
+`docs/demo/webview2-chart.md`.
+
 A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
 measurement and Track B capture/build/validate:
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.

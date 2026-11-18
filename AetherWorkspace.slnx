@@ -12,6 +12,7 @@
     <Project Path="src/Aether.Execution/Aether.Execution.csproj" />
     <Project Path="src/Aether.SampleApps.Headless/Aether.SampleApps.Headless.csproj" />
     <Project Path="src/Aether.SampleApps/Aether.SampleApps.csproj" />
+    <Project Path="src/Aether.SampleApps.WebView2/Aether.SampleApps.WebView2.csproj" />
     <Project Path="src/Aether.Security/Aether.Security.csproj" />
     <Project Path="src/Aether.Shell.Headless/Aether.Shell.Headless.csproj" />
     <Project Path="src/Aether.Shell/Aether.Shell.csproj" />
