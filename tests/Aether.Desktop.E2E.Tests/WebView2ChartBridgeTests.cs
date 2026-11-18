@@ -89,7 +89,7 @@ public sealed class WebView2ChartBridgeTests
                 window,
                 "WebView2BridgeStatus",
                 text => text.Contains("ack " + context.Ticker, StringComparison.Ordinal)
-                        && text.Contains("trace " + context.TraceId, StringComparison.Ordinal)
+                        && text.Contains("classification " + context.Classification, StringComparison.Ordinal)
                         && text.Contains("JS points ", StringComparison.Ordinal),
                 $"JS render acknowledgement for {context.Ticker}",
                 harness);
