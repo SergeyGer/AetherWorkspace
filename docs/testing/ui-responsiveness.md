@@ -6,7 +6,7 @@ exposes sanitized telemetry (`UiTelemetryText` AutomationId and an optional JSON
 
 ## Telemetry fields
 
-- `frames` — sampled dispatcher queue-latency probes during the run (UI-thread responsiveness proxy; not a rendering/CompositionTarget claim);
+- `frames` — sampled dispatcher queue-latency probes during the run (UI-thread responsiveness proxy; not a rendering/CompositionTarget claim); steady-state cycles that complete faster than a probe may report `sampleUnavailable`, but command/memory values are still recorded for all 100 cycles;
 - `p50/p95/p99/max` heartbeat interval in ms; `long` = intervals over 50 ms;
 - `command` — workflow duration in ms (from the shell result);
 - `ws` — shell process working set MB; `gc` — managed heap MB at completion;

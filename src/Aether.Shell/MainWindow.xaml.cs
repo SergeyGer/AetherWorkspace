@@ -308,9 +308,16 @@ public partial class MainWindow : Window
 
     private void RenderTelemetry(UiTelemetrySnapshot? telemetry)
     {
-        if (telemetry is null || telemetry.FrameCount == 0)
+        if (telemetry is null)
         {
             UiTelemetryText.Text = "ui telemetry: no frames captured";
+            return;
+        }
+
+        if (telemetry.FrameCount == 0)
+        {
+            UiTelemetryText.Text = FormattableString.Invariant(
+                $"ui telemetry: no frames captured command={telemetry.CommandDurationMs}ms ws={telemetry.WorkingSetMb:0.#}MB gc={telemetry.ManagedMemoryMb:0.#}MB");
             return;
         }
 
