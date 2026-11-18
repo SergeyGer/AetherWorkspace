@@ -9,7 +9,7 @@ can be overridden in `.env` without code changes.
 |---|---|---|---|---|
 | OpenAI | `gpt-4o-mini` | cloud planner/adapter baseline | cheapest widely-available capable tier (verify current list price before runs) | Cheaper than mini/flagship variants for short planning/summarization calls; sufficient for the bounded plan grammar. Override with a newer mini/nano tier only after the evaluation shows a quality gain that justifies cost |
 | Google Gemini | `gemini-3.1-flash-lite` | cloud planner/adapter alternative | **$0.25 / $1.50** — see [Gemini API pricing (Nov 2026)](https://www.morphllm.com/gemini-api-pricing) | `gemini-2.5-flash-lite` ($0.10/$0.40) was closed to new API users in November 2026 (live 404 from the provider), so the cheapest available tier was selected after a live availability check; `gemini-3.5-flash-lite` ($0.30/$2.50) is the provider-recommended fallback |
-| Local (Ollama-compatible) | `qwen2.5:3b` | offline/private deterministic-adjacent path | free (local hardware) | Small memory footprint (runs on CPU/laptop GPU); `llama3.2:3b` is an equivalent fallback. Quality is measured, not assumed |
+| Local (Ollama-compatible) | `qwen2.5:7b` | offline/private model path | free (local hardware) | Apache-2.0 profile with pinned model layer digest (see [local profile](local-model-profile-qwen2.5-7b.md)); ~4.68 GB weights, CPU/GPU capable. `qwen2.5:3b` is **not** used as the supported profile because its Ollama licence is the Qwen Research License (non-commercial), not Apache-2.0 |
 
 ## Why these are "optimal by cost"
 

@@ -446,3 +446,11 @@ boundaries, §7 privacy/egress, §8 security/audit); [Implementation & Release P
 This threat model is a living engineering document. It supersedes no release gate by
 itself and must be read with the limitations page; absence of a listed threat is not
 evidence that the threat is impossible.
+
+## Credential sources (v1.3)
+
+The default secret source remains explicit environment/`.env` injection. An optional Windows
+Credential Manager adapter reads Generic credentials named `AetherWorkspace/<VARIABLE_NAME>`; it
+never writes credentials, never returns them in diagnostics and rejects the source on non-Windows
+hosts. Provider configuration stores only variable names, validates endpoints (HTTPS for cloud,
+loopback-only for local inference; no silent brand replacement) and never logs secret values.

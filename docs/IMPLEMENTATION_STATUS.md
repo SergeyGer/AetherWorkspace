@@ -195,6 +195,14 @@ acknowledgements, forced-fallback test, Windows named-pipe E2E and packaging/CI 
 will land after the required CI and physical Windows 11 run. See
 `docs/demo/webview2-chart.md`.
 
+**v1.3 Hybrid AI implementation (in review, 2026-11-18):** per-capability provider catalog
+(`AETHER_PLANNER_PROVIDER` / `AETHER_SUMMARY_PROVIDER`, fallback `AETHER_MODEL_PROVIDER`) with
+fail-closed validation, local planning route, optional Windows Credential Manager secret source,
+supported Apache-2.0 local profile (`qwen2.5:7b`, pinned Ollama layer), 120-item labelled gold corpus,
+extended evaluation harness (semantic/denial accuracy, repeated-trial latency percentiles, labelled
+cost estimates, hardware fingerprint, explicit TTFT deviation) and CI deterministic-baseline smoke.
+Live provider and physical local-model reports are still required for #88/#95 closure.
+
 A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
 measurement and Track B capture/build/validate:
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.

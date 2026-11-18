@@ -83,12 +83,11 @@ public partial class MainWindow : Window
         _orchestrator = BuildOrchestrator(_client);
     }
 
-    private static ICloudModelTransport CreateCloudTransportFromEnvironment()
+    private static ICloudModelTransport CreateCloudTransport(ModelProviderSettings settings)
     {
         // Match the headless provider resolution: OPENAI_* by default, GEMINI_* for Gemini, with the
         // generic AETHER_CLOUD_* names still accepted as endpoint/model fallbacks by the adapter.
-        var settings = ModelProviderSettings.FromEnvironment();
-        var secrets = new EnvironmentSecretProvider();
+        var secrets = SecretProviderFactory.Create();
         return settings.ProviderId == "gemini"
             ? new GeminiCloudModelTransport(
                 secrets,
@@ -109,7 +108,25 @@ public partial class MainWindow : Window
         var egressGateway = new EgressGateway(policyEngine, _auditSink);
         var detector = new RuleBasedSensitiveEntityDetector();
         var classifier = new SourceFirstClassifier([detector]);
-        var summaryService = new SummaryService(new LocalDeterministicSummaryProvider(detector));
+        var providerCatalog = ModelProviderCatalog.FromEnvironment();
+        var summarySettings = providerCatalog.Summarization;
+        ISummaryProvider localSummary = summarySettings.ProviderId == "local" && summarySettings.IsValid
+            ? new LocalModelSummaryProvider(
+                new LoopbackLocalModelTransport(summarySettings.ReadEndpoint(), summarySettings.Model),
+                egressGateway)
+            : new LocalDeterministicSummaryProvider(detector);
+        ISummaryProvider? cloudSummary = summarySettings.IsCloud
+            && summarySettings.IsValid
+            && CloudConsentCheck.IsChecked == true
+                ? new CloudSummaryProvider(
+                    CreateCloudTransport(summarySettings),
+                    egressGateway,
+                    new PlanProviderOptions(CloudEnabled: true, CloudConsentGranted: true))
+                : null;
+        var summaryService = new SummaryService(
+            localSummary,
+            cloudSummary,
+            cloudSummary is null ? SummaryServiceOptions.LocalOnly : new SummaryServiceOptions(PreferCloudForPublic: true));
         var validator = new ActionPlanValidator(new ActionPlanValidationOptions { MaxActions = 6 });
         var options = new WorkflowOrchestratorOptions
         {
@@ -120,19 +137,31 @@ public partial class MainWindow : Window
             Execution = new ExecutionOptions { MaxActionsPerPlan = 6, StepTimeout = TimeSpan.FromSeconds(20) },
         };
 
-        IPlanGenerator? cloudPlanner = null;
-        if (CloudConsentCheck.IsChecked == true)
+        IPlanGenerator? modelPlanner = null;
+        if (PlannerCombo.SelectedIndex == 1)
         {
-            cloudPlanner = new CloudPlanProvider(
-                CreateCloudTransportFromEnvironment(),
-                egressGateway,
-                new PlanProviderOptions(CloudEnabled: true, CloudConsentGranted: true));
+            var plannerSettings = providerCatalog.Planner;
+            if (plannerSettings.ProviderId == "local" && plannerSettings.IsValid)
+            {
+                modelPlanner = new LocalModelPlanProvider(
+                    new LoopbackLocalModelTransport(),
+                    egressGateway);
+            }
+            else if (plannerSettings.IsCloud
+                     && plannerSettings.IsValid
+                     && CloudConsentCheck.IsChecked == true)
+            {
+                modelPlanner = new CloudPlanProvider(
+                    CreateCloudTransport(plannerSettings),
+                    egressGateway,
+                    new PlanProviderOptions(CloudEnabled: true, CloudConsentGranted: true));
+            }
         }
 
         return new AetherWorkflowOrchestrator(
             classifier,
             new DeterministicCommandPlanner(),
-            cloudPlanner,
+            modelPlanner,
             new BrokerClientWorkflowBroker(client),
             summaryService,
             validator,

@@ -78,9 +78,9 @@ public sealed class ShellOptions
                     break;
                 case "--planner":
                     options.Planner = NextValue();
-                    if (options.Planner is not ("deterministic" or "cloud"))
+                    if (options.Planner is not ("deterministic" or "cloud" or "local"))
                     {
-                        throw new ArgumentException("--planner must be 'deterministic' or 'cloud'.");
+                        throw new ArgumentException("--planner must be 'deterministic', 'cloud' or 'local'.");
                     }
 
                     break;
@@ -151,7 +151,7 @@ public sealed class ShellOptions
 
         Options:
           --classification <class>  PUBLIC | INTERNAL | RESTRICTED | UNKNOWN (trusted source label).
-          --planner <kind>          deterministic (default) | cloud (opt-in adapter behind egress policy).
+          --planner <kind>          deterministic (default) | cloud (opt-in cloud adapter) | local (loopback model).
           --cloud-enabled           Enable cloud mode (still requires consent and an allowed classification).
           --cloud-consent           Grant explicit consent for cloud processing.
           --policy <path>           Load a trusted policy JSON document (default built-in policy).

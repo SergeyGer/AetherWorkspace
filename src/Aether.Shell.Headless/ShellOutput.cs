@@ -69,4 +69,7 @@ public sealed record ShellProvidersOutput(
     string? ModelName = null,
     string RouteKind = "DeterministicLocal",
     string? RouteReason = null,
-    bool CloudAttemptAllowed = false);
+    bool CloudAttemptAllowed = false,
+    string? PlannerProvider = null,
+    string? SummaryProvider = null,
+    string? ProviderConfigurationError = null);

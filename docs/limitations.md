@@ -132,3 +132,15 @@ described as verified. Automated rows and the 100-cycle UI measurement pass are 
   is implemented and stable `AW-` ids are planning identifiers, not GitHub issue numbers.
 - English is used for code, tests and documentation; the reference demo data is
   synthetic and fictitious.
+
+## v1.3 Hybrid AI limits (2026-11-18)
+
+- The supported local profile is `qwen2.5:7b` via Ollama (Apache-2.0; pinned layer digest). The
+  weights are not bundled and local inference was not measured on the CI host; physical
+  memory/latency values are only claimed from the operator measurement script/report.
+- The evaluation harness reports **TTFT as unavailable** for the current non-streaming adapters; this
+  is an explicit deviation, not a fabricated latency. Latency/token/cost values are labelled
+  estimates unless produced by a provider-billing export.
+- Cloud remains PUBLIC-only with consent; INTERNAL sanitized cloud routing is the v1.4 decision,
+  not part of v1.3. The local endpoint is validated loopback-only; a loopback service is not
+  automatically air-gapped.
