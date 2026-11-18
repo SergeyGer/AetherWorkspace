@@ -22,7 +22,7 @@ reference live in the **[Wiki](https://github.com/SergeyGer/AetherWorkspace/wiki
 
 ## See it working
 
-[![AetherWorkspace Track B demo preview](docs/assets/demo-preview.gif)](docs/assets/demo-hero.mp4)
+[![AetherWorkspace Track B demo preview](docs/assets/demo-preview.gif)](https://youtu.be/CFJJZX-QcnU)
 
 Track B (primary, **narrated English video**): an LLM proposes a plan under explicit PUBLIC consent;
 the policy-governed executor validates and runs it; typed context synchronizes three independent
