@@ -12,6 +12,8 @@ produced by the same local capture harness (`tools/demo/`); captions come from `
 
 ## Delivery targets
 
+**Published (2026-11-18):** narrated English demo on YouTube — https://youtu.be/CFJJZX-QcnU.
+
 **Delivered (2026-11-18):** clean Track B physical capture passed the full demo gate with the
 taskbar hidden and the planner label readable
 ([evidence](../testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md)); hero artifacts are

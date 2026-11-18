@@ -33,6 +33,10 @@ Do not hand-edit it; regenerate after a coverage measurement.
 
 ## Demo media (v1.1)
 
+**Published narrated demo:** [YouTube — AetherWorkspace Track B](https://youtu.be/CFJJZX-QcnU)
+(English synthetic voiceover). The repository MP4 is the same final media derived from the validated
+capture.
+
 | File | Description | SHA-256 |
 |---|---|---|
 | `demo-hero.mp4` | **Narrated final hero** (English neural voiceover, social-preview intro, 1 s crossfades, GitHub outro; H.264 1080p30 + AAC 48 kHz, 93.37 s) | `81a50060edf3ce59de9a894eae239669a35f47471efba005bc3028f209ccdc16` |

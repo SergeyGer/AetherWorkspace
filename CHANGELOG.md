@@ -7,7 +7,8 @@ implementation-plan milestones; release assets are published on GitHub Releases.
 
 Presentation patch on top of v1.1.0 (no runtime/contract changes).
 
-- English narrated Track B hero: social-preview intro, continuous synthetic professional voiceover,
+- English narrated Track B hero published on YouTube: https://youtu.be/CFJJZX-QcnU
+- Composition: social-preview intro, continuous synthetic professional voiceover,
   1 s crossfades, final spoken GitHub link and QR outro; 93.37 s, AAC 48 kHz.
 - Clean capture rebuild from the same raw recording; captions clamped to scene boundaries (no
   overlap); validation PASS.
