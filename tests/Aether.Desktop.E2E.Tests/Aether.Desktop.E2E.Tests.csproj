@@ -50,5 +50,6 @@
     <ProjectReference Include="..\..\src\Aether.BrokerApp\Aether.BrokerApp.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Aether.SampleApps.Headless\Aether.SampleApps.Headless.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Aether.SampleApps\Aether.SampleApps.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Aether.SampleApps.WebView2\Aether.SampleApps.WebView2.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

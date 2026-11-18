@@ -25,9 +25,9 @@ public sealed class SampleUiOptions
             }
         }
 
-        if (app is not ("watchlist" or "risk" or "chart"))
+        if (app is not ("watchlist" or "risk" or "chart" or "webview2-chart"))
         {
-            throw new ArgumentException("--app must be one of: watchlist, risk, chart.");
+            throw new ArgumentException("--app must be one of: watchlist, risk, chart, webview2-chart.");
         }
 
         return new SampleUiOptions
@@ -37,5 +37,5 @@ public sealed class SampleUiOptions
         };
     }
 
-    public string AppId => "sample." + App;
+    public string AppId => App == "webview2-chart" ? "sample.chart.webview2" : "sample." + App;
 }

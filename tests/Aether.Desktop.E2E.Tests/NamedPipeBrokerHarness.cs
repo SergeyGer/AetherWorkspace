@@ -108,7 +108,8 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         string testName,
         CancellationToken cancellationToken = default,
         bool useWindowsRegistry = false,
-        string? wpfSamplesExe = null)
+        string? wpfSamplesExe = null,
+        string? webView2ChartExe = null)
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -139,7 +140,8 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
                     childLogDirectory,
                     layoutStoreDirectory,
                     useWindowsRegistry,
-                    wpfSamplesExe),
+                    wpfSamplesExe,
+                    webView2ChartExe),
             };
             if (!process.Start())
             {
@@ -308,7 +310,8 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         string childLogDirectory,
         string layoutStoreDirectory,
         bool useWindowsRegistry,
-        string? wpfSamplesExe)
+        string? wpfSamplesExe,
+        string? webView2ChartExe)
     {
         var (fileName, prefixAssembly) = DesktopExecutableLocator.ResolveBrokerHost();
         var startInfo = new ProcessStartInfo
@@ -337,6 +340,11 @@ internal sealed class NamedPipeBrokerHarness : IAsyncDisposable
         if (!string.IsNullOrWhiteSpace(wpfSamplesExe))
         {
             AddArgument(startInfo, "--token", "WPF_SAMPLES_EXE=" + wpfSamplesExe);
+        }
+
+        if (!string.IsNullOrWhiteSpace(webView2ChartExe))
+        {
+            AddArgument(startInfo, "--token", "WEBVIEW2_CHART_EXE=" + webView2ChartExe);
         }
 
         foreach (var allowedRoot in TestData.AllowedExecutableRoots())

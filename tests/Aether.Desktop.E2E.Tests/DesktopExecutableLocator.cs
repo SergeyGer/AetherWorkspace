@@ -18,6 +18,7 @@ internal static class DesktopExecutableLocator
     private const string ShellExecutableOverrideVariable = "AETHER_SHELL_EXE";
     private const string BrokerExecutableOverrideVariable = "AETHER_BROKER_EXE";
     private const string WpfSamplesOverrideVariable = "AETHER_WPF_SAMPLES_EXE";
+    private const string WebView2ChartOverrideVariable = "AETHER_WEBVIEW2_CHART_EXE";
 
     /// <summary>Resolves the WPF shell host executable.</summary>
     public static string ResolveShell()
@@ -67,6 +68,33 @@ internal static class DesktopExecutableLocator
             throw new FileNotFoundException(
                 $"The compiled WPF sample apps were not found at '{path}'. Build src/Aether.SampleApps for the "
                 + $"'{TestRepo.Configuration}' configuration first (or set {WpfSamplesOverrideVariable}).",
+                path);
+        }
+
+        return path;
+    }
+
+    /// <summary>Resolves the independently launched WebView2 chart host executable.</summary>
+    public static string ResolveWebView2Chart()
+    {
+        var overridePath = ResolveOverride(WebView2ChartOverrideVariable);
+        if (overridePath is not null)
+        {
+            return overridePath;
+        }
+
+        var path = TestRepo.PathTo(
+            "src",
+            "Aether.SampleApps.WebView2",
+            "bin",
+            TestRepo.Configuration,
+            "net10.0-windows",
+            "Aether.SampleApps.WebView2.exe");
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException(
+                $"The compiled WebView2 chart host was not found at '{path}'. Build src/Aether.SampleApps.WebView2 for the "
+                + $"'{TestRepo.Configuration}' configuration first (or set {WebView2ChartOverrideVariable}).",
                 path);
         }
 

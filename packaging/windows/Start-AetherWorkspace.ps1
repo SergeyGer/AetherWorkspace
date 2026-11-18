@@ -17,6 +17,7 @@ $root = $PSScriptRoot
 $broker = Join-Path $root 'broker\Aether.BrokerApp.exe'
 $shell = Join-Path $root 'shell\Aether.Shell.exe'
 $samples = Join-Path $root 'samples\app\Aether.SampleApps.exe'
+$webview2Chart = Join-Path $root 'samples\webview2\Aether.SampleApps.WebView2.exe'
 $registry = Join-Path $root 'samples\registry\apps.windows.json'
 $contexts = Join-Path $root 'samples\contexts\contexts.json'
 $fixtures = Join-Path $root 'samples\fixtures'
@@ -24,7 +25,7 @@ $endpointFile = Join-Path $root 'endpoint.json'
 $layoutStore = Join-Path $root 'layouts'
 $childLogs = Join-Path $root 'logs'
 
-foreach ($required in @($broker, $shell, $samples, $registry, $contexts)) {
+foreach ($required in @($broker, $shell, $samples, $webview2Chart, $registry, $contexts)) {
     if (-not (Test-Path -LiteralPath $required)) {
         throw "Bundle is incomplete: missing '$required'. Re-extract the release archive."
     }
@@ -39,6 +40,7 @@ $brokerProcess = Start-Process -FilePath $broker -WorkingDirectory $root -PassTh
     '--registry', $registry,
     '--contexts', $contexts,
     '--token', "WPF_SAMPLES_EXE=$samples",
+    '--token', "WEBVIEW2_CHART_EXE=$webview2Chart",
     '--token', "FIXTURES_DIR=$fixtures",
     '--token', "AETHER_HOME=$root",
     '--allowed-root', $root,

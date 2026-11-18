@@ -14,6 +14,9 @@ public static class TestData
 {
     public static readonly string[] SampleAppIds = ["sample.watchlist", "sample.risk", "sample.chart"];
 
+    /// <summary>v1.2 independently launched WebView2 chart sample (Windows registry only).</summary>
+    public const string WebView2ChartAppId = "sample.chart.webview2";
+
     public static string AetherHome => TestRepo.Root;
 
     public static string FixturesDirectory => TestRepo.PathTo("samples", "fixtures");

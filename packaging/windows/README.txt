@@ -3,15 +3,21 @@ AetherWorkspace — Windows x64 desktop reference bundle
 
 WHAT THIS IS
   A runnable reference desktop implementation: WPF shell, three synthetic WPF sample
-  applications (Watchlist, Risk, Chart) and the local Aether.BrokerApp. All data is
-  synthetic; this is not production software.
+  applications (Watchlist, Risk, Chart), an independently launched WebView2 chart sample,
+  and the local Aether.BrokerApp. All data is synthetic; this is not production software.
 
 PREREQUISITES
   - Windows 11 x64 (Windows 10 may work but is not the reference target).
   - .NET 10 Desktop Runtime (x64) for the framework-dependent build in this bundle:
     https://dotnet.microsoft.com/download/dotnet/10.0
   - A local interactive desktop session (no RDP/headless requirement beyond normal UI).
-  - No network listener is opened; everything is local IPC over Windows named pipes.
+  - Microsoft Edge WebView2 Evergreen Runtime for the optional WebView2 chart sample
+    (`samples\webview2\Aether.SampleApps.WebView2.exe`). Windows 11 normally provides it;
+    otherwise install it from https://developer.microsoft.com/microsoft-edge/webview2/.
+    If it is missing, the WebView2 chart shows a readable fallback and the other apps continue.
+    The runtime is not bundled because this demo uses the system Evergreen runtime.
+  - No network listener is opened; everything is local IPC over Windows named pipes. The WebView2
+    chart is local-only: no remote scripts, CDNs or network fetches.
 
 QUICK START
   1. Unblock the ZIP before extracting if Windows marked it as downloaded:

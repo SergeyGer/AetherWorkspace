@@ -10,6 +10,7 @@
     <PackageVersion Include="Grpc.AspNetCore" Version="2.85.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
     <!-- Windows UI automation (Windows CI only) -->
+    <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
     <PackageVersion Include="FlaUI.Core" Version="5.0.0" />
     <PackageVersion Include="FlaUI.UIA3" Version="5.0.0" />
     <!-- Validation / tooling -->
