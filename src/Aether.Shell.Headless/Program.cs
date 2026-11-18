@@ -61,7 +61,7 @@ public static class Program
         {
             var endpointInfo = BrokerEndpointInfo.Read(options.EndpointFile!);
             var envOverrides = options.EnvFile is null ? null : DotEnvFile.Load(options.EnvFile);
-            var secretProvider = new EnvironmentSecretProvider(envOverrides);
+            var secretProvider = SecretProviderFactory.Create(envOverrides);
             using var channel = BrokerChannelFactory.CreateChannel(endpointInfo.Transport, endpointInfo.Endpoint);
             await using var client = new BrokerClient(channel);
 
@@ -89,35 +89,81 @@ public static class Program
             var classifier = new SourceFirstClassifier([detector]);
 
             var deterministicPlanner = new DeterministicCommandPlanner();
-            var providerSettings = ModelProviderSettings.FromEnvironment(envOverrides);
-            var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured(envOverrides);
+            var providerCatalog = ModelProviderCatalog.FromEnvironment(envOverrides);
+            var plannerSettings = providerCatalog.Planner;
+            var summarySettings = providerCatalog.Summarization;
+            var cloudPlannerConfigured = !options.Offline && plannerSettings.IsCloud && plannerSettings.IsValid;
+            var localPlannerConfigured = LoopbackLocalModelTransport.IsEndpointConfigured(envOverrides);
             var requestedRoute = ModelRouter.Decide(
-                options.Classification, cloudEnabled, cloudConsent, providerSettings.IsConfigured, localModelConfigured, providerSettings);
-            IPlanGenerator? cloudPlanner = null;
-            if (options.Planner == "cloud" && !options.Offline && providerSettings.IsCloud)
+                options.Classification,
+                cloudEnabled,
+                cloudConsent,
+                cloudPlannerConfigured,
+                localPlannerConfigured || (plannerSettings.ProviderId == "local" && plannerSettings.IsValid),
+                plannerSettings);
+            IPlanGenerator? modelPlanner = null;
+            if (options.Planner == "cloud" && !options.Offline && plannerSettings.IsCloud)
             {
-                var transport = CreateCloudTransport(providerSettings, secretProvider, envOverrides);
-                cloudPlanner = new CloudPlanProvider(
+                // Constructing the adapter does not grant egress: a RESTRICTED/disabled-consent
+                // request is denied by the gateway before the transport is invoked. Keeping the
+                // adapter available preserves the explicit policy-denial evidence path.
+                var transport = CreateCloudTransport(plannerSettings, secretProvider, envOverrides);
+                modelPlanner = new CloudPlanProvider(
                     transport,
                     egressGateway,
                     new PlanProviderOptions(cloudEnabled, cloudConsent));
             }
+            else if (options.Planner == "local" && !options.Offline && localPlannerConfigured)
+            {
+                modelPlanner = new LocalModelPlanProvider(
+                    new LoopbackLocalModelTransport(
+                        endpoint: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultEndpointEnvironmentVariable),
+                        modelId: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultModelEnvironmentVariable)),
+                    egressGateway);
+            }
+            else if (options.Planner == "cloud" && !options.Offline && requestedRoute.Kind == ModelRouteKind.LocalModel && localPlannerConfigured)
+            {
+                modelPlanner = new LocalModelPlanProvider(
+                    new LoopbackLocalModelTransport(
+                        endpoint: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultEndpointEnvironmentVariable),
+                        modelId: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultModelEnvironmentVariable)),
+                    egressGateway);
+            }
 
-            ISummaryProvider localSummary = options.UseLocalModel
-                ? new LocalModelSummaryProvider(
+            // The explicit --use-local-model switch keeps its original safety semantics: it selects
+            // the local adapter even when configuration is missing, so the run fails with a typed
+            // AiProviderMissing error instead of silently using the deterministic summary.
+            var localSummary = options.UseLocalModel
+                ? (ISummaryProvider)new LocalModelSummaryProvider(
                     new LoopbackLocalModelTransport(
                         endpoint: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultEndpointEnvironmentVariable),
                         modelId: GetOverride(envOverrides, LoopbackLocalModelTransport.DefaultModelEnvironmentVariable)),
                     egressGateway)
                 : new LocalDeterministicSummaryProvider(detector);
-            var summaryService = new SummaryService(localSummary, cloudProvider: null, SummaryServiceOptions.LocalOnly);
+            ISummaryProvider? cloudSummary = null;
+            if (summarySettings.IsCloud
+                && summarySettings.IsValid
+                && !options.Offline
+                && cloudEnabled
+                && cloudConsent)
+            {
+                cloudSummary = new CloudSummaryProvider(
+                    CreateCloudTransport(summarySettings, secretProvider, envOverrides),
+                    egressGateway,
+                    new PlanProviderOptions(cloudEnabled, cloudConsent));
+            }
+
+            var summaryService = new SummaryService(
+                localSummary,
+                cloudSummary,
+                cloudSummary is null ? SummaryServiceOptions.LocalOnly : new SummaryServiceOptions(PreferCloudForPublic: true));
 
             var validator = new ActionPlanValidator(new ActionPlanValidationOptions { MaxActions = options.MaxActions });
             var authorizationPolicy = new CapabilityPlanAuthorizationPolicy();
             var workflowOptions = new WorkflowOrchestratorOptions
             {
                 MaxActionsPerPlan = options.MaxActions,
-                PlanningMode = options.Planner == "cloud"
+                PlanningMode = options.Planner is "cloud" or "local"
                     ? PlanGenerationMode.CloudPreferred
                     : PlanGenerationMode.DeterministicPreferred,
                 Execution = new ExecutionOptions
@@ -132,7 +178,7 @@ public static class Program
             var orchestrator = new AetherWorkflowOrchestrator(
                 classifier,
                 deterministicPlanner,
-                cloudPlanner,
+                modelPlanner,
                 broker,
                 summaryService,
                 validator,
@@ -360,10 +406,14 @@ public static class Program
         IReadOnlyDictionary<string, string>? envOverrides,
         DataClassification classification)
     {
-        var providerSettings = ModelProviderSettings.FromEnvironment(envOverrides);
+        var providerCatalog = ModelProviderCatalog.FromEnvironment(envOverrides);
+        var providerSettings = providerCatalog.Planner;
+        var summarySettings = providerCatalog.Summarization;
         var genericCloudConfigured = !options.Offline && HttpCloudModelTransport.IsEndpointConfigured(envOverrides);
-        var cloudConfigured = !options.Offline && ((providerSettings.IsCloud && providerSettings.IsConfigured) || genericCloudConfigured);
-        var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured(envOverrides);
+        var cloudConfigured = !options.Offline && ((providerSettings.IsCloud && providerSettings.IsValid) || genericCloudConfigured);
+        var localModelConfigured = LoopbackLocalModelTransport.IsEndpointConfigured(envOverrides)
+            || (providerSettings.ProviderId == "local" && providerSettings.IsValid)
+            || (summarySettings.ProviderId == "local" && summarySettings.IsValid);
         var route = ModelRouter.Decide(classification, cloudEnabled, cloudConsent, cloudConfigured, localModelConfigured, providerSettings);
         var mode = options.Offline
             ? "offline"
@@ -376,7 +426,7 @@ public static class Program
         return new ShellProvidersOutput(
             mode,
             DeterministicPlanner: true,
-            LocalDeterministicSummary: !options.UseLocalModel,
+            LocalDeterministicSummary: summarySettings.ProviderId != "local" || !options.UseLocalModel,
             CloudAdapterConfigured: cloudConfigured,
             LocalModelAdapterConfigured: localModelConfigured,
             CloudEnabled: cloudEnabled,
@@ -385,7 +435,10 @@ public static class Program
             ModelName: providerSettings.Model,
             RouteKind: route.Kind.ToString(),
             RouteReason: route.ReasonCode,
-            CloudAttemptAllowed: route.CloudAttemptAllowed);
+            CloudAttemptAllowed: route.CloudAttemptAllowed,
+            PlannerProvider: providerSettings.ProviderId,
+            SummaryProvider: summarySettings.ProviderId,
+            ProviderConfigurationError: providerCatalog.ConfigurationError);
     }
 
     private static (int RotatedFiles, bool FileChainValid) VerifyAuditFile(ShellOptions options)

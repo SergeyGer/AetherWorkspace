@@ -1,160 +1,426 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Aether.AI.Planner;
 using Aether.AI.Providers;
 using Aether.Contracts;
 using Aether.Contracts.Json;
+using Aether.Contracts.Models;
 using Aether.Security.Policy;
 using Aether.Security.Secrets;
 
 namespace Aether.ModelEval;
 
 /// <summary>
-/// v0.4 bounded model evaluation harness (synthetic PUBLIC data only).
-/// Loads provider credentials exclusively from an explicit local `.env` file,
-/// records latency/usage estimates/plan validity per command, and writes a
-/// sanitized JSON report. Never prints or persists API keys.
+/// v1.3 model evaluation harness (AW-060). Runs a versioned, labelled synthetic corpus through one
+/// deterministic or model provider, compares plan structure with canonical gold plans, checks
+/// denial behaviour for adversarial negatives, repeats trials and writes a sanitized report.
+///
+/// Provider credentials are loaded only from a local .env file/environment; the report never
+/// includes key values or raw content beyond a short synthetic preview. Cost/token values are
+/// explicitly labelled estimates. TTFT is reported only when a transport exposes streaming; the
+/// current non-streaming adapters report it as a limitation, never as a fabricated number.
 /// </summary>
 internal static class Program
 {
-    private sealed record CorpusItem(string Id, string Category, string Command);
-    private sealed record EvalResult(string Id, string Category, bool Success, string Provider, string Model,
-        double? LatencyMs, int EstimatedInputTokens, int EstimatedOutputTokens, decimal EstimatedCostUsd,
-        bool ValidPlan, int Steps, string? ErrorCode, string? ContentPreview);
+    private static readonly HashSet<string> AllowedActions = new(StringComparer.Ordinal)
+    {
+        ActionKinds.LaunchApp, ActionKinds.PublishContext, ActionKinds.ArrangeWindows,
+        ActionKinds.SummarizeContext, ActionKinds.ShowStatus,
+    };
+
+    private sealed record CorpusDocument(
+        string SchemaVersion,
+        string Description,
+        Dictionary<string, CanonicalPlan>? CanonicalPlans,
+        CorpusItem[] Items);
+
+    private sealed record CanonicalPlan(string Description, CanonicalStep[] Steps);
+
+    private sealed record CanonicalStep(string Action, string? AppId = null, string? Layout = null, string? Mode = null);
+
+    private sealed record CorpusItem(
+        string Id,
+        string Category,
+        string Command,
+        string? Expectation,
+        string? CanonicalPlan,
+        string? Reason);
+
+    private sealed record Attempt(
+        bool Success,
+        string? Content,
+        string? ErrorCode,
+        string Provider,
+        bool UsedModel,
+        double LatencyMs,
+        int InputTokens,
+        int OutputTokens,
+        decimal EstimatedCostUsd);
+
+    private sealed record ItemResult(
+        string Id,
+        string Category,
+        string Expectation,
+        bool Success,
+        bool ValidPlan,
+        bool SemanticCorrect,
+        string Provider,
+        bool UsedModel,
+        double LatencyMs,
+        int InputTokens,
+        int OutputTokens,
+        decimal EstimatedCostUsd,
+        string? ErrorCode,
+        string? ContentPreview);
+
+    private sealed record RunConfiguration(
+        string Provider,
+        string Model,
+        string EndpointHost,
+        bool UsedModel,
+        string CredentialSource,
+        IPlanGenerator? DeterministicPlanner,
+        ICloudModelTransport? CloudTransport,
+        ILocalModelTransport? LocalTransport);
 
     private static int Main(string[] args)
     {
         string? envFile = null, provider = null, corpusPath = null, outPath = null, modelOverride = null;
+        var trials = 1;
         for (var index = 0; index < args.Length; index++)
         {
             switch (args[index])
             {
-                case "--env-file": envFile = args[++index]; break;
-                case "--provider": provider = args[++index]; break;
-                case "--corpus": corpusPath = args[++index]; break;
-                case "--out": outPath = args[++index]; break;
-                case "--model": modelOverride = args[++index]; break;
+                case "--env-file": envFile = Next(args, ref index); break;
+                case "--provider": provider = Next(args, ref index); break;
+                case "--corpus": corpusPath = Next(args, ref index); break;
+                case "--out": outPath = Next(args, ref index); break;
+                case "--model": modelOverride = Next(args, ref index); break;
+                case "--trials":
+                    if (!int.TryParse(Next(args, ref index), NumberStyles.Integer, CultureInfo.InvariantCulture, out trials) || trials is < 1 or > 5)
+                    {
+                        Console.Error.WriteLine("--trials must be an integer from 1 to 5.");
+                        return 2;
+                    }
+
+                    break;
                 default:
                     Console.Error.WriteLine($"unknown argument: {args[index]}");
                     return 2;
             }
         }
 
-        if (envFile is null || provider is null || corpusPath is null || outPath is null)
+        if (provider is null || corpusPath is null || outPath is null)
         {
-            Console.Error.WriteLine("usage: Aether.ModelEval --env-file <path> --provider openai|gemini|local --corpus <json> --out <json> [--model <id>]");
+            Console.Error.WriteLine("usage: Aether.ModelEval --provider deterministic|local|openai|gemini --corpus <json> --out <json> [--trials 1..5] [--env-file <path>] [--model <id>]");
             return 2;
         }
 
-        IReadOnlyDictionary<string, string> values;
-        try
+        if (!File.Exists(corpusPath))
         {
-            values = DotEnvFile.Load(envFile);
-        }
-        catch (Exception exception) when (exception is IOException or InvalidOperationException or Aether.Contracts.Errors.AetherContractException)
-        {
-            Console.Error.WriteLine($"cannot load env file: {exception.GetType().Name}");
+            Console.Error.WriteLine($"corpus not found: {corpusPath}");
             return 2;
         }
 
+        IReadOnlyDictionary<string, string> values = envFile is null
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : LoadEnv(envFile);
         var withProvider = new Dictionary<string, string>(values, StringComparer.Ordinal)
         {
             [ModelProviderSettings.DefaultProviderEnvironmentVariable] = provider,
+            [ModelProviderSettings.PlannerProviderEnvironmentVariable] = provider,
         };
-        var settings = ModelProviderSettings.FromEnvironment(withProvider);
+        var settings = ModelProviderSettings.FromEnvironment(withProvider, ModelCapability.Planning);
         if (modelOverride is not null)
         {
             settings = settings with { Model = modelOverride };
         }
 
-        if (!settings.IsConfigured)
+        RunConfiguration configuration;
+        try
         {
-            Console.Error.WriteLine($"provider '{settings.ProviderId}' is not fully configured in the supplied env file (endpoint/key missing).");
+            configuration = BuildConfiguration(provider, settings, withProvider);
+        }
+        catch (InvalidOperationException exception)
+        {
+            Console.Error.WriteLine(exception.Message);
             return 3;
         }
 
-        var secretProvider = new EnvironmentSecretProvider(withProvider);
-        ICloudModelTransport transport = settings.ProviderId == "gemini"
-            ? new GeminiCloudModelTransport(secretProvider, settings.ReadEndpoint(withProvider), settings.Model, settings.ApiKeyEnvironmentVariable)
-            : new HttpCloudModelTransport(secretProvider, settings.ReadEndpoint(withProvider), settings.Model, settings.ApiKeyEnvironmentVariable);
-
-        var corpus = JsonSerializer.Deserialize<CorpusDocument>(File.ReadAllText(corpusPath), new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                     ?? throw new InvalidOperationException("invalid corpus");
-        var results = new List<EvalResult>();
+        CorpusDocument corpus;
         try
         {
-        foreach (var item in corpus.Items.Take(10))
+            corpus = JsonSerializer.Deserialize<CorpusDocument>(File.ReadAllText(corpusPath), new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                      ?? throw new InvalidOperationException("corpus is empty");
+        }
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
-            var request = new CloudModelRequest(
-                "eval-" + item.Id,
-                AiTaskKind.PlanGeneration,
-                DataClassification.Public,
-                "command",
-                System.Text.Encoding.UTF8.GetByteCount(item.Command),
-                CloudPlanProvider.PlannerPrompt,
-                item.Command);
-            var stopwatch = Stopwatch.StartNew();
-            CloudModelResponse response;
-            try
-            {
-                response = transport.SendAsync(request, CancellationToken.None).GetAwaiter().GetResult();
-            }
-            catch (Exception exception)
-            {
-                response = CloudModelResponse.Fail($"eval.{exception.GetType().Name.ToLowerInvariant()}");
-            }
-
-            stopwatch.Stop();
-            var inputTokens = Math.Max(1, (item.Command.Length + CloudPlanProvider.PlannerPrompt.Length) / 4);
-            var outputTokens = string.IsNullOrEmpty(response.Content) ? 0 : Math.Max(1, response.Content.Length / 4);
-            var (validPlan, steps) = ValidatePlan(response.Content);
-            results.Add(new EvalResult(item.Id, item.Category, response.Success, transport.ProviderId, settings.Model,
-                Math.Round(stopwatch.Elapsed.TotalMilliseconds, 1), inputTokens, outputTokens,
-                EstimateCost(settings.Model, inputTokens, outputTokens), validPlan, steps, response.ErrorCode,
-                response.Content is null ? null : response.Content[..Math.Min(300, response.Content.Length)]));
-            Console.WriteLine($"{item.Id,-24} {(response.Success ? "ok " : "ERR")} {stopwatch.Elapsed.TotalMilliseconds,7:F0} ms  validPlan={validPlan} steps={steps} {(response.ErrorCode ?? "")}");
+            Console.Error.WriteLine("invalid corpus: " + exception.Message);
+            return 2;
         }
 
+        if (corpus.Items.Length == 0 || corpus.CanonicalPlans is null)
+        {
+            Console.Error.WriteLine("the corpus must contain items and canonicalPlans.");
+            return 2;
+        }
+
+        var results = new List<ItemResult>();
+        var failures = 0;
+        try
+        {
+            foreach (var item in corpus.Items)
+            {
+                for (var trial = 0; trial < trials; trial++)
+                {
+                    var expected = item.Expectation ?? "plan";
+                    var attempt = Execute(configuration, item.Command, out var plan);
+                    var isPlanExpectation = string.Equals(expected, "plan", StringComparison.Ordinal);
+                    var canonical = isPlanExpectation && item.CanonicalPlan is not null
+                        ? corpus.CanonicalPlans.GetValueOrDefault(item.CanonicalPlan)
+                        : null;
+                    ActionPlan? parsedPlan = null;
+                    var validPlan = attempt.Success && TryParsePlan(attempt.Content, out parsedPlan, out _);
+                    var semanticCorrect = isPlanExpectation
+                        ? validPlan && canonical is not null && StepsMatch(parsedPlan!, canonical)
+                        : !validPlan;
+                    if (!attempt.Success && isPlanExpectation)
+                    {
+                        failures++;
+                    }
+
+                    results.Add(new ItemResult(
+                        item.Id,
+                        item.Category,
+                        expected,
+                        attempt.Success,
+                        validPlan,
+                        semanticCorrect,
+                        attempt.Provider,
+                        attempt.UsedModel,
+                        Math.Round(attempt.LatencyMs, 1),
+                        attempt.InputTokens,
+                        attempt.OutputTokens,
+                        attempt.EstimatedCostUsd,
+                        attempt.ErrorCode,
+                        attempt.Content is null ? null : attempt.Content[..Math.Min(240, attempt.Content.Length)]));
+                }
+            }
         }
         finally
         {
-            (transport as IDisposable)?.Dispose();
+            (configuration.CloudTransport as IDisposable)?.Dispose();
+            (configuration.LocalTransport as IDisposable)?.Dispose();
         }
 
+        var planResults = results.Where(result => result.Expectation == "plan").ToArray();
+        var negativeResults = results.Where(result => result.Expectation != "plan").ToArray();
+        var latencies = results.Where(result => result.LatencyMs > 0).Select(result => result.LatencyMs).ToArray();
+        var hardware = BuildHardwareProfile();
+        var corpusSha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(corpusPath))).ToLowerInvariant();
+        var providerEndpointHost = SanitizeEndpointHost(configuration.EndpointHost);
+        var totalEstimatedCost = results.Sum(result => result.EstimatedCostUsd);
         var report = new
         {
-            generatedAt = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
-            purpose = "v0.4 bounded model evaluation (synthetic PUBLIC commands only)",
-            provider = transport.ProviderId,
-            model = settings.Model,
-            corpusPath,
-            items = results.Select(r => new
+            schemaVersion = "1.1",
+            kind = "model-evaluation",
+            generatedAtUtc = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
+            purpose = "v1.3 labelled synthetic gold-corpus evaluation; no raw customer data and no quality/cost claim beyond this run",
+            provider = new
             {
-                r.Id, r.Category, r.Success, r.Provider, r.Model, r.LatencyMs,
-                r.EstimatedInputTokens, r.EstimatedOutputTokens, r.EstimatedCostUsd, r.ValidPlan, r.Steps, r.ErrorCode, r.ContentPreview,
-            }),
-            summary = new
-            {
-                total = results.Count,
-                succeeded = results.Count(r => r.Success),
-                validPlans = results.Count(r => r.ValidPlan),
-                avgLatencyMs = results.Where(r => r.LatencyMs is not null).Select(r => r.LatencyMs!.Value).DefaultIfEmpty(0).Average(),
-                estimatedCostUsd = results.Sum(r => r.EstimatedCostUsd),
+                id = configuration.Provider,
+                model = configuration.Model,
+                endpointHost = providerEndpointHost,
+                usedModel = configuration.UsedModel,
+                credentialSource = configuration.CredentialSource,
             },
-            notes = "Cost/token counts are character-based estimates, not provider billing. No API keys or raw secrets are recorded.",
+            corpus = new
+            {
+                path = Path.GetFullPath(corpusPath),
+                sha256 = corpusSha256,
+                itemCount = corpus.Items.Length,
+                planItems = corpus.Items.Count(item => (item.Expectation ?? "plan") == "plan"),
+                negativeItems = corpus.Items.Count(item => (item.Expectation ?? "plan") != "plan"),
+                passedForProduction = false,
+            },
+            hardware,
+            metrics = new
+            {
+                trials,
+                requests = results.Count,
+                providerFailures = failures,
+                semanticPlanAccuracy = planResults.Length == 0 ? (double?)null : Math.Round(planResults.Count(result => result.SemanticCorrect) / (double)planResults.Length, 4),
+                denialAccuracy = negativeResults.Length == 0 ? (double?)null : Math.Round(negativeResults.Count(result => result.SemanticCorrect) / (double)negativeResults.Length, 4),
+                syntacticPlanRate = results.Count == 0 ? 0 : Math.Round(results.Count(result => result.ValidPlan) / (double)results.Count, 4),
+                latencyMs = Percentiles(latencies),
+                ttftMs = new
+                {
+                    p50 = (double?)null,
+                    p95 = (double?)null,
+                    p99 = (double?)null,
+                    limitation = "The current adapters are non-streaming, so true time-to-first-token is not measured. A streaming transport is required before reporting TTFT; no number is fabricated.",
+                },
+                tokens = new
+                {
+                    kind = "estimated-character-based",
+                    estimatedInput = results.Sum(result => result.InputTokens),
+                    estimatedOutput = results.Sum(result => result.OutputTokens),
+                },
+                cost = new
+                {
+                    kind = "estimated",
+                    estimatedTotalUsd = Math.Round(totalEstimatedCost, 8),
+                    providerBilledUsd = (decimal?)null,
+                    note = "Estimated from the configured token price table; not a provider invoice. Actual cost requires the provider usage/billing export.",
+                },
+            },
+            results,
+            limitations = new[]
+            {
+                "Character-based token/cost estimates are not provider billing.",
+                "TTFT is not measured by the current non-streaming adapters; it is explicitly reported as unavailable.",
+                "The corpus is synthetic and bounded; no general, compliance or production-quality claim is made.",
+                "Local hardware latency/memory is only authoritative when the operator attaches the physical hardware report.",
+            },
         };
+
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outPath))!);
-        File.WriteAllText(outPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }) + "\n");
-        Console.WriteLine($"report: {outPath}");
-        return results.All(r => r.Success) ? 0 : 1;
+        File.WriteAllText(outPath, JsonSerializer.Serialize(report, AetherJson.Indented) + "\n");
+        Console.WriteLine(
+            $"report: {outPath} requests={results.Count} planAccuracy={report.metrics.semanticPlanAccuracy} "
+            + $"denialAccuracy={report.metrics.denialAccuracy} providerFailures={failures}");
+        return failures == 0 ? 0 : 1;
     }
 
-    private static (bool Valid, int Steps) ValidatePlan(string? content)
+    private static RunConfiguration BuildConfiguration(
+        string provider,
+        ModelProviderSettings settings,
+        IReadOnlyDictionary<string, string> values)
     {
+        switch (provider)
+        {
+            case "deterministic":
+                return new RunConfiguration(
+                    "deterministic-grammar",
+                    "deterministic-grammar",
+                    "",
+                    UsedModel: false,
+                    "none",
+                    DeterministicPlanner: new DeterministicCommandPlanner(),
+                    CloudTransport: null,
+                    LocalTransport: null);
+            case "local":
+                if (!settings.IsValid || settings.ProviderId != "local")
+                {
+                    throw new InvalidOperationException(
+                        "local provider is not configured or invalid: " + (settings.ConfigurationError ?? "set AETHER_LOCAL_MODEL_ENDPOINT"));
+                }
+
+                return new RunConfiguration(
+                    "local-loopback",
+                    settings.Model,
+                    settings.ReadEndpoint(values) ?? "",
+                    UsedModel: true,
+                    "environment",
+                    DeterministicPlanner: null,
+                    CloudTransport: null,
+                    LocalTransport: new LoopbackLocalModelTransport(settings.ReadEndpoint(values), settings.Model));
+            case "openai" or "gemini":
+                if (!settings.IsValid || !settings.IsCloud)
+                {
+                    throw new InvalidOperationException(
+                        $"provider '{settings.ProviderId}' is not fully configured or invalid: {settings.ConfigurationError ?? "endpoint/key missing"}");
+                }
+
+                ICloudModelTransport transport = settings.ProviderId == "gemini"
+                    ? new GeminiCloudModelTransport(
+                        new EnvironmentSecretProvider(values),
+                        settings.ReadEndpoint(values),
+                        settings.Model,
+                        settings.ApiKeyEnvironmentVariable)
+                    : new HttpCloudModelTransport(
+                        new EnvironmentSecretProvider(values),
+                        settings.ReadEndpoint(values),
+                        settings.Model,
+                        settings.ApiKeyEnvironmentVariable);
+                return new RunConfiguration(
+                    transport.ProviderId,
+                    settings.Model,
+                    settings.ReadEndpoint(values) ?? "",
+                    UsedModel: true,
+                    "environment",
+                    DeterministicPlanner: null,
+                    CloudTransport: transport,
+                    LocalTransport: null);
+            default:
+                throw new InvalidOperationException($"unsupported provider '{provider}' (expected deterministic, local, openai or gemini).");
+        }
+    }
+
+    private static Attempt Execute(RunConfiguration configuration, string command, out ActionPlan? plan)
+    {
+        plan = null;
+        var request = new PlanningRequest(command, DataClassification.Public, "eval-" + Guid.NewGuid().ToString("n"));
+        var stopwatch = Stopwatch.StartNew();
+        if (configuration.DeterministicPlanner is not null)
+        {
+            var result = configuration.DeterministicPlanner.GeneratePlanAsync(request, CancellationToken.None).GetAwaiter().GetResult();
+            stopwatch.Stop();
+            plan = result.Plan;
+            var content = result.Success && result.Plan is not null ? AetherJson.Serialize(result.Plan) : null;
+            return new Attempt(
+                result.Success, content, result.ErrorCode, result.Provider, result.UsedModel,
+                stopwatch.Elapsed.TotalMilliseconds, 0, 0, 0m);
+        }
+
+        var modelRequest = new CloudModelRequest(
+            request.TraceId,
+            AiTaskKind.PlanGeneration,
+            DataClassification.Public,
+            "command",
+            Encoding.UTF8.GetByteCount(command),
+            CloudPlanProvider.PlannerPrompt,
+            command);
+        CloudModelResponse response;
+        try
+        {
+            response = configuration.CloudTransport is not null
+                ? configuration.CloudTransport.SendAsync(modelRequest, CancellationToken.None).GetAwaiter().GetResult()
+                : configuration.LocalTransport!.SendAsync(modelRequest, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        catch (Exception exception)
+        {
+            response = CloudModelResponse.Fail("eval." + exception.GetType().Name.ToLowerInvariant());
+        }
+
+        stopwatch.Stop();
+        var inputTokens = Math.Max(1, (command.Length + CloudPlanProvider.PlannerPrompt.Length) / 4);
+        var outputTokens = string.IsNullOrEmpty(response.Content) ? 0 : Math.Max(1, response.Content.Length / 4);
+        var providerId = configuration.CloudTransport?.ProviderId ?? configuration.LocalTransport!.ProviderId;
+        return new Attempt(
+            response.Success,
+            response.Content,
+            response.ErrorCode,
+            providerId,
+            UsedModel: true,
+            stopwatch.Elapsed.TotalMilliseconds,
+            inputTokens,
+            outputTokens,
+            EstimateCost(configuration.Model, inputTokens, outputTokens));
+    }
+
+    private static bool TryParsePlan(string? content, out ActionPlan? plan, out string? error)
+    {
+        plan = null;
+        error = null;
         if (string.IsNullOrWhiteSpace(content))
         {
-            return (false, 0);
+            error = "empty response";
+            return false;
         }
 
         var trimmed = content.Trim();
@@ -168,34 +434,101 @@ internal static class Program
             }
         }
 
-        var allowed = new HashSet<string>(StringComparer.Ordinal)
+        var start = trimmed.IndexOf('{');
+        var end = trimmed.LastIndexOf('}');
+        if (start < 0 || end <= start)
         {
-            "LaunchApp", "PublishContext", "ArrangeWindows", "SummarizeContext", "ShowStatus",
-        };
+            error = "no JSON object";
+            return false;
+        }
+
         try
         {
-            using var document = JsonDocument.Parse(trimmed);
-            if (document.RootElement.TryGetProperty("steps", out var steps) && steps.ValueKind == JsonValueKind.Array)
+            plan = AetherJson.DeserializeStrict<ActionPlan>(trimmed[start..(end + 1)]);
+            if (plan.Steps.Count is < 1 or > 6 || plan.Steps.Any(step => !AllowedActions.Contains(step.Action)))
             {
-                var length = steps.GetArrayLength();
-                var actions = 0;
-                foreach (var step in steps.EnumerateArray())
-                {
-                    if (step.TryGetProperty("action", out var action) && action.ValueKind == JsonValueKind.String &&
-                        allowed.Contains(action.GetString() ?? ""))
-                    {
-                        actions++;
-                    }
-                }
+                plan = null;
+                error = "plan shape is outside the bounded action set";
+                return false;
+            }
 
-                return (actions == length && length is >= 1 and <= 6, length);
+            return true;
+        }
+        catch (Exception)
+        {
+            error = "invalid strict plan JSON";
+            return false;
+        }
+    }
+
+    private static bool StepsMatch(ActionPlan actual, CanonicalPlan canonical)
+    {
+        if (actual.Steps.Count != canonical.Steps.Length)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < canonical.Steps.Length; index++)
+        {
+            var expected = canonical.Steps[index];
+            var step = actual.Steps[index];
+            if (!string.Equals(step.Action, expected.Action, StringComparison.Ordinal)
+                || (expected.AppId is not null && !string.Equals(step.AppId, expected.AppId, StringComparison.Ordinal))
+                || (expected.Layout is not null && !string.Equals(step.Layout, expected.Layout, StringComparison.Ordinal))
+                || (expected.Mode is not null && !string.Equals(step.Mode, expected.Mode, StringComparison.Ordinal)))
+            {
+                return false;
             }
         }
-        catch (JsonException)
+
+        return true;
+    }
+
+    private static object Percentiles(double[] values)
+    {
+        if (values.Length == 0)
         {
+            return new { p50 = (double?)null, p95 = (double?)null, p99 = (double?)null };
         }
 
-        return (false, 0);
+        Array.Sort(values);
+        return new
+        {
+            p50 = Math.Round(Percentile(values, 0.50), 1),
+            p95 = Math.Round(Percentile(values, 0.95), 1),
+            p99 = Math.Round(Percentile(values, 0.99), 1),
+        };
+    }
+
+    private static double Percentile(double[] sorted, double percentile)
+    {
+        var rank = (int)Math.Ceiling(percentile * sorted.Length) - 1;
+        return sorted[Math.Clamp(rank, 0, sorted.Length - 1)];
+    }
+
+    private static object BuildHardwareProfile()
+    {
+        var memory = GC.GetGCMemoryInfo();
+        return new
+        {
+            os = RuntimeInformation.OSDescription,
+            architecture = RuntimeInformation.ProcessArchitecture.ToString(),
+            logicalCpus = Environment.ProcessorCount,
+            availableMemoryMb = Math.Round(memory.TotalAvailableMemoryBytes / (1024.0 * 1024.0), 1),
+            runtime = RuntimeInformation.FrameworkDescription,
+            profile = Environment.GetEnvironmentVariable("AETHER_EVAL_HARDWARE_PROFILE") ?? "unspecified/portable-host",
+            gpu = Environment.GetEnvironmentVariable("AETHER_EVAL_GPU_PROFILE") ?? "not-detected-by-harness",
+        };
+    }
+
+    private static string SanitizeEndpointHost(string endpoint)
+    {
+        if (string.IsNullOrWhiteSpace(endpoint) || !Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
+        {
+            return "";
+        }
+
+        return uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}";
     }
 
     private static decimal EstimateCost(string model, int inputTokens, int outputTokens)
@@ -210,5 +543,18 @@ internal static class Program
         return Math.Round((inputTokens * inputPerMillion + outputTokens * outputPerMillion) / 1_000_000m, 8);
     }
 
-    private sealed record CorpusDocument(string SchemaVersion, string Description, CorpusItem[] Items);
+    private static IReadOnlyDictionary<string, string> LoadEnv(string path)
+    {
+        try
+        {
+            return DotEnvFile.Load(path);
+        }
+        catch (Exception exception)
+        {
+            throw new InvalidOperationException($"cannot load env file: {exception.GetType().Name}");
+        }
+    }
+
+    private static string Next(string[] args, ref int index) =>
+        index + 1 < args.Length ? args[++index] : throw new ArgumentException("missing option value");
 }

@@ -83,12 +83,11 @@ public partial class MainWindow : Window
         _orchestrator = BuildOrchestrator(_client);
     }
 
-    private static ICloudModelTransport CreateCloudTransportFromEnvironment()
+    private static ICloudModelTransport CreateCloudTransport(ModelProviderSettings settings)
     {
         // Match the headless provider resolution: OPENAI_* by default, GEMINI_* for Gemini, with the
         // generic AETHER_CLOUD_* names still accepted as endpoint/model fallbacks by the adapter.
-        var settings = ModelProviderSettings.FromEnvironment();
-        var secrets = new EnvironmentSecretProvider();
+        var secrets = SecretProviderFactory.Create();
         return settings.ProviderId == "gemini"
             ? new GeminiCloudModelTransport(
                 secrets,
@@ -120,19 +119,32 @@ public partial class MainWindow : Window
             Execution = new ExecutionOptions { MaxActionsPerPlan = 6, StepTimeout = TimeSpan.FromSeconds(20) },
         };
 
-        IPlanGenerator? cloudPlanner = null;
-        if (CloudConsentCheck.IsChecked == true)
+        IPlanGenerator? modelPlanner = null;
+        if (PlannerCombo.SelectedIndex == 1)
         {
-            cloudPlanner = new CloudPlanProvider(
-                CreateCloudTransportFromEnvironment(),
-                egressGateway,
-                new PlanProviderOptions(CloudEnabled: true, CloudConsentGranted: true));
+            var providerCatalog = ModelProviderCatalog.FromEnvironment();
+            var plannerSettings = providerCatalog.Planner;
+            if (plannerSettings.ProviderId == "local" && plannerSettings.IsValid)
+            {
+                modelPlanner = new LocalModelPlanProvider(
+                    new LoopbackLocalModelTransport(),
+                    egressGateway);
+            }
+            else if (plannerSettings.IsCloud
+                     && plannerSettings.IsValid
+                     && CloudConsentCheck.IsChecked == true)
+            {
+                modelPlanner = new CloudPlanProvider(
+                    CreateCloudTransport(plannerSettings),
+                    egressGateway,
+                    new PlanProviderOptions(CloudEnabled: true, CloudConsentGranted: true));
+            }
         }
 
         return new AetherWorkflowOrchestrator(
             classifier,
             new DeterministicCommandPlanner(),
-            cloudPlanner,
+            modelPlanner,
             new BrokerClientWorkflowBroker(client),
             summaryService,
             validator,

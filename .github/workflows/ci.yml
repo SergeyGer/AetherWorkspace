@@ -54,6 +54,22 @@ jobs:
         run: |
           npm --prefix tools/fdc3-interop ci --no-audit --no-fund
           npm --prefix tools/fdc3-interop run interop -- --report "$PWD/.aether/dacp-interop-report.json"
+      - name: Model-evaluation gold-corpus baseline (deterministic, synthetic)
+        run: |
+          dotnet build tools/Aether.ModelEval/Aether.ModelEval.csproj -c Release
+          mkdir -p .aether/evaluation
+          dotnet run -c Release --no-build --project tools/Aether.ModelEval --             --provider deterministic             --corpus docs/evaluation/command-corpus-v1.3.json             --out .aether/evaluation/deterministic-baseline.json             --trials 1
+          python3 - <<'PY'
+          import json
+          report = json.load(open('.aether/evaluation/deterministic-baseline.json'))
+          assert report['corpus']['itemCount'] >= 100, report['corpus']
+          metrics = report['metrics']
+          assert metrics['providerFailures'] == 0, metrics
+          assert metrics['semanticPlanAccuracy'] == 1.0, metrics
+          assert metrics['denialAccuracy'] == 1.0, metrics
+          assert metrics['ttftMs']['p50'] is None and 'non-streaming' in metrics['ttftMs']['limitation'], metrics
+          print('gold-corpus deterministic baseline OK:', metrics['semanticPlanAccuracy'], metrics['denialAccuracy'])
+          PY
       - name: Headless reference workflow demo (Unix domain sockets)
         run: SKIP_BUILD=1 ./scripts/demo.sh
       - name: OS-level blocked-egress check (isolated network namespace)

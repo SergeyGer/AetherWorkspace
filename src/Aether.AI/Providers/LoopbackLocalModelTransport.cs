@@ -98,6 +98,11 @@ public sealed class LoopbackLocalModelTransport : ILocalModelTransport, IDisposa
         {
             throw;
         }
+        catch (OperationCanceledException)
+        {
+            // Caller cancellation is the branch above; this is an HTTP timeout and fails closed.
+            return CloudModelResponse.Fail(AetherErrorCodes.AiProviderUnavailable);
+        }
         catch (HttpRequestException)
         {
             return CloudModelResponse.Fail(AetherErrorCodes.AiProviderUnavailable);

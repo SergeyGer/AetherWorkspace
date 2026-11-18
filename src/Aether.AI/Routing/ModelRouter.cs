@@ -31,6 +31,7 @@ public static class ModelRouter
     public const string ReasonCloudNotConfigured = "provider.cloud_not_configured";
     public const string ReasonLocalModel = "private.local_model";
     public const string ReasonDeterministic = "private.deterministic";
+    public const string ReasonProviderConfigInvalid = "provider.config_invalid";
 
     public static ModelRoute Decide(
         DataClassification classification,
@@ -41,6 +42,11 @@ public static class ModelRouter
         ModelProviderSettings? provider = null)
     {
         var cloudCapable = classification == DataClassification.Public;
+
+        if (provider?.ConfigurationError is not null)
+        {
+            return Fallback(localModelConfigured, ReasonProviderConfigInvalid);
+        }
 
         if (!cloudCapable)
         {
