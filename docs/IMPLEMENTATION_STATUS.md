@@ -210,6 +210,13 @@ prove PUBLIC-only/RESTRICTED/UNKNOWN default denial. AW-062 conditional integrat
 not enabled (rejection path). Evidence:
 `docs/testing/evidence/2026-11-18-v1.4-privacy-gateway-decision.md`.
 
+**v1.5 extension evaluations (in review, 2026-11-18):** ADR-012 records a NO-GO for the Electron
+adapter based on measured runtime footprint (~151 MiB Electron vs ~3.6 MiB complete Windows bundle)
+and structural IPC complexity; the existing WebView2 host already proves separate-process typed
+context sync. ADR-013 keeps the bounded FDC3 subset and rejects user channels, broader
+contexts/intents/listeners, directory federation and external conformance claims; rejection tests
+cover the bounded surface. No Electron dependency or release-blocking change is added.
+
 A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
 measurement and Track B capture/build/validate:
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.
