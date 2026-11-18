@@ -27,7 +27,7 @@ public sealed record UiTelemetrySnapshot(
 public sealed class UiFrameTelemetry
 {
     private const double LongFrameThresholdMs = 50.0;
-    private static readonly TimeSpan ProbeInterval = TimeSpan.FromMilliseconds(16);
+    private static readonly TimeSpan ProbeInterval = TimeSpan.FromMilliseconds(4);
 
     private readonly object _gate = new();
     private readonly List<double> _latencies = [];
@@ -87,7 +87,8 @@ public sealed class UiFrameTelemetry
         {
             try
             {
-                await Task.Delay(ProbeInterval, cancellationToken).ConfigureAwait(false);
+                // Probe immediately before waiting: fast steady-state workflows can finish in a few
+                // milliseconds, and a delayed first probe would otherwise yield zero samples.
                 var stopwatch = Stopwatch.StartNew();
                 await dispatcher.InvokeAsync(() => { }, DispatcherPriority.Normal, cancellationToken).Task.ConfigureAwait(false);
                 stopwatch.Stop();
@@ -98,6 +99,8 @@ public sealed class UiFrameTelemetry
                         _latencies.Add(stopwatch.Elapsed.TotalMilliseconds);
                     }
                 }
+
+                await Task.Delay(ProbeInterval, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

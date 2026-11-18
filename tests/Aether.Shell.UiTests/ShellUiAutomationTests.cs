@@ -167,6 +167,7 @@ public sealed partial class ShellUiAutomationTests
                     // Some CI desktops do not schedule the dispatcher probe during the workflow. The
                     // smoke test still verifies the telemetry surface and cycles; the physical
                     // measurement runner rejects zero-sample runs honestly instead of inventing data.
+                    var fallback = FastTelemetryPattern().Match(telemetry);
                     var unavailable = new Dictionary<string, object?>(StringComparer.Ordinal)
                     {
                         ["cycle"] = cycle,
@@ -175,6 +176,12 @@ public sealed partial class ShellUiAutomationTests
                         ["sampleUnavailable"] = true,
                         ["note"] = "dispatcher probe returned no samples in this environment",
                     };
+                    if (fallback.Success)
+                    {
+                        unavailable["commandDurationMs"] = ParseInvariantLong(fallback.Groups["command"].Value);
+                        unavailable["workingSetMb"] = ParseInvariantDouble(fallback.Groups["ws"].Value);
+                        unavailable["managedMemoryMb"] = ParseInvariantDouble(fallback.Groups["gc"].Value);
+                    }
                     records.Add(unavailable);
                     File.AppendAllText(outputPath, JsonSerializer.Serialize(unavailable) + Environment.NewLine);
                     continue;
@@ -217,6 +224,9 @@ public sealed partial class ShellUiAutomationTests
             CloseShell(application);
         }
     }
+
+    [GeneratedRegex(@"command=(?<command>\d+)ms\s+ws=(?<ws>[\d.,]+)MB\s+gc=(?<gc>[\d.,]+)MB", RegexOptions.CultureInvariant)]
+    private static partial Regex FastTelemetryPattern();
 
     [GeneratedRegex(@"frames=(?<frames>\d+)\s+p50=(?<p50>[\d.,]+)ms\s+p95=(?<p95>[\d.,]+)ms\s+p99=(?<p99>[\d.,]+)ms\s+max=(?<max>[\d.,]+)ms\s+long=(?<long>\d+)\s+command=(?<command>\d+)ms\s+ws=(?<ws>[\d.,]+)MB\s+gc=(?<gc>[\d.,]+)MB", RegexOptions.CultureInvariant)]
     private static partial Regex UiTelemetryPattern();
