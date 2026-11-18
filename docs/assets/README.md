@@ -6,11 +6,13 @@
   social preview (link unfurls on social platforms).
 - [`social-preview.svg`](social-preview.svg) — editable vector source (same layout).
 
-Design language: strict banking/institutional template — deep navy field, restrained gold
-rules and guilloche ornament, serif wordmark, letterspaced small caps, three product pillars
-and a synthetic-data/safety footer. Palette: `#06131F`–`#0C2539` (navy), `#C8A45C` / `#E7CD92`
-(gold), `#F4EFE4` (ivory), `#93A7B8` (muted slate). Type: Liberation/DejaVu Serif for the
-wordmark, DejaVu Sans for small caps.
+Design language (v1.1 final-state refresh, 2026-11-18): strict banking/institutional template —
+deep navy field, restrained gold rules and guilloche ornament, serif wordmark and **large mobile-first
+typography** with no fine print. Primary message: “AI proposes. Policy decides. Execution is
+enforced.” Secondary product line: “Hybrid AI · Privacy gateway · Heterogeneous UI” (the v1.1→v1.5
+direction). Every text element is at least 42 px at 1280×640 so the preview stays legible on a
+smartphone. Palette: `#06131F`–`#0C2539` (navy), `#C8A45C` / `#E7CD92` (gold), `#F4EFE4` (ivory),
+`#93A7B8` (muted slate). Type: DejaVu Serif for the wordmark, DejaVu Sans Bold for messaging.
 
 **Set it on GitHub:** repository → **Settings → General → Social preview → Edit → Upload**
 `docs/assets/social-preview.png`. (GitHub has no API for this setting.)
