@@ -105,3 +105,12 @@ BenchmarkDotNet job, pin the machine and record variance as required by the plan
 - No CPU/memory claim for WPF rendering (WPF shell is compile-verified only here).
 - Percentiles from one run are indicative; treat differences smaller than the
   observed variance as noise.
+
+## UI responsiveness (physical Windows 11)
+
+`tools/windows-test/Measure-UiResponsiveness.ps1` records 100 real WPF workflow cycles on the physical
+reference laptop, including command duration, dispatcher heartbeat/frame-time percentiles, working
+set/managed memory at the start/end of each cycle, pinned hardware/display profile, and threshold
+violations. This is **UI-thread responsiveness**, not an IPC throughput benchmark; do not conflate the
+two. Methodology and thresholds: `docs/testing/ui-responsiveness.md`; evidence under
+`docs/testing/evidence/`.

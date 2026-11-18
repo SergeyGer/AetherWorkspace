@@ -42,3 +42,23 @@ AC power, unlocked session, 100% DPI baseline, no unrelated workload, same monit
 - Report FAIL/SKIP honestly if the environment is unsuitable; no “successful” measurement without a
   completed 100-cycle run.
 - Raw telemetry stays local; only sanitized summaries/ledgers are committed.
+
+## Pinned reference profile (recorded automatically)
+
+Every report records OS caption/version/build, CPU model/cores/logical CPUs, RAM GB, GPU model/driver,
+current display mode, session interactivity and power state. This makes a run attributable to the
+reference laptop rather than an anonymous aggregate.
+
+## Thresholds and regression policy
+
+| Metric | Threshold | Rationale |
+|---|---|---|
+| Command p95 | ≤ 250 ms | local reference workflow; 2026-11-17 baseline was 12 ms |
+| Command p99 | ≤ 2000 ms | permits a bounded first-run/GC outlier; baseline 962 ms |
+| Frame/heartbeat p95 (of p95s) | ≤ 16 ms | dispatcher probe should stay sub-frame at p95 |
+| Long intervals (>50 ms) | 0 | no UI-thread stall observed in the baseline |
+
+The runner writes `thresholdViolations` and exits `7` (`FAIL_THRESHOLD`) when a threshold is crossed;
+this is a regression signal, not a latency-benchmark claim. compare against the recorded baseline
+rather than treating the thresholds as performance marketing. Never present the IPC benchmark as UI
+latency.
