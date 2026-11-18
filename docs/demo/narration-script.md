@@ -25,3 +25,17 @@ engine; the deterministic executor remains the source of authority.
 That is AetherWorkspace: AI proposes, policy decides, execution is enforced. Explore the code, run
 the demo locally, and contribute on GitHub at github dot com slash Sergey Ger slash Aether
 Workspace.
+
+## Production
+
+- Voice: Microsoft Edge neural TTS, `en-US-AndrewNeural`, rate +3%, pitch -2 Hz (synthetic; no human
+  voice claimed).
+- Script length: 215 words; narration duration 92.832 s (single continuous take, no deliberate gaps).
+- Final composition: 8 s social-preview intro → 1 s crossfade → 81.367 s clean interface capture →
+  1 s crossfade → 6 s GitHub outro; total 93.367 s. Narration starts at 0.5 s and is normalized to
+  −16 LUFS; AAC 48 kHz stereo.
+- English-only is an operator decision (2026-11-18) for code, documentation and media.
+- Source cards: `docs/demo/media/intro-card.png`, `outro-card.png`; audio: `narration.mp3`; final
+  asset: `docs/assets/demo-hero.mp4` (sha256 `81a50060edf3ce59de9a894eae239669a35f47471efba005bc3028f209ccdc16`).
+- Reproduction needs FFmpeg with `xfade`, `loudnorm` and `libx264`; build commands are recorded in
+  `docs/testing/evidence/2026-11-18-v1.1-narrated-demo.md`.

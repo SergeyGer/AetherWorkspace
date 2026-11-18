@@ -35,8 +35,11 @@ Do not hand-edit it; regenerate after a coverage measurement.
 
 | File | Description | SHA-256 |
 |---|---|---|
-| `demo-hero.mp4` | Validated clean Track B hero capture (H.264/1080p/yuv420p, 81.37 s, taskbar hidden, planner readable) | `4a452df5b86ebd659d458e1c708524e8c97530975051ff09135ab48787367ea3` |
-| `demo-preview.gif` | Animated preview derived from the same capture (367 KB) | `73bb03b8145cc0d2d85d9977edf6650afe5145d1bfc59bbbfb4cffcef4d90904` |
+| `demo-hero.mp4` | **Narrated final hero** (English neural voiceover, social-preview intro, 1 s crossfades, GitHub outro; H.264 1080p30 + AAC 48 kHz, 93.37 s) | `81a50060edf3ce59de9a894eae239669a35f47471efba005bc3028f209ccdc16` |
+| `demo-hero-capture.mp4` | Validated clean Track B interface capture with corrected captions (H.264/1080p30, 81.37 s, taskbar hidden, planner readable) | `9a036a92d773321674063f2a8e733a49b798d6cf861cf942c926b719442ecf24` |
+| `demo-preview.gif` | Animated ticker preview from the same rebuilt capture | `13022461e3b7c3120a4138dd4f70d6785623c27826fb68efb3f955d3600ca8c4` |
+| `social-preview.png` | Mobile-first final-state social preview (1280×640) | `efa6c3640cfce32ba07d784636126f520a804ba4ec661067f329a6b6701a5c9f` |
 
-Source evidence: `docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md`. The files are local
-Windows 11 captures of synthetic data; raw recordings and provider credentials are not committed.
+Source evidence: `docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md` (capture) and
+`docs/testing/evidence/2026-11-18-v1.1-narrated-demo.md` (narrated derivative). The voiceover is
+synthetic neural TTS; no human voice is claimed. Raw recordings and provider credentials remain local.
