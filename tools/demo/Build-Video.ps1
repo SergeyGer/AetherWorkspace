@@ -77,13 +77,20 @@ function ConvertTo-SrtTime([double] $seconds) {
 }
 
 $srt = New-Object System.Collections.Generic.List[string]
+$captionEvents = @($events.events | Sort-Object timestampUtc | Where-Object { $captionById.ContainsKey($_.name) })
 $index = 1
-foreach ($event in ($events.events | Sort-Object timestampUtc)) {
+for ($i = 0; $i -lt $captionEvents.Count; $i++) {
+    $event = $captionEvents[$i]
     $scene = $captionById[$event.name]
-    if (-not $scene) { continue }
     $start = ((ConvertTo-DateTimeOffsetValue $event.timestampUtc) - $recordingStart).TotalSeconds - $trimStart
     if ($start -lt 0) { $start = 0 }
     $end = $start + [double]$scene.durationSeconds
+    if ($i + 1 -lt $captionEvents.Count) {
+        $nextStart = ((ConvertTo-DateTimeOffsetValue $captionEvents[$i + 1].timestampUtc) - $recordingStart).TotalSeconds - $trimStart
+        # Captions must never overlap: clamp to just before the next scene event.
+        $end = [Math]::Min($end, $nextStart - 0.15)
+    }
+    if (($end - $start) -lt 0.8) { continue }
     $srt.Add([string]$index)
     $srt.Add("$(ConvertTo-SrtTime $start) --> $(ConvertTo-SrtTime $end)")
     $srt.Add([string]$scene.caption)
