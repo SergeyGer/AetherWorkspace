@@ -33,6 +33,13 @@ public interface IPolicyEngine
 /// </summary>
 public sealed class PolicyEngine : IPolicyEngine
 {
+    /// <summary>
+    /// v1.4 ADR-011 hard gate: sanitized INTERNAL cloud routing is rejected for the v1.x line.
+    /// A policy document flag cannot enable it; re-enabling requires a superseding ADR and the
+    /// full classifier/vault/egress/de-mask review described there.
+    /// </summary>
+    public const bool SanitizedInternalCloudRoutingEnabled = false;
+
     public PolicyEngine(PolicyDocument? document = null)
     {
         Document = (document ?? PolicyDocument.CreateDefault()).EnsureValid();
@@ -104,7 +111,7 @@ public sealed class PolicyEngine : IPolicyEngine
                 AetherErrorCodes.PolicyCloudDenied,
                 "Cloud mode does not permit this classification.",
                 policyVersion),
-            PolicyWireNames.DenyByDefault when Document.Cloud.AllowSanitizedInternal && request.SanitizationReviewed =>
+            PolicyWireNames.DenyByDefault when SanitizedInternalCloudRoutingEnabled && Document.Cloud.AllowSanitizedInternal && request.SanitizationReviewed =>
                 PolicyDecision.Allow(policyVersion),
             PolicyWireNames.DenyByDefault => PolicyDecision.Deny(
                 AetherErrorCodes.PolicyCloudDeniedByDefault,

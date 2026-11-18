@@ -144,3 +144,11 @@ described as verified. Automated rows and the 100-cycle UI measurement pass are 
 - Cloud remains PUBLIC-only with consent; INTERNAL sanitized cloud routing is the v1.4 decision,
   not part of v1.3. The local endpoint is validated loopback-only; a loopback service is not
   automatically air-gapped.
+
+## Sanitized INTERNAL cloud routing (v1.4 rejection)
+
+Sanitized INTERNAL cloud routing is **rejected** for the v1.x line (ADR-011). Cloud remains
+PUBLIC-only; the token vault is a local primitive, not a provider-path sanitizer. No INTERNAL payload
+is sent to a cloud provider, and no zero-leak/PII-guarantee or anonymization claim is made. The
+`AllowSanitizedInternal` policy flag is hard-disabled in the engine; re-enabling requires a new ADR
+and independent security evidence.

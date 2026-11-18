@@ -454,3 +454,14 @@ Credential Manager adapter reads Generic credentials named `AetherWorkspace/<VAR
 never writes credentials, never returns them in diagnostics and rejects the source on non-Windows
 hosts. Provider configuration stores only variable names, validates endpoints (HTTPS for cloud,
 loopback-only for local inference; no silent brand replacement) and never logs secret values.
+
+## Sanitized INTERNAL cloud routing — rejected (v1.4 ADR-011)
+
+The v1.4 security gate **rejects** sanitized INTERNAL cloud routing for v1.x. `PolicyEngine`
+hard-disables the latent `AllowSanitizedInternal`/`SanitizationReviewed` allow branch even when a
+custom policy document sets the flag; the `SessionTokenVault` remains a local, unit-tested redaction
+primitive and is not wired into any provider path. `RESTRICTED`/`UNKNOWN` remain hard-deny and cloud
+is PUBLIC-only. Re-enabling requires a superseding ADR, independent review, an approved
+classifier/DLP with measured false-negative behaviour, provider data-handling assessment,
+classifier→vault→egress→de-mask tests and placeholder-leak prevention proof. See
+[ADR-011](../adr/ADR-011-reject-sanitized-internal-cloud-routing.md).
