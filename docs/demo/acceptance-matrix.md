@@ -14,7 +14,7 @@ is the v1.1 release gate; it is intentionally stricter than a “CI is green” 
 | Policy denial | Denied before side effects; exact denial code; zero cloud attempts for restricted/unknown | Unsafe-plan corpus, E2E denials, egress instrumentation | Existing; capture in demo pending |
 | Provider provenance | `deterministic-grammar`/`usedModel=false` for Track A; real provider/model for Track B only | Shell output/Inspector assertions; AW-053 live PUBLIC smoke (planner=cloud-plan, usedModel=true, 6/6 steps) and fallback tests | Automated Track A + Track B smoke PASS; captured Track B video pending AW-055/AW-056 |
 | Clean bundle startup | Fresh ZIP extraction + launcher + workflow + cleanup on Windows 11 | v1.0.2 clean-machine evidence; repeat per release (AW-054) | Recorded for v1.0.2; repeat required |
-| Media validity | Codec/duration/dimensions, no black frames, caption readability, PIDs/traces match manifest | `tools/demo/Build-Video.ps1` + `Validate-Video.ps1` + human review | Tooling implemented; physical capture/validation pending |
+| Media validity | Codec/duration/dimensions, no black frames, caption readability, PIDs/traces match manifest | `tools/demo/Build-Video.ps1` + `Validate-Video.ps1` + human review | **PASS** on physical laptop 2026-11-18 (Track B, 81.37 s, 0 black, taskbar hidden, planner readable, operator review) |
 | Privacy | Synthetic only; no secrets/personal data; raw media local | Privacy checklist + sanitized manifest review | Required every capture |
 
 ## Mandatory gates before recording

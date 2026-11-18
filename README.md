@@ -20,6 +20,15 @@ or a conformance claim.
 **Start with the path that matches your goal.** Detailed status, evidence and technical
 reference live in the **[Wiki](https://github.com/SergeyGer/AetherWorkspace/wiki)**.
 
+## See it working
+
+[![AetherWorkspace Track B demo preview](docs/assets/demo-preview.gif)](docs/assets/demo-hero.mp4)
+
+Track B (primary): an LLM proposes a plan under explicit PUBLIC consent; the policy-governed executor
+validates and runs it; typed context synchronizes three independent Windows apps over authenticated
+local IPC. The deterministic Track A path remains available with `usedModel=false`.
+[Full capture evidence](docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md).
+
 ## Start here
 
 Choose the path that matches the time you have.

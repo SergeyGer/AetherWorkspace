@@ -14,6 +14,13 @@ release tag yet.
 
 ### Added
 
+- **v1.1 Track B demo gate PASS (physical Windows 11, 2026-11-18):** clean OBS capture with the
+  taskbar auto-hidden/restored and the planner label fully readable; validated live LLM-assisted plan
+  (`planner=cloud-plan`, `usedModel=true`, trace `9a681503...`), FFmpeg hero MP4/GIF (81.37 s,
+  H.264/1080p/yuv420p, 0 black intervals) and operator review. Evidence:
+  `docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md`; hero assets under `docs/assets/`.
+
+
 - .NET 10 solution with warnings-as-errors, central package management, pinned SDK, and
   Linux + Windows CI workflows.
 - Versioned contracts: Protobuf broker service and context envelope; strict JSON
