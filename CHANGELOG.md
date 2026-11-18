@@ -3,6 +3,18 @@
 All notable changes to this reference implementation are recorded here. Version labels follow the
 implementation-plan milestones; release assets are published on GitHub Releases.
 
+## [v1.5.0] — Heterogeneous UI, hybrid AI, privacy gate, extension decisions (2026-11-18)
+
+Cumulative v1.2–v1.5 milestone release; runtime evidence boundaries unchanged.
+
+- v1.2: independent WebView2 chart host + strict typed-context bridge, local-only renderer, runtime
+  fallback, Windows E2E.
+- v1.3: per-capability provider configuration, Apache-2.0 local profile/credential lifecycle,
+  120-item gold corpus and live gpt-4o-mini evaluation (98.75% plan / 100% denial; measured TTFT).
+- v1.4: ADR-011 rejects sanitized INTERNAL cloud routing; PUBLIC-only default hard-disabled.
+- v1.5: ADR-012 Electron no-go; ADR-013 keeps the bounded FDC3 subset with rejected-surface tests.
+- Release details: `docs/releases/v1.5.0.md`.
+
 ## [v1.1.1] — Narrated hero and final-state social preview (2026-11-18)
 
 Presentation patch on top of v1.1.0 (no runtime/contract changes).
