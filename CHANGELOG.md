@@ -14,6 +14,16 @@ release tag yet.
 
 ### Added
 
+- **AW-066 UI measurement accepted (2026-11-18):** 100-cycle physical report on `8375603` with pinned
+  hardware/display/power profile, command p50/p95/p99 = 3/8/10 ms, frame-probe p95 0.48/0.94/1.78 ms,
+  working set 219.9→319.3 MB, managed 12.0→22.5 MB, zero threshold violations; runner records
+  thresholds and detects regressions. Evidence: `docs/testing/evidence/2026-11-18-v1.1-ui-responsiveness.md`.
+- **AW-065 WT formal exceptions (2026-11-18):** automated WT-04/WT-05 rows PASS; manual DPI 125/150,
+  focus/keyboard/modal, display-topology recovery, physical child crash/hang and manual
+  Inspector/export privacy are recorded as **FORMAL_EXCEPTION, not PASS**, in
+  `docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`, tracked by issue #120.
+
+
 - **v1.1 Track B demo gate PASS (physical Windows 11, 2026-11-18):** clean OBS capture with the
   taskbar auto-hidden/restored and the planner label fully readable; validated live LLM-assisted plan
   (`planner=cloud-plan`, `usedModel=true`, trace `9a681503...`), FFmpeg hero MP4/GIF (81.37 s,

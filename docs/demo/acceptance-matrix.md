@@ -34,3 +34,10 @@ All required v1.1 Issues (AW-047…AW-056, AW-065, AW-066) closed with evidence;
 matches code/CI; physical Windows 11 GUI and capture validated; MP4/GIF produced locally and
 reviewed; sanitized provenance manifest attached; storyboard captions truthful; Wiki Roadmap and
 README updated with working links.
+
+## WT formal exceptions (v1.1)
+
+The automated WT rows and UI measurement pass. Manual DPI 125/150, focus/modal, display-topology
+recovery, physical crash/hang and manual Inspector/export privacy are **formal exceptions, not PASS**,
+recorded in `docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md` and tracked by issue #120;
+they are not part of the published demo claim.

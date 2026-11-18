@@ -49,6 +49,20 @@ Every report records OS caption/version/build, CPU model/cores/logical CPUs, RAM
 current display mode, session interactivity and power state. This makes a run attributable to the
 reference laptop rather than an anonymous aggregate.
 
+## 2026-11-18 measured baseline
+
+Physical reference laptop (Windows 11 Pro 26300, Intel Core Ultra 7 255H, 63.3 GB, Intel Arc 140T,
+3440×1440), 100 cycles on `8375603`:
+
+| Metric | p50 | p95 | p99 |
+|---|---|---|---|
+| Command duration | 3 ms | 8 ms | 10 ms |
+| Frame probe p95 | 0.48 ms | 0.94 ms | 1.78 ms |
+
+Working set 219.9 → 319.3 MB (p50 317.5, max 326.5); managed 12.0 → 22.5 MB (p50 14.2, max 22.5);
+339 probe samples; 0 long intervals; 0 threshold violations. Evidence:
+`docs/testing/evidence/2026-11-18-v1.1-ui-responsiveness.md`.
+
 ## Thresholds and regression policy
 
 | Metric | Threshold | Rationale |

@@ -108,6 +108,16 @@ is not backed by a test or a measured baseline in this repository, it is not mad
   launches + publish + arrange + summarize). The library default remains 5 per the
   specification; the demo configuration sets 6 (see ADR-008).
 
+## v1.1 WT formal exceptions (2026-11-18)
+
+The reference-desktop WT-04/WT-05 register includes **formal exceptions, not PASS**, for manual rows
+that were not executed in the v1.1 cycle: DPI 125%/150% with rollback (WT-05-05), focus/keyboard/modal
+(WT-05-06), display-topology recovery (WT-05-03), physical child crash/hang recovery (WT-05-09) and the
+manual Inspector/export privacy confirmation (WT-05-08). They are tracked in issue #120 and must not be
+described as verified. Automated rows and the 100-cycle UI measurement pass are recorded separately in
+`docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md` and
+`docs/testing/evidence/2026-11-18-v1.1-ui-responsiveness.md`.
+
 ## Documentation and process
 
 - GitHub Releases are produced per milestone: since v1.0.1 they include a Windows x64 WPF desktop
