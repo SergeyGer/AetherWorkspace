@@ -22,6 +22,14 @@ FFmpeg. Implementation (AW-055/AW-056) lives in `tools/demo/`: `Prepare-Demo.ps1
 Suggested install (then verify manually): `winget install OBSProject.OBSStudio Gyan.FFmpeg Microsoft.PowerShell`.
 Never commit the OBS WebSocket password, `.env`, endpoint handshake or raw media.
 
+## Delivered capture (2026-11-18)
+
+The clean Track B physical capture passed the full gate (`8aee5d3`): real OBS recording with the
+taskbar auto-hidden/restored, real named-pipe WPF workflow, validated `cloud-plan`/`usedModel=true`
+plan, fully readable planner label, FFmpeg build/validation (81.37 s, H.264/1080p/yuv420p, no black
+intervals) and operator review. Evidence:
+`docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md`; hero media under `docs/assets/`.
+
 ## Clean frame (no taskbar, readable controls)
 
 `Record-Demo.ps1` auto-hides the Windows taskbar for the recording and restores the previous state

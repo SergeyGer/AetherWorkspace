@@ -12,6 +12,11 @@ produced by the same local capture harness (`tools/demo/`); captions come from `
 
 ## Delivery targets
 
+**Delivered (2026-11-18):** clean Track B physical capture passed the full demo gate with the
+taskbar hidden and the planner label readable
+([evidence](../testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md)); hero artifacts are
+`docs/assets/demo-hero.mp4` and `docs/assets/demo-preview.gif`.
+
 **Operator decision (2026-11-17): shorter is fine.** Accepted hero-video duration is 60-95 s
 (no artificial padding); the 80 s floor was relaxed after a real capture produced ~72 s of clean
 content after trimming leading black. Track B remains the primary track.
