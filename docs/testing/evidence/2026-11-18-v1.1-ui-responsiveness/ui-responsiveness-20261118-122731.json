@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-wpf-ui-responsiveness",
+  "measuredAtUtc": "2026-11-18T11:28:45.7021724Z",
+  "commitSha": "8375603ea4ebf103394b4bf27c2b29419d2846b1",
+  "cycles": 100,
+  "host": {
+    "os": "Microsoft Windows NT 10.0.26300.0",
+    "interactive": true,
+    "powerNote": "AC power confirmed",
+    "hardware": {
+      "os": "Майкрософт Windows 11 Pro",
+      "osVersion": "10.0.26300",
+      "osBuild": "26300",
+      "cpu": "Intel(R) Core(TM) Ultra 7 255H",
+      "cpuCores": 16,
+      "cpuLogical": 16,
+      "ramGb": 63.3,
+      "gpu": "Intel(R) Arc(TM) 140T GPU (32GB)",
+      "gpuDriver": "32.0.101.9150",
+      "display": "3440x1440",
+      "sessionInteractive": true
+    }
+  },
+  "thresholds": {
+    "commandP95MsMax": 250,
+    "commandP99MsMax": 2000,
+    "frameP95MsMax": 16,
+    "longFramesMax": 0,
+    "note": "Conservative baseline thresholds; see docs/testing/ui-responsiveness.md and compare p95/p99 against the recorded baseline for regressions."
+  },
+  "metrics": {
+    "commandDurationMs": {
+      "p50": 3.0,
+      "p95": 8.0,
+      "p99": 10.0
+    },
+    "frameP95Ms": {
+      "p50": 0.48,
+      "p95": 0.94,
+      "p99": 1.78
+    },
+    "frameP99Ms": {
+      "p50": 0.48,
+      "p95": 1.04,
+      "p99": 5.9
+    },
+    "longFramesTotal": 0.0,
+    "framesTotal": 339.0,
+    "memory": {
+      "workingSetMb": {
+        "start": 219.9,
+        "end": 319.3,
+        "p50": 317.5,
+        "max": 326.5
+      },
+      "managedMemoryMb": {
+        "start": 12.0,
+        "end": 22.5,
+        "p50": 14.2,
+        "max": 22.5
+      }
+    }
+  },
+  "telemetryFile": "C:\\AetherWorkspace\\trusted\\results\\ui-responsiveness\\ui-telemetry-20261118-122731.jsonl",
+  "thresholdViolations": []
+}

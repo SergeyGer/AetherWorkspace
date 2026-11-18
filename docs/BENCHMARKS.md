@@ -112,5 +112,7 @@ BenchmarkDotNet job, pin the machine and record variance as required by the plan
 reference laptop, including command duration, dispatcher heartbeat/frame-time percentiles, working
 set/managed memory at the start/end of each cycle, pinned hardware/display profile, and threshold
 violations. This is **UI-thread responsiveness**, not an IPC throughput benchmark; do not conflate the
-two. Methodology and thresholds: `docs/testing/ui-responsiveness.md`; evidence under
-`docs/testing/evidence/`.
+two. Methodology and thresholds: `docs/testing/ui-responsiveness.md`; evidence:
+`docs/testing/evidence/2026-11-18-v1.1-ui-responsiveness.md`. Measured reference baseline
+(100 cycles, 2026-11-18): command p50/p95/p99 = 3/8/10 ms; frame-probe p95 0.48/0.94/1.78 ms;
+working set 219.9→319.3 MB; zero threshold violations. This is not an IPC throughput benchmark.

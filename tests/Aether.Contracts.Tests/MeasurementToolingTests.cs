@@ -20,7 +20,8 @@ public class MeasurementToolingTests
             Assert.Contains($"WT-05-{id:00}", matrix, StringComparison.Ordinal);
         }
 
-        Assert.Contains("MANUAL_PENDING", matrix, StringComparison.Ordinal);
+        Assert.Contains("FORMAL_EXCEPTION", matrix, StringComparison.Ordinal);
+        Assert.Contains("2026-11-18-v1.1-wt-formal-exceptions.md", matrix, StringComparison.Ordinal);
         Assert.Contains("restore 100%", matrix, StringComparison.OrdinalIgnoreCase);
     }
 

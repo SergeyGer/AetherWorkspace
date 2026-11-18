@@ -10,7 +10,7 @@ run with the documented procedure.
 | ID | Scenario | Automation | Status / evidence |
 |---|---|---|---|
 | WT-04-01 | Named-pipe GUI reference workflow (real broker + WPF shell) | `GuiWorkflowRunsOverWindowsNamedPipes` | PASS (prior CI/R1 evidence; re-record per release) |
-| WT-04-02 | Restricted-data workflow, no cloud egress | `GuiWorkflowProtectsRestrictedData` | PASS (prior CI evidence) |
+| WT-04-02 | Restricted-data workflow, no cloud egress | `RestrictedClassificationNeverShowsExternalProvider` | PASS (reference-full ledger; mapping corrected) |
 | WT-04-03 | Shell connects and exposes stable AutomationIds | `ShellStartsConnectsToBrokerAndExposesCoreControls` | PASS |
 | WT-04-04 | Real WPF sample processes/windows stay open | `GuiWorkflowWithRealWpfSampleAppsKeepsWindowsOpen` | PASS |
 | WT-04-05 | Real WPF samples receive typed context | `WpfSampleAppsStayOpenAndReceiveContext` | PASS |
@@ -19,14 +19,14 @@ run with the documented procedure.
 | WT-04-08 | UI responsiveness telemetry emitted | `RepeatedWorkflowReportsUiTelemetry` | PASS (CI smoke; physical report pending) |
 | WT-05-01 | Single-monitor save/restore within visible screens | `SaveRestoreKeepsAllWindowsOnVisibleScreens` | PASS |
 | WT-05-02 | Save → arrange → restore without offscreen windows | `SaveRestoreKeepsAllWindowsOnVisibleScreens` | PASS |
-| WT-05-03 | Display-configuration change / recovery | manual | MANUAL_PENDING (controlled display change with restore plan) |
+| WT-05-03 | Display-configuration change / recovery | manual | **FORMAL_EXCEPTION** (2026-11-18; tracked in #120) |
 | WT-05-04 | Dual-monitor restore to secondary display | `DualMonitorLayoutRestoresSecondaryMonitorPlacements` | PASS on physical dual-monitor hardware (CI logs SKIPPED_HARDWARE) |
-| WT-05-05 | DPI 100/125/150% | manual | MANUAL_PENDING (approval-only DPI profile + rollback) |
-| WT-05-06 | Focus / keyboard / modal interaction | manual | MANUAL_PENDING |
+| WT-05-05 | DPI 100/125/150% | manual | **FORMAL_EXCEPTION** (2026-11-18; tracked in #120) |
+| WT-05-06 | Focus / keyboard / modal interaction | manual | **FORMAL_EXCEPTION** (2026-11-18; tracked in #120) |
 | WT-05-07 | Missing monitor / topology fallback | `MissingMonitorFallsBackToAPresentScreen` | PASS |
-| WT-05-08 | Inspector/export redaction privacy assertions | `RepeatedWorkflowReportsUiTelemetry` + diagnostics tests | PARTIAL — Inspector/export privacy manual confirmation pending |
-| WT-05-09 | Child crash/hang recovery on the desktop | fault-injection suites (Linux) + manual | PARTIAL — physical desktop run pending |
-| WT-05-10 | UI frame/command latency profile | `RepeatedWorkflowReportsUiTelemetry` | PARTIAL — 100-cycle physical report pending (see UI responsiveness doc) |
+| WT-05-08 | Inspector/export redaction privacy assertions | automated audit/redaction tests | **FORMAL_EXCEPTION** for the manual confirmation part (2026-11-18; #120) |
+| WT-05-09 | Child crash/hang recovery on the desktop | fault-injection suites (Linux) + manual | **FORMAL_EXCEPTION** for the physical run (2026-11-18; #120) |
+| WT-05-10 | UI frame/command latency profile | `RepeatedWorkflowReportsUiTelemetry` + `Measure-UiResponsiveness.ps1` | PASS — 100-cycle physical report 2026-11-18 |
 
 ## Physical procedure (manual rows only)
 
@@ -57,6 +57,7 @@ pwsh tools/windows-test/Export-WtLedger.ps1 `
   -OutputDirectory ..\..\docs\testing\evidence\wt-ledger
 ```
 
-Outputs `wt-ledger-<stamp>.json` and `.md`. Commit only sanitized ledgers; raw logs/screenshots stay
+Outputs `wt-ledger-<stamp>.json` and `.md`. See the v1.1 formal-exception register at
+`docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`. Commit only sanitized ledgers; raw logs/screenshots stay
 local. Formal exceptions require a release-scope decision recorded in the release notes, not a
 silent PASS.

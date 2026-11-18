@@ -181,6 +181,13 @@ H.264/1080p/yuv420p, 0 black intervals, taskbar hidden, planner label fully read
 review. Hero artifacts: `docs/assets/demo-hero.mp4`, `docs/assets/demo-preview.gif`; evidence:
 `docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md`.
 
+**v1.1 measurements accepted (2026-11-18):** AW-066 100-cycle physical report on `8375603`
+(command p50/p95/p99 = 3/8/10 ms, frame-probe p95 0.48/0.94/1.78 ms, memory start→end
+219.9→319.3 MB, zero threshold violations) — evidence
+`docs/testing/evidence/2026-11-18-v1.1-ui-responsiveness.md`. AW-065 records automated WT rows as
+PASS and the manual DPI/focus/topology/crash/privacy rows as **formal exceptions, not PASS**, tracked
+in #120 — evidence `docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`.
+
 A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
 measurement and Track B capture/build/validate:
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.

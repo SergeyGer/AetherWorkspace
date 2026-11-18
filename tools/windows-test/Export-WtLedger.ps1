@@ -33,7 +33,7 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 
 $mapping = [ordered]@{
     'WT-04-01' = @('GuiWorkflowRunsOverWindowsNamedPipes')
-    'WT-04-02' = @('PrivacyRestrictedWorkflowProducesPrivateSummaryAndTrace', 'GuiWorkflowProtectsRestrictedData')
+    'WT-04-02' = @('RestrictedClassificationNeverShowsExternalProvider', 'PrivacyRestrictedWorkflowProducesPrivateSummaryAndTrace', 'GuiWorkflowProtectsRestrictedData')
     'WT-04-03' = @('ShellStartsConnectsToBrokerAndExposesCoreControls')
     'WT-04-04' = @('GuiWorkflowWithRealWpfSampleAppsKeepsWindowsOpen')
     'WT-04-05' = @('WpfSampleAppsStayOpenAndReceiveContext')
@@ -49,7 +49,7 @@ $mapping = [ordered]@{
     'WT-05-07' = @('MissingMonitorFallsBackToAPresentScreen')
     'WT-05-08' = @('RepeatedWorkflowReportsUiTelemetry')
     'WT-05-09' = @()
-    'WT-05-10' = @()
+    'WT-05-10' = @('RepeatedWorkflowReportsUiTelemetry')
 }
 
 $trx = Get-ChildItem -LiteralPath $results -Recurse -Filter '*.trx' -File -ErrorAction SilentlyContinue
