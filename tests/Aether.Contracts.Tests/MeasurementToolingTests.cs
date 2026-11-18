@@ -47,6 +47,9 @@ public class MeasurementToolingTests
         Assert.Contains("AETHER_UI_TELEMETRY_OUT", runner, StringComparison.Ordinal);
         Assert.Contains("SKIPPED_ENVIRONMENT", runner, StringComparison.Ordinal);
         Assert.Contains("p95FrameMs", runner, StringComparison.Ordinal);
+        Assert.Contains("hardware", runner, StringComparison.Ordinal);
+        Assert.Contains("managedMemoryMb", runner, StringComparison.Ordinal);
+        Assert.Contains("thresholdViolations", runner, StringComparison.Ordinal);
         Assert.Contains("InvokeAsync", shell, StringComparison.Ordinal);
         Assert.Contains("IsPathRooted", File.ReadAllText(TestRepo.PathTo("tools", "windows-test", "Export-WtLedger.ps1")), StringComparison.Ordinal);
         Assert.Contains("ProbeInterval", shell, StringComparison.Ordinal);

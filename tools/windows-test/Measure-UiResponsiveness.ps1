@@ -44,6 +44,34 @@ if ($battery -and $battery.BatteryStatus -ne 2) {
     Write-Host 'WARNING: AC power not confirmed (battery status is not "AC"). Record this in the report.'
 }
 
+$osInfo = Get-CimInstance Win32_OperatingSystem
+$cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
+$computer = Get-CimInstance Win32_ComputerSystem
+$video = Get-CimInstance Win32_VideoController | Select-Object -First 1
+$display = if ($video -and $video.CurrentHorizontalResolution -and $video.CurrentVerticalResolution) {
+    "$($video.CurrentHorizontalResolution)x$($video.CurrentVerticalResolution)"
+} else { 'unknown' }
+$hardwareProfile = [ordered]@{
+    os = $osInfo.Caption
+    osVersion = $osInfo.Version
+    osBuild = $osInfo.BuildNumber
+    cpu = if ($cpu) { $cpu.Name } else { 'unknown' }
+    cpuCores = if ($cpu) { $cpu.NumberOfCores } else { 0 }
+    cpuLogical = if ($cpu) { $cpu.NumberOfLogicalProcessors } else { 0 }
+    ramGb = if ($computer) { [Math]::Round($computer.TotalPhysicalMemory / 1GB, 1) } else { 0 }
+    gpu = if ($video) { $video.Name } else { 'unknown' }
+    gpuDriver = if ($video) { $video.DriverVersion } else { 'unknown' }
+    display = $display
+    sessionInteractive = [Environment]::UserInteractive
+}
+$thresholds = [ordered]@{
+    commandP95MsMax = 250
+    commandP99MsMax = 2000
+    frameP95MsMax = 16
+    longFramesMax = 0
+    note = 'Conservative baseline thresholds; see docs/testing/ui-responsiveness.md and compare p95/p99 against the recorded baseline for regressions.'
+}
+
 $env:AETHER_UI_CYCLES = $Cycles
 $env:AETHER_UI_TELEMETRY_OUT = $telemetryPath
 
@@ -87,7 +115,9 @@ $summary = [ordered]@{
         os          = [System.Environment]::OSVersion.VersionString
         interactive = [Environment]::UserInteractive
         powerNote   = if ($battery -and $battery.BatteryStatus -ne 2) { 'AC power not confirmed' } else { 'AC power confirmed' }
+        hardware    = $hardwareProfile
     }
+    thresholds     = $thresholds
     metrics        = [ordered]@{
         commandDurationMs = [ordered]@{
             p50 = Percentile ($records.commandDurationMs) 50
@@ -106,11 +136,35 @@ $summary = [ordered]@{
         }
         longFramesTotal = ($records.longFrames | Measure-Object -Sum).Sum
         framesTotal     = ($records.frames | Measure-Object -Sum).Sum
+        memory          = [ordered]@{
+            workingSetMb = [ordered]@{
+                start = if ($records[0].workingSetMb) { [double]$records[0].workingSetMb } else { $null }
+                end = if ($records[-1].workingSetMb) { [double]$records[-1].workingSetMb } else { $null }
+                p50 = Percentile ($records.workingSetMb | Where-Object { $null -ne $_ }) 50
+                max = if ($records.workingSetMb) { [double](($records.workingSetMb | Measure-Object -Maximum).Maximum) } else { $null }
+            }
+            managedMemoryMb = [ordered]@{
+                start = if ($records[0].managedMemoryMb) { [double]$records[0].managedMemoryMb } else { $null }
+                end = if ($records[-1].managedMemoryMb) { [double]$records[-1].managedMemoryMb } else { $null }
+                p50 = Percentile ($records.managedMemoryMb | Where-Object { $null -ne $_ }) 50
+                max = if ($records.managedMemoryMb) { [double](($records.managedMemoryMb | Measure-Object -Maximum).Maximum) } else { $null }
+            }
+        }
     }
     telemetryFile  = $telemetryPath
 }
-$summary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $reportPath -Encoding utf8
+$violations = @()
+if ($summary.metrics.commandDurationMs.p95 -gt $thresholds.commandP95MsMax) { $violations += "command p95 $($summary.metrics.commandDurationMs.p95) ms > $($thresholds.commandP95MsMax) ms" }
+if ($summary.metrics.commandDurationMs.p99 -gt $thresholds.commandP99MsMax) { $violations += "command p99 $($summary.metrics.commandDurationMs.p99) ms > $($thresholds.commandP99MsMax) ms" }
+if ($summary.metrics.frameP95Ms.p95 -gt $thresholds.frameP95MsMax) { $violations += "frame-p95 p95 $($summary.metrics.frameP95Ms.p95) ms > $($thresholds.frameP95MsMax) ms" }
+if ($summary.metrics.longFramesTotal -gt $thresholds.longFramesMax) { $violations += "long frames $($summary.metrics.longFramesTotal) > $($thresholds.longFramesMax)" }
+$summary.thresholdViolations = $violations
+$summary | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $reportPath -Encoding utf8
 Write-Host "UI responsiveness report: $reportPath"
+if ($violations.Count -gt 0) {
+    Write-Host "FAIL_THRESHOLD: $($violations -join '; ')"
+    exit 7
+}
 Write-Host ("command p50/p95/p99={0}/{1}/{2} ms; frame-p95 p50/p95/p99={3}/{4}/{5} ms; cycles={6}" -f `
     $summary.metrics.commandDurationMs.p50, $summary.metrics.commandDurationMs.p95, $summary.metrics.commandDurationMs.p99, `
     $summary.metrics.frameP95Ms.p50, $summary.metrics.frameP95Ms.p95, $summary.metrics.frameP95Ms.p99, $records.Count)
