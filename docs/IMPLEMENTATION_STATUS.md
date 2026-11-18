@@ -203,6 +203,13 @@ extended evaluation harness (semantic/denial accuracy, repeated-trial latency pe
 cost estimates, hardware fingerprint, explicit TTFT deviation) and CI deterministic-baseline smoke.
 Live provider and physical local-model reports are still required for #88/#95 closure.
 
+**v1.4 privacy-gateway decision (in review, 2026-11-18):** ADR-011 rejects sanitized INTERNAL cloud
+routing for v1.x; `PolicyEngine` hard-disables the latent `AllowSanitizedInternal` branch, the token
+vault remains a local primitive and is architecturally guarded out of `src/Aether.AI`, and tests
+prove PUBLIC-only/RESTRICTED/UNKNOWN default denial. AW-062 conditional integration is intentionally
+not enabled (rejection path). Evidence:
+`docs/testing/evidence/2026-11-18-v1.4-privacy-gateway-decision.md`.
+
 A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
 measurement and Track B capture/build/validate:
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.

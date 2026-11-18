@@ -59,9 +59,9 @@ public class PolicyEngineTests
     }
 
     [Fact]
-    public void SanitizedInternalRequiresExplicitReviewFlagAndPolicyOptIn()
+    public void SanitizedInternalIsRejectedEvenWithExplicitReviewFlagAndPolicyOptIn()
     {
-        // Default policy does not allow sanitized INTERNAL cloud calls.
+        // v1.4 ADR-010: sanitized INTERNAL cloud routing is rejected for the v1.x line.
         Assert.False(Engine.Evaluate(Cloud(DataClassification.Internal, sanitized: true)).Allowed);
 
         var permissive = PolicyDocument.CreateDefault();
@@ -73,7 +73,9 @@ public class PolicyEngineTests
         var reviewEngine = new PolicyEngine(permissive);
 
         Assert.False(reviewEngine.Evaluate(Cloud(DataClassification.Internal, sanitized: false)).Allowed);
-        Assert.True(reviewEngine.Evaluate(Cloud(DataClassification.Internal, sanitized: true)).Allowed);
+        var reviewed = reviewEngine.Evaluate(Cloud(DataClassification.Internal, sanitized: true));
+        Assert.False(reviewed.Allowed);
+        Assert.Equal(AetherErrorCodes.PolicyCloudDeniedByDefault, reviewed.Code);
     }
 
     [Fact]
