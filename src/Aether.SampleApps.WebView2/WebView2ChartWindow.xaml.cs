@@ -85,7 +85,13 @@ public partial class WebView2ChartWindow : Window
                 throw new FileNotFoundException("The local WebView2 chart page is missing from the build output.", chartPage);
             }
 
-            _core.Navigate(new Uri(chartPage).AbsoluteUri);
+            // A local virtual host keeps the page same-origin for its local CSS/JS under a strict
+            // CSP and still performs no network access (DenyCors; the folder mapping is local-only).
+            _core.SetVirtualHostNameToFolderMapping(
+                "aether.local",
+                AppContext.BaseDirectory,
+                CoreWebView2HostResourceAccessKind.DenyCors);
+            _core.Navigate("https://aether.local/chart.html");
             StatusText.Text = $"WebView2 renderer PID {_runtime?.ProcessId.ToString() ?? "?"} · waiting for JS bridge";
             FallbackText.Visibility = Visibility.Collapsed;
         }

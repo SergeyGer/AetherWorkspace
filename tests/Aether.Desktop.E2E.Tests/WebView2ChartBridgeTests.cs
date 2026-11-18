@@ -187,6 +187,19 @@ public sealed class WebView2ChartBridgeTests
             + ReadDiagnostics(harness, automationId));
     }
 
+    private static IEnumerable<string> ReadSharedLines(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var reader = new StreamReader(stream);
+        var lines = new List<string>();
+        while (reader.ReadLine() is { } line)
+        {
+            lines.Add(line);
+        }
+
+        return lines;
+    }
+
     private static string ReadDiagnostics(NamedPipeBrokerHarness harness, string label)
     {
         var lines = new List<string> { "--- " + label + " diagnostics ---" };
@@ -202,7 +215,15 @@ public sealed class WebView2ChartBridgeTests
         lines.Add($"--- broker stderr tail ({harness.BrokerStdErrFile}) ---");
         if (File.Exists(harness.BrokerStdErrFile))
         {
-            lines.AddRange(File.ReadAllLines(harness.BrokerStdErrFile).TakeLast(30));
+            lines.AddRange(ReadSharedLines(harness.BrokerStdErrFile).TakeLast(30));
+        }
+
+        lines.Add($"--- e2e run directory: {harness.RunDirectory} ---");
+        if (Directory.Exists(harness.RunDirectory))
+        {
+            lines.AddRange(Directory.GetFiles(harness.RunDirectory, "*", SearchOption.AllDirectories)
+                .Select(path => Path.GetRelativePath(harness.RunDirectory, path))
+                .OrderBy(path => path, StringComparer.Ordinal));
         }
 
         return string.Join(Environment.NewLine, lines);
