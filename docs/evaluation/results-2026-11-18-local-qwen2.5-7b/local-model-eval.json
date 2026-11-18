@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "1.1",
+  "kind": "model-evaluation",
+  "generatedAtUtc": "2026-11-18T17:42:14.4479097+00:00",
+  "purpose": "v1.3 labelled synthetic gold-corpus evaluation; no raw customer data and no quality/cost claim beyond this run",
+  "provider": {
+    "id": "local-loopback",
+    "model": "qwen2.5:7b",
+    "endpointHost": "127.0.0.1:11434",
+    "usedModel": true,
+    "credentialSource": "environment"
+  },
+  "corpus": {
+    "path": "docs/evaluation/command-corpus-v1.3.json",
+    "sha256": "e656ac74d043a9e6be092b30350ec3b56a8341cff675f0dfd74498d8cd94340c",
+    "itemCount": 120,
+    "planItems": 80,
+    "negativeItems": 40,
+    "evaluatedItems": 4,
+    "limit": 4,
+    "passedForProduction": false
+  },
+  "hardware": {
+    "os": "Ubuntu 24.04.5 LTS",
+    "architecture": "X64",
+    "logicalCpus": 8,
+    "availableMemoryMb": 15613.8,
+    "runtime": ".NET 10.0.15",
+    "profile": "physical-windows11-reference",
+    "gpu": "operator-recorded"
+  },
+  "metrics": {
+    "trials": 1,
+    "requests": 4,
+    "providerFailures": 0,
+    "semanticPlanAccuracy": 1,
+    "denialAccuracy": null,
+    "syntacticPlanRate": 1,
+    "latencyMs": {
+      "p50": 23538.6,
+      "p95": 23728.1,
+      "p99": 23728.1
+    },
+    "ttftMs": {
+      "p50": null,
+      "p95": null,
+      "p99": null,
+      "measuredRequests": 0,
+      "limitation": "This provider/transport is non-streaming, so true time-to-first-token is not measured; no value is fabricated."
+    },
+    "tokens": {
+      "kind": "estimated-character-based",
+      "estimatedInput": 1913,
+      "estimatedOutput": 396,
+      "inputPerRequest": {
+        "p50": 478,
+        "p95": 479,
+        "p99": 479
+      },
+      "outputPerRequest": {
+        "p50": 99,
+        "p95": 99,
+        "p99": 99
+      }
+    },
+    "cost": {
+      "kind": "estimated",
+      "estimatedTotalUsd": 0.0017485,
+      "providerBilledUsd": null,
+      "note": "Estimated from the configured token price table; not a provider invoice. Actual cost requires the provider usage/billing export."
+    }
+  },
+  "results": [
+    {
+      "id": "valid-001",
+      "category": "valid_reference",
+      "expectation": "plan",
+      "success": true,
+      "validPlan": true,
+      "semanticCorrect": true,
+      "provider": "local-loopback",
+      "usedModel": true,
+      "latencyMs": 23538.6,
+      "inputTokens": 478,
+      "outputTokens": 99,
+      "estimatedCostUsd": 0.000437,
+      "ttftMs": null,
+      "errorCode": null,
+      "contentPreview": "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[{\"action\":\"LaunchApp\",\"appId\":\"sample.watchlist\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.risk\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.chart\"},{\"action\":\"PublishContext\",\"contextRef\":\"syntheti"
+    },
+    {
+      "id": "valid-002",
+      "category": "valid_reference",
+      "expectation": "plan",
+      "success": true,
+      "validPlan": true,
+      "semanticCorrect": true,
+      "provider": "local-loopback",
+      "usedModel": true,
+      "latencyMs": 23728.1,
+      "inputTokens": 477,
+      "outputTokens": 99,
+      "estimatedCostUsd": 0.0004365,
+      "ttftMs": null,
+      "errorCode": null,
+      "contentPreview": "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[{\"action\":\"LaunchApp\",\"appId\":\"sample.watchlist\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.risk\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.chart\"},{\"action\":\"PublishContext\",\"contextRef\":\"syntheti"
+    },
+    {
+      "id": "valid-003",
+      "category": "valid_reference",
+      "expectation": "plan",
+      "success": true,
+      "validPlan": true,
+      "semanticCorrect": true,
+      "provider": "local-loopback",
+      "usedModel": true,
+      "latencyMs": 23667.7,
+      "inputTokens": 479,
+      "outputTokens": 99,
+      "estimatedCostUsd": 0.0004375,
+      "ttftMs": null,
+      "errorCode": null,
+      "contentPreview": "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[{\"action\":\"LaunchApp\",\"appId\":\"sample.watchlist\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.risk\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.chart\"},{\"action\":\"PublishContext\",\"contextRef\":\"syntheti"
+    },
+    {
+      "id": "valid-004",
+      "category": "valid_reference",
+      "expectation": "plan",
+      "success": true,
+      "validPlan": true,
+      "semanticCorrect": true,
+      "provider": "local-loopback",
+      "usedModel": true,
+      "latencyMs": 23531.3,
+      "inputTokens": 479,
+      "outputTokens": 99,
+      "estimatedCostUsd": 0.0004375,
+      "ttftMs": null,
+      "errorCode": null,
+      "contentPreview": "{\"schemaVersion\":\"1.0\",\"planId\":\"plan-1\",\"steps\":[{\"action\":\"LaunchApp\",\"appId\":\"sample.watchlist\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.risk\"},{\"action\":\"LaunchApp\",\"appId\":\"sample.chart\"},{\"action\":\"PublishContext\",\"contextRef\":\"syntheti"
+    }
+  ],
+  "limitations": [
+    "Character-based token/cost estimates are not provider billing.",
+    "TTFT is reported only where the provider transport streams tokens; non-streaming adapters report it as unavailable instead of estimating.",
+    "The corpus is synthetic and bounded; no general, compliance or production-quality claim is made.",
+    "Local hardware latency/memory is only authoritative when the operator attaches the physical hardware report."
+  ]
+}

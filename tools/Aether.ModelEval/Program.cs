@@ -93,6 +93,7 @@ internal static class Program
     {
         string? envFile = null, provider = null, corpusPath = null, outPath = null, modelOverride = null;
         var trials = 1;
+        var limit = 0;
         for (var index = 0; index < args.Length; index++)
         {
             switch (args[index])
@@ -102,6 +103,14 @@ internal static class Program
                 case "--corpus": corpusPath = Next(args, ref index); break;
                 case "--out": outPath = Next(args, ref index); break;
                 case "--model": modelOverride = Next(args, ref index); break;
+                case "--limit":
+                    if (!int.TryParse(Next(args, ref index), NumberStyles.Integer, CultureInfo.InvariantCulture, out limit) || limit < 0)
+                    {
+                        Console.Error.WriteLine("--limit must be a non-negative integer (0 = all items).");
+                        return 2;
+                    }
+
+                    break;
                 case "--trials":
                     if (!int.TryParse(Next(args, ref index), NumberStyles.Integer, CultureInfo.InvariantCulture, out trials) || trials is < 1 or > 5)
                     {
@@ -118,7 +127,7 @@ internal static class Program
 
         if (provider is null || corpusPath is null || outPath is null)
         {
-            Console.Error.WriteLine("usage: Aether.ModelEval --provider deterministic|local|openai|gemini --corpus <json> --out <json> [--trials 1..5] [--env-file <path>] [--model <id>]");
+            Console.Error.WriteLine("usage: Aether.ModelEval --provider deterministic|local|openai|gemini --corpus <json> --out <json> [--trials 1..5] [--limit N] [--env-file <path>] [--model <id>]");
             return 2;
         }
 
@@ -171,11 +180,12 @@ internal static class Program
             return 2;
         }
 
+        var selectedItems = limit > 0 ? corpus.Items.Take(limit).ToArray() : corpus.Items;
         var results = new List<ItemResult>();
         var failures = 0;
         try
         {
-            foreach (var item in corpus.Items)
+            foreach (var item in selectedItems)
             {
                 for (var trial = 0; trial < trials; trial++)
                 {
@@ -254,6 +264,8 @@ internal static class Program
                 itemCount = corpus.Items.Length,
                 planItems = corpus.Items.Count(item => (item.Expectation ?? "plan") == "plan"),
                 negativeItems = corpus.Items.Count(item => (item.Expectation ?? "plan") != "plan"),
+                evaluatedItems = selectedItems.Length,
+                limit = limit == 0 ? (int?)null : limit,
                 passedForProduction = false,
             },
             hardware,

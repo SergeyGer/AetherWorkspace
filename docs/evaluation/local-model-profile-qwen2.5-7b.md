@@ -53,8 +53,16 @@ dotnet run -c Release --project src/Aether.Shell.Headless -- `
 The local endpoint is validated as **loopback-only** by `ModelProviderSettings.Validate`; a
 non-loopback URL is rejected as a configuration error and never silently sent.
 
-## Measurement requirement (operator)
+## Measured result (fresh Linux host, 2026-11-18)
 
-Run the v1.3 evaluation harness with `--provider local` and attach the sanitized report with:
-model/layer digest, hardware fingerprint, warmup, repeated trials, p50/p95/p99 latency, tokens and
-peak working-set memory. Do not claim latency or memory values before that report exists.
+A fresh Ubuntu 24.04.5 x64 host (8 vCPU, 15.2 GB, CPU-only, Ollama 0.40.16) ran the first 4
+canonical-plan corpus items with `qwen2.5:7b`: semantic plan accuracy 1.0 (limited scope), latency
+p50/p95/p99 **23,538.6 / 23,728.1 / 23,728.1 ms**, model-runner RSS **4,875.1 MB**, total local
+inference working set **4,918.3 MB**, loaded model 4,835.0 MB. TTFT is unavailable for the
+non-streaming local adapter (explicit deviation). This is a Linux measurement, **not** a Windows
+hardware run; see
+[`results-2026-11-18-local-qwen2.5-7b.md`](results-2026-11-18-local-qwen2.5-7b.md) and the sanitized
+JSON reports.
+
+Reproduction: `pwsh -File tools/model-eval/Measure-LocalModelProfile.ps1 -Model qwen2.5:7b -Trials 1 -MaxItems 4`.
+Weights, credentials and caches are local-only and not committed.

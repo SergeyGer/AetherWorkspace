@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "local-model-physical-measurement",
+  "measuredAtUtc": "2026-11-18T17:42:14.7708540Z",
+  "model": "qwen2.5:7b",
+  "endpointHost": "127.0.0.1",
+  "trials": 1,
+  "maxItems": 4,
+  "hardware": {
+    "os": "Ubuntu 24.04.5 LTS",
+    "cpu": "Intel Xeon Processor (Skylake, IBRS, no TSX)",
+    "logicalCpus": 8,
+    "totalRamGb": 15.2,
+    "gpu": "by-path; card0; renderD128"
+  },
+  "ollamaServerWorkingSetMb": 43.2,
+  "modelRunnerWorkingSetMb": 4875.1,
+  "localInferenceWorkingSetMb": 4918.3,
+  "loadedModelSizeMb": 4835.0,
+  "loadedModelNames": [
+    "qwen2.5:7b"
+  ],
+  "eval": {
+    "report": "docs/evaluation/results-2026-11-18-local-qwen2.5-7b/local-model-eval.json",
+    "evaluatedItems": 4,
+    "limit": 4,
+    "semanticPlanAccuracy": 1,
+    "denialAccuracy": null,
+    "latencyMs": {
+      "p50": 23538.6,
+      "p95": 23728.1,
+      "p99": 23728.1
+    },
+    "ttftMs": {
+      "p50": null,
+      "p95": null,
+      "p99": null,
+      "measuredRequests": 0,
+      "limitation": "This provider/transport is non-streaming, so true time-to-first-token is not measured; no value is fabricated."
+    },
+    "tokens": {
+      "kind": "estimated-character-based",
+      "estimatedInput": 1913,
+      "estimatedOutput": 396,
+      "inputPerRequest": {
+        "p50": 478,
+        "p95": 479,
+        "p99": 479
+      },
+      "outputPerRequest": {
+        "p50": 99,
+        "p95": 99,
+        "p99": 99
+      }
+    },
+    "cost": {
+      "kind": "estimated",
+      "estimatedTotalUsd": 0.0017485,
+      "providerBilledUsd": null,
+      "note": "Estimated from the configured token price table; not a provider invoice. Actual cost requires the provider usage/billing export."
+    }
+  },
+  "note": "Measured values only (server + model-runner working sets and Ollama /api/ps loaded model size). TTFT remains unavailable for the non-streaming adapter; reported as a deviation."
+}
