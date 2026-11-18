@@ -59,7 +59,8 @@ internal static class Program
         double LatencyMs,
         int InputTokens,
         int OutputTokens,
-        decimal EstimatedCostUsd);
+        decimal EstimatedCostUsd,
+        double? TtftMs);
 
     private sealed record ItemResult(
         string Id,
@@ -74,6 +75,7 @@ internal static class Program
         int InputTokens,
         int OutputTokens,
         decimal EstimatedCostUsd,
+        double? TtftMs,
         string? ErrorCode,
         string? ContentPreview);
 
@@ -206,6 +208,7 @@ internal static class Program
                         attempt.InputTokens,
                         attempt.OutputTokens,
                         attempt.EstimatedCostUsd,
+                        attempt.TtftMs,
                         attempt.ErrorCode,
                         attempt.Content is null ? null : attempt.Content[..Math.Min(240, attempt.Content.Length)]));
                 }
@@ -220,6 +223,12 @@ internal static class Program
         var planResults = results.Where(result => result.Expectation == "plan").ToArray();
         var negativeResults = results.Where(result => result.Expectation != "plan").ToArray();
         var latencies = results.Where(result => result.LatencyMs > 0).Select(result => result.LatencyMs).ToArray();
+        var ttftValues = results.Where(result => result.TtftMs is not null).Select(result => result.TtftMs!.Value).ToArray();
+        Array.Sort(ttftValues);
+        var inputTokenValues = results.Select(result => (double)result.InputTokens).ToArray();
+        var outputTokenValues = results.Select(result => (double)result.OutputTokens).ToArray();
+        Array.Sort(inputTokenValues);
+        Array.Sort(outputTokenValues);
         var hardware = BuildHardwareProfile();
         var corpusSha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(corpusPath))).ToLowerInvariant();
         var providerEndpointHost = SanitizeEndpointHost(configuration.EndpointHost);
@@ -259,16 +268,21 @@ internal static class Program
                 latencyMs = Percentiles(latencies),
                 ttftMs = new
                 {
-                    p50 = (double?)null,
-                    p95 = (double?)null,
-                    p99 = (double?)null,
-                    limitation = "The current adapters are non-streaming, so true time-to-first-token is not measured. A streaming transport is required before reporting TTFT; no number is fabricated.",
+                    p50 = ttftValues.Length == 0 ? (double?)null : Math.Round(Percentile(ttftValues, 0.50), 1),
+                    p95 = ttftValues.Length == 0 ? (double?)null : Math.Round(Percentile(ttftValues, 0.95), 1),
+                    p99 = ttftValues.Length == 0 ? (double?)null : Math.Round(Percentile(ttftValues, 0.99), 1),
+                    measuredRequests = ttftValues.Length,
+                    limitation = ttftValues.Length == 0
+                        ? "This provider/transport is non-streaming, so true time-to-first-token is not measured; no value is fabricated."
+                        : "Measured from the first non-empty SSE content delta for the OpenAI-compatible streaming transport. Gemini/local adapters remain non-streaming and are excluded.",
                 },
                 tokens = new
                 {
                     kind = "estimated-character-based",
                     estimatedInput = results.Sum(result => result.InputTokens),
                     estimatedOutput = results.Sum(result => result.OutputTokens),
+                    inputPerRequest = Percentiles(inputTokenValues),
+                    outputPerRequest = Percentiles(outputTokenValues),
                 },
                 cost = new
                 {
@@ -282,7 +296,7 @@ internal static class Program
             limitations = new[]
             {
                 "Character-based token/cost estimates are not provider billing.",
-                "TTFT is not measured by the current non-streaming adapters; it is explicitly reported as unavailable.",
+                "TTFT is reported only where the provider transport streams tokens; non-streaming adapters report it as unavailable instead of estimating.",
                 "The corpus is synthetic and bounded; no general, compliance or production-quality claim is made.",
                 "Local hardware latency/memory is only authoritative when the operator attaches the physical hardware report.",
             },
@@ -342,7 +356,7 @@ internal static class Program
                         settings.ReadEndpoint(values),
                         settings.Model,
                         settings.ApiKeyEnvironmentVariable)
-                    : new HttpCloudModelTransport(
+                    : new StreamingOpenAiTransport(
                         new EnvironmentSecretProvider(values),
                         settings.ReadEndpoint(values),
                         settings.Model,
@@ -374,7 +388,7 @@ internal static class Program
             var content = result.Success && result.Plan is not null ? AetherJson.Serialize(result.Plan) : null;
             return new Attempt(
                 result.Success, content, result.ErrorCode, result.Provider, result.UsedModel,
-                stopwatch.Elapsed.TotalMilliseconds, 0, 0, 0m);
+                stopwatch.Elapsed.TotalMilliseconds, 0, 0, 0m, null);
         }
 
         var modelRequest = new CloudModelRequest(
@@ -386,11 +400,21 @@ internal static class Program
             CloudPlanProvider.PlannerPrompt,
             command);
         CloudModelResponse response;
+        double? ttftMs = null;
         try
         {
-            response = configuration.CloudTransport is not null
-                ? configuration.CloudTransport.SendAsync(modelRequest, CancellationToken.None).GetAwaiter().GetResult()
-                : configuration.LocalTransport!.SendAsync(modelRequest, CancellationToken.None).GetAwaiter().GetResult();
+            if (configuration.CloudTransport is StreamingOpenAiTransport streamingTransport)
+            {
+                var streamingResult = streamingTransport.SendStreamingAsync(modelRequest, CancellationToken.None).GetAwaiter().GetResult();
+                response = streamingResult.Response;
+                ttftMs = streamingResult.TimeToFirstTokenMs;
+            }
+            else
+            {
+                response = configuration.CloudTransport is not null
+                    ? configuration.CloudTransport.SendAsync(modelRequest, CancellationToken.None).GetAwaiter().GetResult()
+                    : configuration.LocalTransport!.SendAsync(modelRequest, CancellationToken.None).GetAwaiter().GetResult();
+            }
         }
         catch (Exception exception)
         {
@@ -410,7 +434,8 @@ internal static class Program
             stopwatch.Elapsed.TotalMilliseconds,
             inputTokens,
             outputTokens,
-            EstimateCost(configuration.Model, inputTokens, outputTokens));
+            EstimateCost(configuration.Model, inputTokens, outputTokens),
+            ttftMs is null ? null : Math.Round(ttftMs.Value, 2));
     }
 
     private static bool TryParsePlan(string? content, out ActionPlan? plan, out string? error)
