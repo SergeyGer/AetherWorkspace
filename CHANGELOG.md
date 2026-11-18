@@ -3,6 +3,18 @@
 All notable changes to this reference implementation are recorded here. Version labels follow the
 implementation-plan milestones; release assets are published on GitHub Releases.
 
+## [v1.1.1] — Narrated hero and final-state social preview (2026-11-18)
+
+Presentation patch on top of v1.1.0 (no runtime/contract changes).
+
+- English narrated Track B hero: social-preview intro, continuous synthetic professional voiceover,
+  1 s crossfades, final spoken GitHub link and QR outro; 93.37 s, AAC 48 kHz.
+- Clean capture rebuild from the same raw recording; captions clamped to scene boundaries (no
+  overlap); validation PASS.
+- Final-state social preview with large mobile-readable type and no fine print.
+- Voiceover documented as synthetic TTS; English-only operator decision. Evidence:
+  `docs/testing/evidence/2026-11-18-v1.1-narrated-demo.md`.
+
 ## [v1.1.0] — Demo-ready (2026-11-18)
 
 Track B hero demo validated on a physical Windows 11 laptop, local capture/media pipeline, demo

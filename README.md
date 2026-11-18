@@ -24,10 +24,12 @@ reference live in the **[Wiki](https://github.com/SergeyGer/AetherWorkspace/wiki
 
 [![AetherWorkspace Track B demo preview](docs/assets/demo-preview.gif)](docs/assets/demo-hero.mp4)
 
-Track B (primary): an LLM proposes a plan under explicit PUBLIC consent; the policy-governed executor
-validates and runs it; typed context synchronizes three independent Windows apps over authenticated
-local IPC. The deterministic Track A path remains available with `usedModel=false`.
-[Full capture evidence](docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md).
+Track B (primary, **narrated English video**): an LLM proposes a plan under explicit PUBLIC consent;
+the policy-governed executor validates and runs it; typed context synchronizes three independent
+Windows apps over authenticated local IPC. The deterministic Track A path remains available with
+`usedModel=false`.
+[Capture evidence](docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md) ·
+[narrated-video evidence](docs/testing/evidence/2026-11-18-v1.1-narrated-demo.md).
 
 ## Start here
 
