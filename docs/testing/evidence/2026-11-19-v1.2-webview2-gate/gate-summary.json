@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-physical-release-gate",
+  "runId": "physical-gate-20261119-074214",
+  "startedAtUtc": "2026-11-19T06:42:14.1271827Z",
+  "repoRoot": "C:\\AetherWorkspace\\trusted",
+  "gateRoot": "C:\\AetherWorkspace\\results\\physical-gate-20261119-074214",
+  "steps": {
+    "trust": {
+      "state": "PASS",
+      "detail": "85e5466ae8832cdeb41ee1764bcf7192dd32c8e6"
+    },
+    "reference-full": {
+      "state": "PASS",
+      "detail": "C:\\AetherWorkspace\\results\\20261119-074214-release-full-54ebb0"
+    },
+    "wt-ledger": {
+      "state": "PASS",
+      "detail": "C:\\AetherWorkspace\\results\\physical-gate-20261119-074214"
+    },
+    "ui-responsiveness": {
+      "state": "PASS",
+      "detail": null
+    }
+  },
+  "finishedAtUtc": "2026-11-19T06:46:34.7911196Z",
+  "overall": "PASS"
+}

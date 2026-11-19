@@ -63,6 +63,13 @@ Working set 219.9 → 319.3 MB (p50 317.5, max 326.5); managed 12.0 → 22.5 MB 
 339 probe samples; 0 long intervals; 0 threshold violations. Evidence:
 `docs/testing/evidence/2026-11-18-v1.1-ui-responsiveness.md`.
 
+## 2026-11-19 physical gate rerun
+
+Same reference laptop (Windows 11 build 26300, Intel Core Ultra 7 255H, 63.3 GB, Intel Arc 140T),
+100 cycles at display 1920×1200 on AC power: command p50/p95/p99 = **3/8/15 ms**, frame-probe p95
+p50/p95/p99 = 0.4/0.84/1.66 ms, 0 threshold violations. Sanitized report:
+`docs/testing/evidence/2026-11-19-v1.2-webview2-gate/ui-responsiveness-20261119-074537.json`.
+
 ## Thresholds and regression policy
 
 | Metric | Threshold | Rationale |
