@@ -63,8 +63,10 @@ pwsh -NoProfile -File tools/demo/Validate-Video.ps1 `
 ```
 
 Produces `demo-hero.mp4` (H.264/yuv420p/1920×1080, 60–95 s) and `demo-preview.gif` (8–12 s,
-≤8 MB), captions keyed to measured event times from `demo-scenes.json`. Validation does not publish:
-human review of the MP4/GIF and provenance is mandatory before README/Wiki publication.
+≤8 MB). **V151 is caption-free**: it mixes `docs/demo/media/narration-v151.mp3` and does not burn
+scene captions. Historical Track A/Track B builds keep the legacy captions. Validation requires an AAC
+48 kHz stereo audio stream for narrated builds and does not publish: human review of the MP4/GIF and
+provenance is mandatory before README/Wiki publication.
 
 ## One-command physical gate (recommended)
 
@@ -103,7 +105,7 @@ committed.
 | `Prepare-Demo.ps1` | approved-SHA trust, detached worktree, build, preflight, preparation manifest |
 | `Obs-Control.ps1` | minimal local OBS WebSocket 5.x start/stop control (localhost only) |
 | `Record-Demo.ps1` | OBS recording + demo scenario + raw capture manifest |
-| `Build-Video.ps1` | FFmpeg hero MP4 + GIF, captions from measured events |
+| `Build-Video.ps1` | FFmpeg hero MP4 + GIF; V151 caption-free narrated mix, legacy Track A/B captions |
 | `Validate-Video.ps1` | codec/dimensions/duration/pixel-format/GIF-size/black-frame QA |
 | `demo-scenes.json` | V151/Track A/Track B captions and scene timing source of truth |
 | `obs-profile.example.json` | documented OBS setup; never contains the password |

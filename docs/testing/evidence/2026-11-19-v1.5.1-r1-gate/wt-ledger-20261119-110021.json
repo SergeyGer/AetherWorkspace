@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-wt-ledger",
+  "generatedAtUtc": "2026-11-19T10:00:21.7898038Z",
+  "sourceResults": "C:\\AetherWorkspace\\results\\20261119-105655-release-full-6a01ab",
+  "trxFiles": 11,
+  "entries": [
+    {
+      "id": "WT-04-01",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.DesktopGuiE2ETests.GuiWorkflowRunsOverWindowsNamedPipes",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-04-02",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.DesktopGuiE2ETests.RestrictedClassificationNeverShowsExternalProvider",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-04-03",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Shell.UiTests.ShellUiAutomationTests.ShellStartsConnectsToBrokerAndExposesCoreControls",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-04-04",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.DesktopGuiE2ETests.GuiWorkflowWithRealWpfSampleAppsKeepsWindowsOpen",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-04-05",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.WpfSampleAppPersistenceTests.RealWpfSampleAppsStayOpenAndReceiveContext",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-04-06",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.WpfTickerSynchronizationTests.WatchlistSelectionSynchronizesRiskAndChartWithoutEchoPublish",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-04-07",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Shell.UiTests.ShellUiAutomationTests.RepeatedWorkflowReportsUiTelemetry",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-04-08",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Shell.UiTests.ShellUiAutomationTests.RepeatedWorkflowReportsUiTelemetry",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-01",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.WorkspaceLayoutDesktopTests.SaveRestoreKeepsAllWindowsOnVisibleScreens",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-02",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.WorkspaceLayoutDesktopTests.SaveRestoreKeepsAllWindowsOnVisibleScreens",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-03",
+      "status": "MANUAL_PENDING",
+      "automated": "manual",
+      "tests": "",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-04",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.WorkspaceLayoutDesktopTests.DualMonitorLayoutRestoresSecondaryMonitorPlacements",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-05",
+      "status": "MANUAL_PENDING",
+      "automated": "manual",
+      "tests": "",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-06",
+      "status": "MANUAL_PENDING",
+      "automated": "manual",
+      "tests": "",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-07",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Desktop.E2E.Tests.WorkspaceLayoutDesktopTests.MissingMonitorFallsBackToAPresentScreen",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-08",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Shell.UiTests.ShellUiAutomationTests.RepeatedWorkflowReportsUiTelemetry",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-09",
+      "status": "MANUAL_PENDING",
+      "automated": "manual",
+      "tests": "",
+      "evidence": "",
+      "notes": ""
+    },
+    {
+      "id": "WT-05-10",
+      "status": "PASS",
+      "automated": "yes",
+      "tests": "Aether.Shell.UiTests.ShellUiAutomationTests.RepeatedWorkflowReportsUiTelemetry",
+      "evidence": "",
+      "notes": ""
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "description": "Caption/scene map for the AetherWorkspace demo. Times are derived from capture events; no fabricated state.",
+  "description": "Scene timing map (and legacy Track A/B captions) for the AetherWorkspace demo. V151 is caption-free and uses the reviewed voiceover; times derive from capture events, never fabricated state.",
   "tracks": {
     "TrackB": {
       "primary": true,

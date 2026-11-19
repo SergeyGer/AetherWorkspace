@@ -436,7 +436,11 @@ public sealed class DesktopGuiE2ETests
                 "application catalog");
             shell.ClickWebView2DemoPreset();
             Mark("command-center-preset", "strict; WPF watchlist+risk+WebView2");
-            await Hold(5);
+            await Hold(2);
+            // v1.5.1 review feedback: show the instruction being typed rather than an instant paste.
+            shell.TypeCommandGradually(northstarCommand);
+            Mark("instruction-typed");
+            await Hold(4);
         }
 
         string traceText;
@@ -450,7 +454,7 @@ public sealed class DesktopGuiE2ETests
             shell.SetCommand(vegaCommand);
             Mark("track-b-configured");
         }
-        else
+        else if (!isV151)
         {
             shell.EnsureRestrictedClassification();
             shell.SetPlanningMode(llmAssisted: false);
@@ -488,11 +492,29 @@ public sealed class DesktopGuiE2ETests
         Mark("workflow-succeeded", "planner=" + (usedModel ? "cloud-plan" : "deterministic-grammar"));
         await Hold(10);
 
-        shell.ClickDemoLayout();
-        Mark("demo-layout");
-        await Hold(6);
-
         using var automation = new FlaUI.UIA3.UIA3Automation();
+        if (isV151)
+        {
+            // Reviewer feedback: the full Shell covered the subordinate windows. Minimize the
+            // command surface and let the broker place all three independent windows in the
+            // full work area before the ticker scene, so every context change is visible.
+            await using var operatorClient = await broker.CreateOperatorClientAsync();
+            // With the command surface minimized, side-by-side uses the full work area and gives
+            // every WPF/WebView2 window equal, unobstructed space for the ticker changes.
+            var layout = await operatorClient.ArrangeWindowsAsync("side-by-side", traceId);
+            Assert.True(layout.Applied,
+                "The v1.5.1 side-by-side layout was not applied: " + layout.DenialCode + " " + layout.DenialMessage);
+            shell.MinimizeMainWindow();
+            Mark("demo-layout", "shell minimized; side-by-side applied");
+            await Hold(6);
+        }
+        else
+        {
+            shell.ClickDemoLayout();
+            Mark("demo-layout");
+            await Hold(6);
+        }
+
         var windows = isV151
             ? WaitForV151Windows(automation, TimeSpan.FromSeconds(40))
             : WaitForSampleWindows(automation, TimeSpan.FromSeconds(30));
@@ -505,6 +527,18 @@ public sealed class DesktopGuiE2ETests
         var allPids = sampleProcesses.Select(process => process.Id)
             .Concat(webView2Processes.Select(process => process.Id))
             .ToArray();
+        if (isV151)
+        {
+            Assert.Equal(3, windows.Count);
+            Assert.All(windows.Values, window =>
+            {
+                var bounds = window.BoundingRectangle;
+                Assert.True(bounds.Width > 300, $"Demo window '{window.Title}' is too narrow: {bounds.Width}px.");
+                Assert.True(bounds.Height > 200, $"Demo window '{window.Title}' is too short: {bounds.Height}px.");
+                Assert.False(window.IsOffscreen, $"Demo window '{window.Title}' is off-screen.");
+            });
+        }
+
         Mark("sample-windows", string.Join(",", windows.Keys) + (isV151 ? ",webview2" : ""));
         await Hold(8);
 
@@ -515,9 +549,13 @@ public sealed class DesktopGuiE2ETests
             await Hold(10);
         }
 
-        shell.SelectTraceTab();
-        Mark("inspector");
-        await Hold(10);
+        if (!isV151)
+        {
+            shell.SelectTraceTab();
+            Mark("inspector");
+            await Hold(10);
+        }
+
         Mark("ticker-scene-complete");
         await Hold(6);
 
