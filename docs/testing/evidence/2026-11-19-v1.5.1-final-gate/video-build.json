@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-demo-video",
+  "builtAtUtc": "2026-11-19T13:32:39.6155059Z",
+  "capture": {
+    "schemaVersion": "1.0",
+    "kind": "windows11-demo-capture",
+    "scenario": "V151",
+    "capturedAtUtc": "2026-11-19T13:32:29.5215576Z",
+    "recordingStartedUtc": "2026-11-19T13:31:05.8610658Z",
+    "approvedSha": "e07b53e33456cb43d98acec988ab7ee6e9f5a325",
+    "runId": "demo-20261119-143041-e07b53e3",
+    "rawRecording": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\raw-V151-20261119-143103.mp4",
+    "rawSha256": "9f83de87e0d4f3d9c427c178b0805ffccc3f80f48a7ab283ec05af94fbd93e62",
+    "eventsFile": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\demo-events-V151-20261119-143103.json",
+    "traceId": "fd4e27ab22c3fb05d48ce3e0533b4d95",
+    "planner": "deterministic-grammar",
+    "usedModel": false,
+    "pids": [
+      20608,
+      24532,
+      24556
+    ],
+    "tickers": [
+      "VEGA",
+      "ORIN"
+    ],
+    "testExit": 0
+  },
+  "sourceDurationSeconds": 82.3,
+  "trimStartSeconds": 5.5,
+  "trimEndSeconds": 82.3,
+  "builtDurationSeconds": 76.8,
+  "detectedBlackIntervals": [
+    {
+      "Start": 0.0,
+      "End": 5.25
+    }
+  ],
+  "mp4": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\demo-hero.mp4",
+  "mp4Sha256": "90eac9809d44b4e9adefb6e8426173679f06035dd81242d46afafded00f813b3",
+  "gif": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\demo-preview.gif",
+  "gifSha256": "6fceaf0c05bf39c94224bda0cdb7d4411f9cd4d283566ce9c3ab5fddbc77549c",
+  "captionsIncluded": false,
+  "captions": null,
+  "narration": "C:\\AetherWorkspace\\trusted\\docs\\demo\\media\\narration-v151.mp3",
+  "narrationSha256": "a31f43a43d5003b4f7e4e7d46e76debc413f1f06df672d452c6c2851274f93d1"
+}

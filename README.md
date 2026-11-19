@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml/badge.svg)](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml)
 [![coverage](docs/assets/coverage-badge.svg)](docs/testing/coverage.md)
-[![tests](https://img.shields.io/badge/tests-590%20passing-brightgreen)](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-600%20passing-brightgreen)](https://github.com/SergeyGer/AetherWorkspace/actions/workflows/ci.yml)
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)
 ![C%23 14](https://img.shields.io/badge/C%23-14-239120)
 ![WPF](https://img.shields.io/badge/WPF-Windows%2011-0C54C2)
@@ -31,17 +31,18 @@ through an authenticated local broker. All fixtures are synthetic.
 
 ## See it working
 
-[![AetherWorkspace Track B demo preview](docs/assets/demo-preview.gif)](https://youtu.be/CFJJZX-QcnU)
+[![AetherWorkspace v1.5.1 AI Command Center demo preview](docs/assets/demo-preview-v151.gif)](docs/assets/demo-hero-v151.mp4)
 
-Track B (primary, **narrated English video**): an LLM proposes a plan under explicit PUBLIC consent;
-the policy-governed executor validates and runs it; typed context synchronizes three independent
-Windows apps over authenticated local IPC. The deterministic Track A path remains available with
-`usedModel=false`.
+**v1.5.1 hero (primary):** the **AI Command Center** receives a progressively typed instruction, the
+operator selects Watchlist + Risk + the independent WebView2 chart and sets **Strict** launch scope,
+and the deterministic executor validates/authorizes the full plan before any side effect. The Shell
+is then minimized and all three windows stay fully visible for the VEGA→ORIN context change.
+Caption-free; English synthetic voiceover; `usedModel=false`.
 
-▶ **[Watch the narrated demo on YouTube](https://youtu.be/CFJJZX-QcnU)** ·
-[MP4 in this repository](docs/assets/demo-hero.mp4) ·
-[Capture evidence](docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md) ·
-[Narrated-video evidence](docs/testing/evidence/2026-11-18-v1.1-narrated-demo.md).
+▶ **[MP4 in this repository](docs/assets/demo-hero-v151.mp4)** ·
+[v1.5.1 video evidence](docs/testing/evidence/2026-11-19-v1.5.1-final-gate.md) ·
+[old narrated Track B demo on YouTube](https://youtu.be/CFJJZX-QcnU) ·
+[old Track B capture evidence](docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md).
 
 ## Architecture at a glance
 
@@ -117,7 +118,7 @@ Choose the path that matches the time you have.
 | Understand the product | 5 min | Purpose, key concepts, safety boundaries | [Wiki: Home](https://github.com/SergeyGer/AetherWorkspace/wiki) |
 | Run the Windows desktop app without building | 5 min | Unsigned portable WPF bundle + one-command launcher; verify checksums first | [Latest release](https://github.com/SergeyGer/AetherWorkspace/releases/latest) |
 | Run the reference workflow | 10 min | Real trace, plan, denials and private summary | [Quick start](docs/quickstart.md) |
-| See status, evidence and roadmap | 5 min | Milestones v0.1–v1.5, CI and desktop evidence | [Wiki: Project status](https://github.com/SergeyGer/AetherWorkspace/wiki/Project-Status) |
+| See status, evidence and roadmap | 5 min | Milestones v0.1–v1.5.1, CI and desktop evidence | [Wiki: Project status](https://github.com/SergeyGer/AetherWorkspace/wiki/Project-Status) |
 | Explore architecture and decisions | 20 min | Component map, invariants, ADRs | [Wiki: Architecture](https://github.com/SergeyGer/AetherWorkspace/wiki/Architecture) |
 | Run the Windows 11 test strategy | 30 min | R1 lifecycle, deterministic counters, evidence rules | [Wiki: Testing strategy](https://github.com/SergeyGer/AetherWorkspace/wiki/Testing-Strategy-Windows11) |
 | Extend contracts safely | 1 h | Contract studio, schemas, review/validate workflow | [Wiki: Development guide](https://github.com/SergeyGer/AetherWorkspace/wiki/Development-Guide) |
@@ -136,6 +137,9 @@ Choose the path that matches the time you have.
 - **A downloadable Windows desktop bundle.** Each release ships a Windows x64 ZIP with the WPF
   shell, three WPF sample apps, the independent WebView2 chart host, broker and a one-command
   launcher — no source checkout required (unsigned portable; verify the published SHA-256 and SBOM).
+- **AI Command Center and trusted application selection.** A prominent instruction editor with local
+  saved templates, live application catalog/health, Launch Selected and per-app lifecycle controls,
+  and a trusted Preferred/Strict launch scope that pre-authorizes the whole plan before step 1.
 - **A runnable desktop reference.** Three independent synthetic WPF apps (Watchlist, Risk,
   Chart), a separate WebView2 chart process with a strict typed-context bridge, durable
   multi-monitor layouts, a Live Inspector with sanitized diagnostics export, and a review-only
