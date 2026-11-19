@@ -35,6 +35,7 @@ Do not hand-edit it; regenerate after a coverage measurement.
 
 **v1.5.2 presentation patch:** the reviewed V151 hero with the previous hero's intro and outro
 cards/voiceover added. No runtime changes. Caption-free; synthetic English voiceover.
+**Watch:** [https://youtu.be/gYbkSSczabY](https://youtu.be/gYbkSSczabY).
 
 | File | Description | SHA-256 |
 |---|---|---|
@@ -47,8 +48,8 @@ Evidence: [`2026-11-19-v1.5.2-hero-intro-outro.md`](../testing/evidence/2026-11-
 
 **v1.5.1 hero:** AI Command Center → Strict workspace → WPF + WebView2 execution. Synthetic English
 voiceover, **no on-screen captions**; deterministic provenance (`usedModel=false`). The approved MP4
-was reviewed on a physical Windows 11 render; YouTube publication is pending explicit operator
-approval.
+was reviewed on a physical Windows 11 render; the composed v1.5.2 revision is published at
+[YouTube](https://youtu.be/gYbkSSczabY).
 
 | File | Description | SHA-256 |
 |---|---|---|

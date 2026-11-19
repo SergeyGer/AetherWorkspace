@@ -24,3 +24,4 @@ finishes at 78.61 s and the final card holds without narration to 84.9 s.
 - Preview: `docs/assets/demo-preview-v152.gif`
 
 This is a media derivative; behavioural claims remain those of the v1.5.1 evidence set.
+Published hero: [https://youtu.be/gYbkSSczabY](https://youtu.be/gYbkSSczabY).

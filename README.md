@@ -40,9 +40,10 @@ is then minimized and all three windows stay fully visible for the VEGA→ORIN c
 presentation patch adds the previous hero's intro/outro cards and voiceover; it is caption-free with a
 continuous synthetic English voiceover and truthful deterministic provenance (`usedModel=false`).
 
-▶ **[MP4 in this repository](docs/assets/demo-hero-v152.mp4)** ·
+▶ **[Watch the v1.5.2 hero on YouTube](https://youtu.be/gYbkSSczabY)** ·
+[MP4 in this repository](docs/assets/demo-hero-v152.mp4) ·
 [v1.5.2 composition evidence](docs/testing/evidence/2026-11-19-v1.5.2-hero-intro-outro.md) ·
-[previous narrated Track B demo on YouTube](https://youtu.be/CFJJZX-QcnU).
+[previous narrated Track B demo](https://youtu.be/CFJJZX-QcnU).
 
 ## Architecture at a glance
 
