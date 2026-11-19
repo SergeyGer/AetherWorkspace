@@ -102,7 +102,7 @@ if (-not $SkipCapture) {
         $env:AETHER_OBS_WEBSOCKET_PASSWORD = [System.Net.NetworkCredential]::new('', $securePassword).Password
     }
     if (-not $env:AETHER_OBS_WEBSOCKET_PASSWORD) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'AETHER_OBS_WEBSOCKET_PASSWORD is not set (use -PromptObsPassword or run in the same PowerShell process where it is set)'; $capturePass = $false }
-    elseif (-not $EnvironmentFile) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'EnvironmentFile is required for Track B'; $capturePass = $false }
+    elseif (-not $EnvironmentFile) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'EnvironmentFile is required for the capture scenario'; $capturePass = $false }
     else {
         $runsRoot = Join-Path (Split-Path -Parent $repo) 'runs'
         New-Item -ItemType Directory -Force -Path $runsRoot | Out-Null
