@@ -31,18 +31,18 @@ through an authenticated local broker. All fixtures are synthetic.
 
 ## See it working
 
-[![AetherWorkspace v1.5.1 AI Command Center demo preview](docs/assets/demo-preview-v151.gif)](docs/assets/demo-hero-v151.mp4)
+[![AetherWorkspace v1.5.2 demo preview](docs/assets/demo-preview-v152.gif)](docs/assets/demo-hero-v152.mp4)
 
-**v1.5.1 hero (primary):** the **AI Command Center** receives a progressively typed instruction, the
+**v1.5.2 hero (primary):** the **AI Command Center** receives a progressively typed instruction, the
 operator selects Watchlist + Risk + the independent WebView2 chart and sets **Strict** launch scope,
 and the deterministic executor validates/authorizes the full plan before any side effect. The Shell
-is then minimized and all three windows stay fully visible for the VEGA→ORIN context change.
-Caption-free; English synthetic voiceover; `usedModel=false`.
+is then minimized and all three windows stay fully visible for the VEGA→ORIN context change. This
+presentation patch adds the previous hero's intro/outro cards and voiceover; it is caption-free with a
+continuous synthetic English voiceover and truthful deterministic provenance (`usedModel=false`).
 
-▶ **[MP4 in this repository](docs/assets/demo-hero-v151.mp4)** ·
-[v1.5.1 video evidence](docs/testing/evidence/2026-11-19-v1.5.1-final-gate.md) ·
-[old narrated Track B demo on YouTube](https://youtu.be/CFJJZX-QcnU) ·
-[old Track B capture evidence](docs/testing/evidence/2026-11-18-v1.1-track-b-demo-gate.md).
+▶ **[MP4 in this repository](docs/assets/demo-hero-v152.mp4)** ·
+[v1.5.2 composition evidence](docs/testing/evidence/2026-11-19-v1.5.2-hero-intro-outro.md) ·
+[previous narrated Track B demo on YouTube](https://youtu.be/CFJJZX-QcnU).
 
 ## Architecture at a glance
 

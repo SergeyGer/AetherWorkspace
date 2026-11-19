@@ -31,6 +31,18 @@ node -e "const sharp=require('sharp');const fs=require('fs');sharp(fs.readFileSy
 `tools/coverage/summarize-coverage.py` (see [`docs/testing/coverage.md`](../testing/coverage.md)).
 Do not hand-edit it; regenerate after a coverage measurement.
 
+## Demo media (v1.5.2)
+
+**v1.5.2 presentation patch:** the reviewed V151 hero with the previous hero's intro and outro
+cards/voiceover added. No runtime changes. Caption-free; synthetic English voiceover.
+
+| File | Description | SHA-256 |
+|---|---|---|
+| `demo-hero-v152.mp4` | V151 hero + previous intro/outro (84.9 s, H.264 1080p30 + AAC 48 kHz stereo) | `799d686b0f7fcddd8e3338b861d1424f94d9683699a6c128875f34f48c974fcf` |
+| `demo-preview-v152.gif` | 10 s preview of the composed hero | `3c024d196026da5cb6e4c267a4f29fb7ba9b9a7732f86150b5a6a3821f43ed24` |
+
+Evidence: [`2026-11-19-v1.5.2-hero-intro-outro.md`](../testing/evidence/2026-11-19-v1.5.2-hero-intro-outro.md).
+
 ## Demo media (v1.5.1)
 
 **v1.5.1 hero:** AI Command Center → Strict workspace → WPF + WebView2 execution. Synthetic English
