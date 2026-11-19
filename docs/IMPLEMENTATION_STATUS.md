@@ -217,6 +217,12 @@ context sync. ADR-013 keeps the bounded FDC3 subset and rejects user channels, b
 contexts/intents/listeners, directory federation and external conformance claims; rejection tests
 cover the bounded surface. No Electron dependency or release-blocking change is added.
 
+**v1.2 physical gate PASS (2026-11-19):** approved SHA `85e5466`; trust/reference-full/WT ledger/UI
+responsiveness all PASS on the reference Windows 11 laptop. reference-full: portable 590/590,
+Windows UI 3/3, desktop E2E 8/8 (including WebView2 bridge/fallback), layout05 4/4; 100-cycle UI
+responsiveness 0 threshold violations. #85/#86 closed; evidence
+`docs/testing/evidence/2026-11-18-v1.2-webview2-bridge.md` + sanitized gate directory.
+
 A single local command now chains the approved-SHA reference suite, WT ledger export, 100-cycle UI
 measurement and Track B capture/build/validate:
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` writes `results/physical-gate-<stamp>/gate-summary.json`.

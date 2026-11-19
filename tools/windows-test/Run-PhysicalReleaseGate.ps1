@@ -19,6 +19,8 @@ param(
     [string[]] $CaptureScenarios = @('TrackB'),
     [string] $ManualLedgerPath,
     [switch] $SkipCapture,
+    # Skips only the UI responsiveness measurement. The release-full reference suite and WT ledger
+    # are always part of a physical gate and cannot be skipped by this switch.
     [switch] $SkipMeasurements,
     [switch] $PromptObsPassword
 )
@@ -60,8 +62,7 @@ if ($LASTEXITCODE -ne 0) { Step 'trust' 'SKIPPED_UNAPPROVED_SHA' 'not on origin/
 Step 'trust' 'PASS' $approved
 
 $corePass = $true
-if (-not $SkipMeasurements) {
-    $before = @(Get-ChildItem -LiteralPath $resultsDir -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+$before = @(Get-ChildItem -LiteralPath $resultsDir -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
     & pwsh -NoProfile -File (Join-Path $repo 'tools\windows-test\Run-AetherTests.ps1') `
         -Profile release-full -ApprovedRevisionFile $ApprovedRevisionFile -ConfigPath $ConfigPath
     $referenceExit = $LASTEXITCODE
@@ -86,6 +87,7 @@ if (-not $SkipMeasurements) {
         else { Step 'wt-ledger' 'PASS' $gateRoot }
     }
 
+if (-not $SkipMeasurements) {
     & pwsh -NoProfile -File (Join-Path $repo 'tools\windows-test\Measure-UiResponsiveness.ps1') -Cycles $UiCycles -ResultsDirectory 'results/ui-responsiveness'
     $uiExit = $LASTEXITCODE
     if ($uiExit -eq 0) { Step 'ui-responsiveness' 'PASS'; Get-ChildItem (Join-Path $repo 'results\ui-responsiveness') -File | Where-Object { $_.Name -like 'ui-responsiveness-*.json' } | Sort-Object LastWriteTime | Select-Object -Last 1 | ForEach-Object { Copy-Item $_.FullName -Destination $gateRoot -Force } }
