@@ -4,10 +4,21 @@ Status legend: **Done** = implemented with committed automated evidence; **Parti
 key parts implemented and tested, milestone gate not fully met; **Not started** = planned
 only. Every claim below points at code and tests in this repository.
 
-**Snapshot:** 16 November 2026 — latest released tags **v1.0.1** (corrective) and **v1.0.0**
-(reproducible reference release). This page is the implementation mapping; the authoritative
-versioned summary is the [Wiki Project status](https://github.com/SergeyGer/AetherWorkspace/wiki/Project-Status).
-Open post-v1.0 findings and their disposition are tracked in
+**Current snapshot:** all planned milestones **M0 through v1.5** are delivered; latest release is
+**v1.5.0** (cumulative v1.2–v1.5) with all GitHub Issues and milestones closed. The authoritative
+versioned summary is the
+[Wiki Project status](https://github.com/SergeyGer/AetherWorkspace/wiki/Project-Status).
+
+| Current capability | Status | Evidence |
+|---|---|---|
+| WPF desktop bundle, named-pipe workflow, guarded executor, durable layouts, Inspector | Delivered | CI + physical Windows 11 release-full gate |
+| Independent WebView2 chart + strict typed-context bridge | Delivered | Windows physical gate desktop E2E 8/8 (bridge + fallback) |
+| Hybrid AI provider config, local profile/credentials, 120-command gold corpus | Delivered | Live OpenAI and fresh-host local measurement reports under `docs/evaluation/` |
+| Privacy/extension decisions | Delivered | ADR-011 reject sanitized INTERNAL cloud; ADR-012 Electron no-go; ADR-013 bounded FDC3 |
+| Manual WT-05 rows | **Accepted known limitation (won't test)**, not PASS | `docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md` |
+
+The detailed tables below are the historical milestone mapping; some test counters and issue counts
+are from the milestone at which they were recorded. Post-v1.0 findings remain dispositioned in
 [`docs/audit/2026-11-16-gap-assessment-response.md`](audit/2026-11-16-gap-assessment-response.md).
 
 ## M0 — feasibility and engineering foundations (AW-001…AW-006)

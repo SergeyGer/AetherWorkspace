@@ -1,9 +1,10 @@
 # Windows 11 WT-04/WT-05 evidence matrix (v1.1 AW-065)
 
-This is the per-ID reference-desktop ledger. Aggregate suite counters (e.g. “511 passed”) are **not**
-a substitute: every ID below must be PASS, FAIL, SKIPPED_HARDWARE or a formally recorded exception.
-Automated rows come from TRX/UI evidence; manual rows are filled only after a physical Windows 11
-run with the documented procedure.
+This is the per-ID reference-desktop ledger. Aggregate suite counters are **not** a substitute:
+every ID below must be PASS, FAIL, SKIPPED_HARDWARE, a formally recorded exception or an explicit
+**accepted known limitation (won't test)**. Automated rows come from TRX/UI evidence; manual rows
+are filled only after a physical Windows 11 run with the documented procedure or closed by an
+explicit risk-acceptance decision.
 
 ## Ledger
 
@@ -15,18 +16,18 @@ run with the documented procedure.
 | WT-04-04 | Real WPF sample processes/windows stay open | `GuiWorkflowWithRealWpfSampleAppsKeepsWindowsOpen` | PASS |
 | WT-04-05 | Real WPF samples receive typed context | `WpfSampleAppsStayOpenAndReceiveContext` | PASS |
 | WT-04-06 | Watchlist→Risk→Chart synchronization, no echo loop | `WatchlistSelectionSynchronizesRiskAndChartWithoutEchoPublish` | PASS |
-| WT-04-07 | Repeated workflow stability (telemetry cycles) | `RepeatedWorkflowReportsUiTelemetry` | PASS (3-cycle CI smoke; 100-cycle physical run pending) |
-| WT-04-08 | UI responsiveness telemetry emitted | `RepeatedWorkflowReportsUiTelemetry` | PASS (CI smoke; physical report pending) |
+| WT-04-07 | Repeated workflow stability (telemetry cycles) | `RepeatedWorkflowReportsUiTelemetry` | PASS (3-cycle CI smoke + 100-cycle physical gate report) |
+| WT-04-08 | UI responsiveness telemetry emitted | `RepeatedWorkflowReportsUiTelemetry` | PASS (CI smoke + 100-cycle physical gate report) |
 | WT-05-01 | Single-monitor save/restore within visible screens | `SaveRestoreKeepsAllWindowsOnVisibleScreens` | PASS |
 | WT-05-02 | Save → arrange → restore without offscreen windows | `SaveRestoreKeepsAllWindowsOnVisibleScreens` | PASS |
-| WT-05-03 | Display-configuration change / recovery | manual | **FORMAL_EXCEPTION** (2026-11-18; tracked in #120) |
+| WT-05-03 | Display-configuration change / recovery | manual | **ACCEPTED_LIMITATION — won't test** (explicit risk acceptance; not PASS) |
 | WT-05-04 | Dual-monitor restore to secondary display | `DualMonitorLayoutRestoresSecondaryMonitorPlacements` | PASS on physical dual-monitor hardware (CI logs SKIPPED_HARDWARE) |
-| WT-05-05 | DPI 100/125/150% | manual | **FORMAL_EXCEPTION** (2026-11-18; tracked in #120) |
-| WT-05-06 | Focus / keyboard / modal interaction | manual | **FORMAL_EXCEPTION** (2026-11-18; tracked in #120) |
+| WT-05-05 | DPI 100/125/150% | manual | **ACCEPTED_LIMITATION — won't test** (explicit risk acceptance; not PASS) |
+| WT-05-06 | Focus / keyboard / modal interaction | manual | **ACCEPTED_LIMITATION — won't test** (explicit risk acceptance; not PASS) |
 | WT-05-07 | Missing monitor / topology fallback | `MissingMonitorFallsBackToAPresentScreen` | PASS |
-| WT-05-08 | Inspector/export redaction privacy assertions | automated audit/redaction tests | **FORMAL_EXCEPTION** for the manual confirmation part (2026-11-18; #120) |
-| WT-05-09 | Child crash/hang recovery on the desktop | fault-injection suites (Linux) + manual | **FORMAL_EXCEPTION** for the physical run (2026-11-18; #120) |
-| WT-05-10 | UI frame/command latency profile | `RepeatedWorkflowReportsUiTelemetry` + `Measure-UiResponsiveness.ps1` | PASS — 100-cycle physical report 2026-11-18 |
+| WT-05-08 | Inspector/export redaction privacy assertions | automated audit/redaction tests | **ACCEPTED_LIMITATION for the manual confirmation part — won't test** (automated tests PASS; manual part not PASS) |
+| WT-05-09 | Child crash/hang recovery on the desktop | fault-injection suites (Linux) + manual | **ACCEPTED_LIMITATION for the physical run — won't test** (Linux fault injection PASS; physical part not PASS) |
+| WT-05-10 | UI frame/command latency profile | `RepeatedWorkflowReportsUiTelemetry` + `Measure-UiResponsiveness.ps1` | PASS — 100-cycle physical gate report |
 
 ## Physical procedure (manual rows only)
 
@@ -57,7 +58,7 @@ pwsh tools/windows-test/Export-WtLedger.ps1 `
   -OutputDirectory ..\..\docs\testing\evidence\wt-ledger
 ```
 
-Outputs `wt-ledger-<stamp>.json` and `.md`. See the v1.1 formal-exception register at
-`docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`. Commit only sanitized ledgers; raw logs/screenshots stay
-local. Formal exceptions require a release-scope decision recorded in the release notes, not a
-silent PASS.
+Outputs `wt-ledger-<stamp>.json` and `.md`. See the v1.1 disposition register at
+`docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`. Commit only sanitized ledgers; raw
+logs/screenshots stay local. Accepted known limitations require an explicit risk-acceptance decision
+recorded in the release notes/limitations — never a silent PASS.

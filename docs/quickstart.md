@@ -9,6 +9,7 @@ synthetic and all IPC is local.
 |---|---|
 | Linux / macOS | [.NET 10 SDK](https://dotnet.microsoft.com/download) for the headless broker, shell host, samples and full test suite |
 | Windows 11 x64 | .NET 10 SDK; the WPF shell and WPF sample windows require the Windows desktop runtime (installed with the SDK) |
+| Optional WebView2 chart | Microsoft Edge WebView2 Evergreen Runtime (normally present on Windows 11); otherwise the sample shows a readable fallback |
 
 The repository pins the SDK via `global.json` (`10.0.100`, roll-forward to the latest
 10.0 feature band) and central package versions in `Directory.Packages.props`.
@@ -20,8 +21,10 @@ dotnet build AetherWorkspace.slnx -c Release
 ```
 
 Warnings are errors for owned code. Windows-targeted projects (`Aether.Shell`,
-`Aether.SampleApps`) also compile on Linux thanks to `EnableWindowsTargeting`; they
-cannot be *run* there.
+`Aether.SampleApps`, `Aether.SampleApps.WebView2`) also compile on Linux thanks to
+`EnableWindowsTargeting`; they cannot be *run* there. Hybrid-AI configuration and the local model
+profile are documented in `docs/v0.4-model-routing.md`; no provider or credential is required for
+the deterministic reference workflow.
 
 ## 3. Run the reference workflow demo
 
