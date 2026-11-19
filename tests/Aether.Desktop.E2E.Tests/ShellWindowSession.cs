@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
@@ -350,6 +352,62 @@ internal sealed class ShellWindowSession : IDisposable
         var button = WaitForElement("DemoLayoutButton", ElementTimeout).AsButton();
         button.Invoke();
     }
+
+    /// <summary>
+    /// Replaces the instruction text progressively so a local demo capture shows a human-like typing
+    /// cadence instead of an instant paste. Automation remains the same UIA TextBox as the user sees.
+    /// </summary>
+    public void TypeCommandGradually(string command, int charactersPerStep = 2, int delayMilliseconds = 35)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(command);
+        var box = WaitForElement(CommandElement, ElementTimeout).AsTextBox();
+        box.Text = string.Empty;
+        for (var length = Math.Min(charactersPerStep, command.Length); length < command.Length; length += charactersPerStep)
+        {
+            box.Text = command[..length];
+            Thread.Sleep(delayMilliseconds);
+        }
+
+        box.Text = command;
+    }
+
+    /// <summary>Minimizes the main Shell window so demo app windows are fully visible in the capture.</summary>
+    public void MinimizeMainWindow()
+    {
+        var handle = WaitForMainWindowHandle();
+        if (!ShowWindow(handle, SwMinimize))
+        {
+            throw new Xunit.Sdk.XunitException("The Shell main window could not be minimized for the demo capture.");
+        }
+    }
+
+    private IntPtr WaitForMainWindowHandle()
+    {
+        var deadline = DateTime.UtcNow + ElementTimeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            try
+            {
+                var process = Process.GetProcessById(_application.ProcessId);
+                if (process.MainWindowHandle != IntPtr.Zero)
+                {
+                    return process.MainWindowHandle;
+                }
+            }
+            catch (ArgumentException)
+            {
+            }
+
+            Thread.Sleep(100);
+        }
+
+        throw new Xunit.Sdk.XunitException("The Shell main window handle was not available for the demo capture.");
+    }
+
+    private const int SwMinimize = 6;
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     /// <summary>Loads the v1.5.1 WPF+WebView2 demo preset through the real Shell UI.</summary>
     public void ClickWebView2DemoPreset()

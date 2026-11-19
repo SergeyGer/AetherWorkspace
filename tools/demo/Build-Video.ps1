@@ -3,8 +3,8 @@
 .SYNOPSIS
   Builds the verified hero MP4 and preview GIF from a local OBS capture (v1.1 AW-056).
 .DESCRIPTION
-  Reads the capture manifest and event manifest, generates captions from demo-scenes.json, and runs
-  FFmpeg locally. Captions are keyed to measured event timestamps with the recording-start offset.
+  Reads the capture manifest and event manifest and runs FFmpeg locally. V151 (v1.5.1) is built
+  caption-free with the reviewed narration track; historical Track A/B keep the legacy scene captions.
 #>
 [CmdletBinding()]
 param(
@@ -12,6 +12,8 @@ param(
     [string] $CaptureManifest,
     [string] $OutputDirectory,
     [string] $ScenesFile = (Join-Path $PSScriptRoot 'demo-scenes.json'),
+    [string] $NarrationFile = '',
+    [switch] $NoCaptions,
     [int] $MaxDurationSeconds = 95
 )
 
@@ -31,6 +33,21 @@ function Get-BlackIntervals([string] $path) {
 
 $capture = Get-Content -LiteralPath $CaptureManifest -Raw | ConvertFrom-Json
 $raw = (Resolve-Path -LiteralPath $capture.rawRecording).Path
+$isV151 = [string]$capture.scenario -eq 'V151'
+$effectiveNoCaptions = $NoCaptions.IsPresent -or $isV151
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+if ([string]::IsNullOrWhiteSpace($NarrationFile) -and $isV151) {
+    $defaultNarration = Join-Path $repoRoot 'docs/demo/media/narration-v151.mp3'
+    if (Test-Path -LiteralPath $defaultNarration) { $NarrationFile = $defaultNarration }
+}
+if (-not [string]::IsNullOrWhiteSpace($NarrationFile)) {
+    $NarrationFile = (Resolve-Path -LiteralPath $NarrationFile).Path
+}
+elseif ($isV151) {
+    throw 'FAIL_MEDIA: the V151 narration file docs/demo/media/narration-v151.mp3 was not found; V151 must not ship caption-only or silent.'
+}
+$ffprobe = Get-Command ffprobe -ErrorAction SilentlyContinue
+if ($NarrationFile -and -not $ffprobe) { throw 'FAIL_HARNESS: ffprobe is not on PATH.' }
 $rawDuration = [double](& ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $raw)
 $blackIntervals = @(Get-BlackIntervals $raw)
 $trimStart = 0.0
@@ -76,36 +93,57 @@ function ConvertTo-SrtTime([double] $seconds) {
     return ('{0:00}:{1:00}:{2:00},{3:000}' -f [int]$ts.TotalHours, $ts.Minutes, $ts.Seconds, $ts.Milliseconds)
 }
 
-$srt = New-Object System.Collections.Generic.List[string]
-$captionEvents = @($events.events | Sort-Object timestampUtc | Where-Object { $captionById.ContainsKey($_.name) })
-$index = 1
-for ($i = 0; $i -lt $captionEvents.Count; $i++) {
-    $event = $captionEvents[$i]
-    $scene = $captionById[$event.name]
-    $start = ((ConvertTo-DateTimeOffsetValue $event.timestampUtc) - $recordingStart).TotalSeconds - $trimStart
-    if ($start -lt 0) { $start = 0 }
-    $end = $start + [double]$scene.durationSeconds
-    if ($i + 1 -lt $captionEvents.Count) {
-        $nextStart = ((ConvertTo-DateTimeOffsetValue $captionEvents[$i + 1].timestampUtc) - $recordingStart).TotalSeconds - $trimStart
-        # Captions must never overlap: clamp to just before the next scene event.
-        $end = [Math]::Min($end, $nextStart - 0.15)
+$srtPath = $null
+if (-not $effectiveNoCaptions) {
+    $captionById = @{}
+    foreach ($scene in $scenes.scenes) { $captionById[$scene.event] = $scene }
+    $srt = New-Object System.Collections.Generic.List[string]
+    $captionEvents = @($events.events | Sort-Object timestampUtc | Where-Object { $captionById.ContainsKey($_.name) })
+    $index = 1
+    for ($i = 0; $i -lt $captionEvents.Count; $i++) {
+        $event = $captionEvents[$i]
+        $scene = $captionById[$event.name]
+        $start = ((ConvertTo-DateTimeOffsetValue $event.timestampUtc) - $recordingStart).TotalSeconds - $trimStart
+        if ($start -lt 0) { $start = 0 }
+        $end = $start + [double]$scene.durationSeconds
+        if ($i + 1 -lt $captionEvents.Count) {
+            $nextStart = ((ConvertTo-DateTimeOffsetValue $captionEvents[$i + 1].timestampUtc) - $recordingStart).TotalSeconds - $trimStart
+            # Captions must never overlap: clamp to just before the next scene event.
+            $end = [Math]::Min($end, $nextStart - 0.15)
+        }
+        if (($end - $start) -lt 0.8) { continue }
+        $srt.Add([string]$index)
+        $srt.Add("$(ConvertTo-SrtTime $start) --> $(ConvertTo-SrtTime $end)")
+        $srt.Add([string]$scene.caption)
+        $srt.Add('')
+        $index++
     }
-    if (($end - $start) -lt 0.8) { continue }
-    $srt.Add([string]$index)
-    $srt.Add("$(ConvertTo-SrtTime $start) --> $(ConvertTo-SrtTime $end)")
-    $srt.Add([string]$scene.caption)
-    $srt.Add('')
-    $index++
+
+    $srtPath = Join-Path $output 'captions.srt'
+    $srt | Set-Content -LiteralPath $srtPath -Encoding utf8
 }
 
-$srtPath = Join-Path $output 'captions.srt'
-$srt | Set-Content -LiteralPath $srtPath -Encoding utf8
 $mp4Path = Join-Path $output 'demo-hero.mp4'
 $gifPath = Join-Path $output 'demo-preview.gif'
-$filter = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,subtitles=captions.srt:force_style='Fontname=DejaVu Sans,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,Outline=1,Shadow=1'"
+$videoFilter = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2"
+if (-not $effectiveNoCaptions) {
+    $videoFilter += ",subtitles=captions.srt:force_style='Fontname=DejaVu Sans,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,Outline=1,Shadow=1'"
+}
+$builtDuration = $buildDuration
 Push-Location $output
 try {
-    & ffmpeg -y -ss $trimStart -i $raw -t $buildDuration -vf $filter -r 30 -c:v libx264 -pix_fmt yuv420p -an $mp4Path
+    if ($NarrationFile) {
+        $narrationDuration = [double](& ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $NarrationFile)
+        $builtDuration = [Math]::Min([double]$MaxDurationSeconds, [Math]::Max($buildDuration, $narrationDuration + 1.0))
+        $padding = [Math]::Max(0.0, $builtDuration - $buildDuration)
+        $filterComplex = "[0:v]$videoFilter"
+        if ($padding -gt 0.05) { $filterComplex += ",tpad=stop_mode=clone:stop_duration=" + $padding.ToString('0.###', [System.Globalization.CultureInfo]::InvariantCulture) }
+        $filterComplex += "[v];[1:a]adelay=500|500,apad[a]"
+        & ffmpeg -y -ss $trimStart -i $raw -i $NarrationFile -filter_complex $filterComplex -map '[v]' -map '[a]' -t $builtDuration -r 30 -c:v libx264 -pix_fmt yuv420p -c:a aac -b:a 192k -ar 48000 -ac 2 -movflags +faststart $mp4Path
+    }
+    else {
+        & ffmpeg -y -ss $trimStart -i $raw -t $builtDuration -vf $videoFilter -r 30 -c:v libx264 -pix_fmt yuv420p -an $mp4Path
+    }
     if ($LASTEXITCODE -ne 0) { throw 'FAIL_MEDIA: FFmpeg MP4 build failed.' }
     $gifStart = 0.0
     $firstTicker = $events.events | Where-Object { $_.name -eq 'ticker-vega' } | Select-Object -First 1
@@ -125,13 +163,16 @@ $result = [ordered]@{
     sourceDurationSeconds = [Math]::Round($rawDuration, 2)
     trimStartSeconds = [Math]::Round($trimStart, 2)
     trimEndSeconds = [Math]::Round($trimEnd, 2)
-    builtDurationSeconds = [Math]::Round($buildDuration, 2)
+    builtDurationSeconds = [Math]::Round($builtDuration, 2)
     detectedBlackIntervals = $blackIntervals
     mp4 = $mp4Path
     mp4Sha256 = (Get-FileHash -LiteralPath $mp4Path -Algorithm SHA256).Hash.ToLowerInvariant()
     gif = $gifPath
     gifSha256 = (Get-FileHash -LiteralPath $gifPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    captionsIncluded = -not $effectiveNoCaptions
     captions = $srtPath
+    narration = $NarrationFile
+    narrationSha256 = if ($NarrationFile) { (Get-FileHash -LiteralPath $NarrationFile -Algorithm SHA256).Hash.ToLowerInvariant() } else { $null }
 }
 $resultPath = Join-Path $output 'video-build.json'
 $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $resultPath -Encoding utf8

@@ -30,6 +30,18 @@ if ($video.pix_fmt -ne 'yuv420p') { $problems.Add("pixel format is $($video.pix_
 $duration = [double]$video.duration
 if ($duration -lt 60 -or $duration -gt 95) { $problems.Add("MP4 duration is $duration s, expected 60-95 s") }
 
+$audio = $null
+if ($build.narration) {
+    $audioProbe = & ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,channels,sample_rate,duration -of json $mp4 | ConvertFrom-Json
+    $audio = $audioProbe.streams | Select-Object -First 1
+    if (-not $audio) { $problems.Add('MP4 has no narration audio stream even though the build manifest declares one') }
+    else {
+        if ($audio.codec_name -ne 'aac') { $problems.Add("audio codec is $($audio.codec_name), expected aac") }
+        if ([int]$audio.channels -ne 2) { $problems.Add("audio channels are $($audio.channels), expected 2") }
+        if ([int]$audio.sample_rate -ne 48000) { $problems.Add("audio sample rate is $($audio.sample_rate), expected 48000") }
+    }
+}
+
 $gifInfo = Get-Item -LiteralPath $gif
 if ($gifInfo.Length -gt 8MB) { $problems.Add("GIF is $([Math]::Round($gifInfo.Length / 1MB, 2)) MB, expected <= 8 MB") }
 $black = (& ffmpeg -i $mp4 -vf 'blackdetect=d=0.4:pix_th=0.10' -an -f null - 2>&1) -join "`n"
@@ -50,6 +62,9 @@ $report = [ordered]@{
         pixFmt = $video.pix_fmt; durationSeconds = $duration; blackIntervals = $blackIntervals
     }
     gif = [ordered]@{ path = $gif; sha256 = $build.gifSha256; bytes = $gifInfo.Length }
+    audio = if ($audio) { [ordered]@{ codec = $audio.codec_name; channels = [int]$audio.channels; sampleRate = [int]$audio.sample_rate; durationSeconds = [double]$audio.duration } } else { $null }
+    captionsIncluded = [bool]$build.captionsIncluded
+    narration = $build.narration
     problems = @($problems)
     humanReviewRequired = $true
 }
