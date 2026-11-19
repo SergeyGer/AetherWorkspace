@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -9,6 +12,7 @@ using Aether.AI.Summarization;
 using Aether.Broker.Client;
 using Aether.Contracts;
 using Aether.Contracts.Broker;
+using Aether.Contracts.Instructions;
 using Aether.Contracts.Models;
 using Aether.Contracts.Models.Diagnostics;
 using Aether.Execution.Authorization;
@@ -35,6 +39,12 @@ public partial class MainWindow : Window
 {
     private readonly ObservableCollection<StepRow> _steps = [];
     private readonly ObservableCollection<InspectorRow> _inspector = [];
+    private readonly ObservableCollection<AppRow> _apps = [];
+    private readonly Dictionary<string, int> _appProcessIds = new(StringComparer.Ordinal);
+    private readonly InstructionTemplateStore _instructionStore = new();
+    private List<InstructionTemplate> _templates = [];
+    private string? _activeTemplateId;
+    private bool _suppressTemplateSelection;
     private readonly HashChainAuditLog _auditSink = new();
     private BrokerClient? _client;
     private BrokerEndpointInfo? _endpoint;
@@ -50,17 +60,20 @@ public partial class MainWindow : Window
         InitializeComponent();
         StepsList.ItemsSource = _steps;
         InspectorList.ItemsSource = _inspector;
+        AppsGrid.ItemsSource = _apps;
         Loaded += OnLoaded;
         Closed += OnClosed;
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        LoadInstructionTemplates();
         try
         {
             _endpoint = LoadEndpoint();
             BackendModeText.Text = $"{_endpoint.Transport} (local IPC only)";
             await ConnectAsync();
+            await RefreshApplicationsAsync();
         }
         catch (Exception exception)
         {
@@ -80,7 +93,7 @@ public partial class MainWindow : Window
         _client = new BrokerClient(BrokerChannelFactory.CreateChannel(_endpoint.Transport, _endpoint.Endpoint));
         await _client.RegisterAsync(_endpoint.OperatorAppId, _endpoint.OperatorToken, "shell-wpf-" + Environment.ProcessId);
         AppendStatus($"Registered with broker as { _endpoint.OperatorAppId} (session expiry follows broker policy).");
-        _orchestrator = BuildOrchestrator(_client);
+        _orchestrator = BuildOrchestrator(_client, DeterministicCommandPlanner.DefaultChartAppId);
     }
 
     private static ICloudModelTransport CreateCloudTransport(ModelProviderSettings settings)
@@ -101,7 +114,10 @@ public partial class MainWindow : Window
                 apiKeyEnvironmentVariable: settings.ApiKeyEnvironmentVariable);
     }
 
-    private AetherWorkflowOrchestrator BuildOrchestrator(BrokerClient client)
+    private AetherWorkflowOrchestrator BuildOrchestrator(
+        BrokerClient client,
+        string chartAppId,
+        Action<WorkflowPhase>? phaseObserver = null)
     {
         var policy = PolicyDocument.CreateDefault().EnsureValid();
         var policyEngine = new PolicyEngine(policy);
@@ -135,6 +151,7 @@ public partial class MainWindow : Window
                 ? PlanGenerationMode.CloudPreferred
                 : PlanGenerationMode.DeterministicPreferred,
             Execution = new ExecutionOptions { MaxActionsPerPlan = 6, StepTimeout = TimeSpan.FromSeconds(20) },
+            PhaseObserver = phaseObserver,
         };
 
         IPlanGenerator? modelPlanner = null;
@@ -160,7 +177,7 @@ public partial class MainWindow : Window
 
         return new AetherWorkflowOrchestrator(
             classifier,
-            new DeterministicCommandPlanner(),
+            new DeterministicCommandPlanner(chartAppId),
             modelPlanner,
             new BrokerClientWorkflowBroker(client),
             summaryService,
@@ -177,7 +194,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_client is null || _orchestrator is null)
+        if (_client is null)
         {
             try
             {
@@ -190,15 +207,30 @@ public partial class MainWindow : Window
             }
         }
 
-        if (_orchestrator is null || _client is null)
+        if (_client is null)
         {
             return;
         }
 
-        // Planner mode and cloud consent are UI controls that can change after the initial broker
-        // connection (for example the Track B demo enables LLM-assisted planning + PUBLIC). Rebuild
-        // the orchestrator per run so those settings take effect instead of being frozen at connect.
-        _orchestrator = BuildOrchestrator(_client);
+        var selectedAppIds = _apps
+            .Where(app => app.IsSelected && app.Launchable)
+            .Select(app => app.AppId)
+            .ToArray();
+        var chartAppId = selectedAppIds.Contains(DeterministicCommandPlanner.WebView2ChartAppId, StringComparer.Ordinal)
+                         && !selectedAppIds.Contains(DeterministicCommandPlanner.DefaultChartAppId, StringComparer.Ordinal)
+            ? DeterministicCommandPlanner.WebView2ChartAppId
+            : DeterministicCommandPlanner.DefaultChartAppId;
+        var selectionMode = SelectionModeCombo.SelectedIndex == 1
+            ? LaunchSelectionMode.Strict
+            : LaunchSelectionMode.Preferred;
+        var revision = DateTimeOffset.UtcNow.UtcTicks.ToString(CultureInfo.InvariantCulture);
+        var launchSelection = new LaunchSelectionContext(selectionMode, new HashSet<string>(selectedAppIds, StringComparer.Ordinal), revision);
+
+        // Planner/selections are UI state that can change after the initial connection; rebuild per run.
+        _orchestrator = BuildOrchestrator(
+            _client,
+            chartAppId,
+            phase => Dispatcher.BeginInvoke(new Action(() => PhaseText.Text = phase.ToString().ToUpperInvariant())));
 
         if (!DataClassificationExtensions.TryParseWire(SelectedClassification(), out var classification))
         {
@@ -208,6 +240,8 @@ public partial class MainWindow : Window
         SetRunningState(true);
         _steps.Clear();
         SummaryBox.Text = string.Empty;
+        PlanPreviewBox.Text = string.Empty;
+        PlanPreviewLabel.Text = "Planning…";
         if (_lastTelemetry is not null)
         {
             RenderTelemetry(_lastTelemetry);
@@ -215,24 +249,31 @@ public partial class MainWindow : Window
 
         TraceBox.Text = string.Empty;
         StatusBox.Text = string.Empty;
+        PhaseText.Text = WorkflowPhase.Classifying.ToString().ToUpperInvariant();
         _runCancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
         _uiTelemetry.Start();
         UiTelemetryText.Text = "ui telemetry: capturing…";
         try
         {
-            var request = new WorkflowRequest(CommandBox.Text, classification);
+            var request = new WorkflowRequest(
+                CommandBox.Text,
+                classification,
+                LaunchSelection: launchSelection);
             var result = await _orchestrator.ExecuteAsync(request, _runCancellation.Token);
             _lastTelemetry = _uiTelemetry.Stop(result.DurationMs);
+            PhaseText.Text = result.Success ? "COMPLETED" : "DENIED";
+            RenderPlanPreview(result);
             RenderResult(result);
             WriteTelemetryIfConfigured(result, _lastTelemetry);
         }
         catch (OperationCanceledException)
         {
+            PhaseText.Text = "CANCELLED";
             AppendStatus("Workflow cancelled by the operator.");
         }
         catch (Exception exception)
         {
+            PhaseText.Text = "FAILED";
             AppendStatus("Workflow failed: " + exception.Message);
         }
         finally
@@ -243,6 +284,412 @@ public partial class MainWindow : Window
             _runCancellation?.Dispose();
             _runCancellation = null;
         }
+    }
+
+    private async Task RefreshApplicationsAsync()
+    {
+        if (_client is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var traceId = TraceIdGenerator.NewTraceId();
+            var snapshot = await _client.GetSnapshotAsync(traceId);
+            var health = await _client.HealthProbeAsync();
+            var selected = _apps.Where(app => app.IsSelected).Select(app => app.AppId)
+                .ToHashSet(StringComparer.Ordinal);
+            var defaultSelection = new HashSet<string>(StringComparer.Ordinal)
+            {
+                "sample.watchlist", "sample.risk", DeterministicCommandPlanner.DefaultChartAppId,
+            };
+            _apps.Clear();
+            foreach (var app in snapshot.Apps.Where(app => app.Launchable).OrderBy(app => app.DisplayName, StringComparer.Ordinal))
+            {
+                var healthEntry = health.AppHealth.FirstOrDefault(entry =>
+                    entry.StartsWith(app.AppId + "=", StringComparison.Ordinal));
+                var status = healthEntry is null ? "STOPPED" : healthEntry[(app.AppId.Length + 1)..].ToUpperInvariant();
+                _apps.Add(new AppRow(app.AppId, app.DisplayName, RuntimeTypeFor(app.AppId), status)
+                {
+                    IsSelected = selected.Count > 0 ? selected.Contains(app.AppId) : defaultSelection.Contains(app.AppId),
+                    Launchable = app.Launchable,
+                });
+            }
+
+            AppendStatus($"Application catalog refreshed: {_apps.Count} registered app(s), {health.AppHealth.Count} health entr(y/ies).");
+        }
+        catch (Exception exception)
+        {
+            AppendStatus("Could not refresh applications: " + exception.Message);
+        }
+    }
+
+    private static string RuntimeTypeFor(string appId) => appId.Contains("webview2", StringComparison.OrdinalIgnoreCase)
+        ? "WebView2"
+        : appId.StartsWith("sample.", StringComparison.Ordinal) ? "WPF" : "desktop";
+
+    private void LoadInstructionTemplates()
+    {
+        var result = _instructionStore.Load();
+        if (!string.IsNullOrWhiteSpace(result.Error))
+        {
+            AppendStatus("Instruction library: " + result.Error + (result.QuarantinedPath is null ? "" : " Quarantined: " + result.QuarantinedPath));
+        }
+
+        _templates = result.Templates.ToList();
+        _suppressTemplateSelection = true;
+        SavedInstructionsCombo.ItemsSource = _templates;
+        SavedInstructionsCombo.SelectedIndex = -1;
+        _suppressTemplateSelection = false;
+        _activeTemplateId = null;
+    }
+
+    private void LoadTemplateIntoEditor(InstructionTemplate template)
+    {
+        _activeTemplateId = template.Id;
+        InstructionTitleBox.Text = template.Title;
+        CommandBox.Text = template.Instruction;
+        PhaseText.Text = "IDLE";
+    }
+
+    private void PopulateTemplateCombo(string? selectId)
+    {
+        _suppressTemplateSelection = true;
+        SavedInstructionsCombo.ItemsSource = null;
+        SavedInstructionsCombo.ItemsSource = _templates;
+        SavedInstructionsCombo.SelectedItem = selectId is null
+            ? null
+            : _templates.FirstOrDefault(template => template.Id == selectId);
+        _suppressTemplateSelection = false;
+    }
+
+    private void OnSavedInstructionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_suppressTemplateSelection || SavedInstructionsCombo.SelectedItem is not InstructionTemplate template)
+        {
+            return;
+        }
+
+        LoadTemplateIntoEditor(template);
+    }
+
+    private void OnNewInstructionClick(object sender, RoutedEventArgs e)
+    {
+        _activeTemplateId = null;
+        InstructionTitleBox.Text = string.Empty;
+        CommandBox.Text = string.Empty;
+        PopulateTemplateCombo(null);
+        PhaseText.Text = "IDLE";
+        InstructionTitleBox.Focus();
+    }
+
+    private void OnSaveInstructionClick(object sender, RoutedEventArgs e)
+    {
+        var title = InstructionTitleBox.Text;
+        var instruction = CommandBox.Text;
+        if (!InstructionTemplateStore.TryValidate(title, instruction, out var error))
+        {
+            AppendStatus("Instruction not saved: " + error);
+            return;
+        }
+
+        var existing = _activeTemplateId is null
+            ? null
+            : _templates.FirstOrDefault(template => template.Id == _activeTemplateId);
+        var duplicateTitle = _templates.Any(template =>
+            template.Id != existing?.Id
+            && string.Equals(template.Title, title.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (duplicateTitle)
+        {
+            AppendStatus("Instruction not saved: a template with that title already exists.");
+            return;
+        }
+
+        InstructionTemplate saved;
+        if (existing is null)
+        {
+            saved = InstructionTemplateStore.NewTemplate(title, instruction);
+            _templates.Add(saved);
+        }
+        else
+        {
+            saved = InstructionTemplateStore.WithUpdatedText(existing, title, instruction);
+            var index = _templates.FindIndex(template => template.Id == existing.Id);
+            _templates[index] = saved;
+        }
+
+        var saveResult = _instructionStore.Save(_templates);
+        if (!saveResult.Success)
+        {
+            AppendStatus("Instruction not saved: " + saveResult.Error);
+            return;
+        }
+
+        _activeTemplateId = saved.Id;
+        PopulateTemplateCombo(saved.Id);
+        AppendStatus($"Saved local instruction template '{saved.Title}' (user-scoped, not Git-tracked).");
+    }
+
+    private void OnDuplicateInstructionClick(object sender, RoutedEventArgs e)
+    {
+        var source = _templates.FirstOrDefault(template => template.Id == _activeTemplateId);
+        if (source is null)
+        {
+            AppendStatus("Select a saved instruction to duplicate.");
+            return;
+        }
+
+        var duplicate = InstructionTemplateStore.Duplicate(source);
+        var uniqueTitle = duplicate.Title;
+        var suffix = 2;
+        while (_templates.Any(template => string.Equals(template.Title, uniqueTitle, StringComparison.OrdinalIgnoreCase)))
+        {
+            uniqueTitle = duplicate.Title + " " + suffix++;
+        }
+
+        duplicate = duplicate with { Title = uniqueTitle };
+        _templates.Add(duplicate);
+        var saveResult = _instructionStore.Save(_templates);
+        if (!saveResult.Success)
+        {
+            _templates.Remove(duplicate);
+            AppendStatus("Duplicate not saved: " + saveResult.Error);
+            return;
+        }
+
+        _activeTemplateId = duplicate.Id;
+        PopulateTemplateCombo(duplicate.Id);
+        LoadTemplateIntoEditor(duplicate);
+        AppendStatus($"Duplicated instruction as '{duplicate.Title}'.");
+    }
+
+    private void OnDeleteInstructionClick(object sender, RoutedEventArgs e)
+    {
+        var target = _templates.FirstOrDefault(template => template.Id == _activeTemplateId);
+        if (target is null)
+        {
+            AppendStatus("Select a saved instruction to delete.");
+            return;
+        }
+
+        if (MessageBox.Show($"Delete local template '{target.Title}'?", "AetherWorkspace",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        _templates.Remove(target);
+        var saveResult = _instructionStore.Save(_templates);
+        if (!saveResult.Success)
+        {
+            AppendStatus("Delete failed: " + saveResult.Error);
+            return;
+        }
+
+        _activeTemplateId = null;
+        PopulateTemplateCombo(null);
+        InstructionTitleBox.Text = string.Empty;
+        CommandBox.Text = string.Empty;
+        AppendStatus($"Deleted local template '{target.Title}'.");
+    }
+
+    private async void OnRefreshAppsClick(object sender, RoutedEventArgs e) => await RefreshApplicationsAsync();
+
+    private async void OnLaunchSelectedClick(object sender, RoutedEventArgs e)
+    {
+        if (_client is null)
+        {
+            AppendStatus("Broker is not connected.");
+            return;
+        }
+
+        var selected = _apps.Where(app => app.IsSelected && app.Launchable).ToArray();
+        if (selected.Length == 0)
+        {
+            AppendStatus("Select at least one application first.");
+            return;
+        }
+
+        var launched = 0;
+        foreach (var app in selected)
+        {
+            try
+            {
+                var reply = await _client.LaunchAppAsync(app.AppId, TraceIdGenerator.NewTraceId());
+                if (reply.Accepted)
+                {
+                    launched++;
+                    _appProcessIds[app.AppId] = reply.ProcessId;
+                }
+                else
+                {
+                    AppendStatus($"Launch {app.AppId} denied: {reply.DenialCode} {reply.DenialMessage}");
+                }
+            }
+            catch (Exception exception)
+            {
+                AppendStatus($"Launch {app.AppId} failed: " + exception.Message);
+            }
+        }
+
+        AppendStatus($"Launch Selected: {launched}/{selected.Length} accepted by the broker (not an AI workflow run).");
+        await RefreshApplicationsAsync();
+    }
+
+    private AppRow? RowFromButton(object sender) => (sender as System.Windows.Controls.Button)?.Tag as AppRow;
+
+    private async void OnLaunchAppClick(object sender, RoutedEventArgs e)
+    {
+        if (_client is null || RowFromButton(sender) is not { } app)
+        {
+            return;
+        }
+
+        try
+        {
+            var reply = await _client.LaunchAppAsync(app.AppId, TraceIdGenerator.NewTraceId());
+            if (reply.Accepted)
+            {
+                _appProcessIds[app.AppId] = reply.ProcessId;
+                app.Status = "STARTING";
+                AppendStatus($"Launched {app.AppId} as PID {reply.ProcessId}; health will refresh.");
+            }
+            else
+            {
+                AppendStatus($"Launch denied: {reply.DenialCode} {reply.DenialMessage}");
+            }
+
+            await RefreshApplicationsAsync();
+        }
+        catch (Exception exception)
+        {
+            AppendStatus("Launch failed: " + exception.Message);
+        }
+    }
+
+    private void OnFocusAppClick(object sender, RoutedEventArgs e)
+    {
+        if (RowFromButton(sender) is not { } app)
+        {
+            return;
+        }
+
+        if (!_appProcessIds.TryGetValue(app.AppId, out var processId))
+        {
+            AppendStatus($"Focus {app.AppId}: no process id recorded; launch it first.");
+            return;
+        }
+
+        try
+        {
+            var process = Process.GetProcessById(processId);
+            if (process.MainWindowHandle == IntPtr.Zero)
+            {
+                AppendStatus($"Focus {app.AppId}: process {processId} has no top-level window yet.");
+                return;
+            }
+
+            ShowWindow(process.MainWindowHandle, 9);
+            SetForegroundWindow(process.MainWindowHandle);
+            AppendStatus($"Focused {app.AppId} (PID {processId}).");
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            AppendStatus($"Focus {app.AppId} failed: " + exception.Message);
+        }
+    }
+
+    private async void OnStopAppClick(object sender, RoutedEventArgs e)
+    {
+        if (_client is null || RowFromButton(sender) is not { } app)
+        {
+            return;
+        }
+
+        try
+        {
+            var reply = await _client.StopAppAsync(app.AppId, instanceId: null, TraceIdGenerator.NewTraceId());
+            AppendStatus(reply.Stopped
+                ? $"Stop {app.AppId}: accepted."
+                : $"Stop {app.AppId} denied: {reply.DenialCode} {reply.DenialMessage}");
+            _appProcessIds.Remove(app.AppId);
+            await RefreshApplicationsAsync();
+        }
+        catch (Exception exception)
+        {
+            AppendStatus("Stop failed: " + exception.Message);
+        }
+    }
+
+    private async void OnRestartAppClick(object sender, RoutedEventArgs e)
+    {
+        if (_client is null || RowFromButton(sender) is not { } app)
+        {
+            return;
+        }
+
+        try
+        {
+            var reply = await _client.RestartAppAsync(app.AppId, TraceIdGenerator.NewTraceId());
+            AppendStatus(reply.Accepted
+                ? $"Restart {app.AppId}: accepted (instance {reply.InstanceId}); health will refresh."
+                : $"Restart {app.AppId} denied: {reply.DenialCode} {reply.DenialMessage}");
+            await RefreshApplicationsAsync();
+        }
+        catch (Exception exception)
+        {
+            AppendStatus("Restart failed: " + exception.Message);
+        }
+    }
+
+    private void OnDemoPresetClick(object sender, RoutedEventArgs e)
+    {
+        foreach (var app in _apps)
+        {
+            app.IsSelected = app.AppId is "sample.watchlist" or "sample.risk" or DeterministicCommandPlanner.WebView2ChartAppId;
+        }
+
+        SelectionModeCombo.SelectedIndex = 1; // Strict
+        PlannerCombo.SelectedIndex = 0;       // deterministic reference demo
+        _activeTemplateId = null;
+        PopulateTemplateCombo(null);
+        InstructionTitleBox.Text = "WebView2 workspace demo";
+        CommandBox.Text =
+            "Open Northstar bond analytics, show the associated risk view, synchronize this instrument across the workspace and summarize the exposure privately.";
+        PhaseText.Text = "PRESET";
+        AppendStatus("WebView2 demo preset: watchlist + risk + WebView2 chart selected, Strict mode, deterministic planner. Click Run Instruction.");
+    }
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    private void RenderPlanPreview(WorkflowResult result)
+    {
+        if (result.Plan is null)
+        {
+            PlanPreviewLabel.Text = result.Success ? "No plan preview." : "Plan unavailable: " + (result.DenialCode ?? "denied");
+            PlanPreviewBox.Text = string.Empty;
+            return;
+        }
+
+        var lines = new List<string>
+        {
+            $"plan={result.Plan.PlanId} schema={result.Plan.SchemaVersion}",
+            $"planner={result.PlannerProvider} usedModel={result.UsedModel}",
+            result.Success ? "validation=PASS" : "validation=DENIED " + (result.DenialCode ?? ""),
+        };
+        lines.AddRange(result.Plan.Steps.Select((step, index) =>
+            $"{index + 1}. {step.Action}" +
+            (step.AppId is null ? "" : $" app={step.AppId}") +
+            (step.ContextRef is null ? "" : $" context={step.ContextRef}") +
+            (step.Layout is null ? "" : $" layout={step.Layout}") +
+            (step.Mode is null ? "" : $" mode={step.Mode}")));
+        PlanPreviewBox.Text = string.Join(Environment.NewLine, lines);
+        PlanPreviewLabel.Text = "Validated plan preview (read-only; broker/PIDs/trace are in Inspector):";
     }
 
     private async void OnExportDiagnostics(object sender, RoutedEventArgs e)
@@ -475,6 +922,17 @@ public partial class MainWindow : Window
         CommandBox.IsEnabled = !running;
         ClassificationCombo.IsEnabled = !running;
         CloudConsentCheck.IsEnabled = !running;
+        PlannerCombo.IsEnabled = !running;
+        SelectionModeCombo.IsEnabled = !running;
+        NewInstructionButton.IsEnabled = !running;
+        SaveInstructionButton.IsEnabled = !running;
+        DuplicateInstructionButton.IsEnabled = !running;
+        DeleteInstructionButton.IsEnabled = !running;
+        SavedInstructionsCombo.IsEnabled = !running;
+        InstructionTitleBox.IsEnabled = !running;
+        AppsGrid.IsEnabled = !running;
+        DemoPresetButton.IsEnabled = !running;
+        DemoLayoutButton.IsEnabled = !running;
     }
 
     private string SelectedClassification() =>
@@ -529,3 +987,58 @@ public partial class MainWindow : Window
 }
 
 public sealed record InspectorRow(int Sequence, string Action, string State, string Code);
+
+/// <summary>One selectable app row in the AI Command Center; selection is trusted Shell UI state.</summary>
+public sealed class AppRow : INotifyPropertyChanged
+{
+    private bool _isSelected;
+    private string _status;
+
+    public AppRow(string appId, string displayName, string runtimeType, string status)
+    {
+        AppId = appId;
+        DisplayName = displayName;
+        RuntimeType = runtimeType;
+        _status = status;
+    }
+
+    public string AppId { get; }
+
+    public string DisplayName { get; }
+
+    public string RuntimeType { get; }
+
+    public bool Launchable { get; init; }
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value)
+            {
+                return;
+            }
+
+            _isSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
+
+    public string Status
+    {
+        get => _status;
+        set
+        {
+            if (_status == value)
+            {
+                return;
+            }
+
+            _status = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+}

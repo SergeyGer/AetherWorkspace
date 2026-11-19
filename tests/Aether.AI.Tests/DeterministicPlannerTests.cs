@@ -70,4 +70,18 @@ public class DeterministicPlannerTests
         var result = await PlanAsync(command);
         Assert.True(result.Success);
     }
+
+    [Fact]
+    public async Task ChartVariantCanBeSelectedByTrustedPlannerConfiguration()
+    {
+        var planner = new DeterministicCommandPlanner(DeterministicCommandPlanner.WebView2ChartAppId);
+        var result = await planner.GeneratePlanAsync(new PlanningRequest(
+            "Open Northstar bond analytics, show the associated risk view, synchronize this instrument across the workspace and summarize the exposure privately.",
+            DataClassification.Restricted,
+            Aether.Contracts.TraceIdGenerator.NewTraceId()));
+
+        Assert.True(result.Success);
+        Assert.Contains(result.Plan!.Steps, step => step.Action == "LaunchApp" && step.AppId == "sample.chart.webview2");
+    }
+
 }
