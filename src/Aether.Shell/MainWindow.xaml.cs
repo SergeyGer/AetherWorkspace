@@ -253,7 +253,7 @@ public partial class MainWindow : Window
         TraceBox.Text = string.Empty;
         StatusBox.Text = string.Empty;
         AppendStatus($"Run context: planner={plannerLabel}; classification={classification.ToWireName()}; " +
-                     $"cloudConsent={CloudConsentCheck.IsChecked == true}; selection={selectionMode} " +
+                     $"externalConsent={CloudConsentCheck.IsChecked == true}; selection={selectionMode} " +
                      $"allowedApps=[{string.Join(", ", selectedAppIds.Order(StringComparer.Ordinal))}].");
         PhaseText.Text = WorkflowPhase.Classifying.ToString().ToUpperInvariant();
         _runCancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
