@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "description": "Caption/scene map for the AetherWorkspace v1.1 hero demo. Times are derived from capture events; no fabricated state.",
+  "description": "Caption/scene map for the AetherWorkspace demo. Times are derived from capture events; no fabricated state.",
   "tracks": {
     "TrackB": {
       "primary": true,
@@ -9,16 +9,62 @@
     "TrackA": {
       "primary": false,
       "captionExample": "One command launches three independent applications through policy-governed desktop orchestration."
+    },
+    "V151": {
+      "primary": true,
+      "captionExample": "The AI Command Center composes a Strict-scoped workspace; the deterministic executor validates and runs real WPF + WebView2 applications."
     }
   },
   "scenes": [
-    { "event": "track-b-configured", "caption": "AI proposes. Policy decides. Execution is enforced.", "durationSeconds": 8 },
-    { "event": "workflow-started", "caption": "A governed plan launches three independent Windows apps.", "durationSeconds": 8 },
-    { "event": "workflow-succeeded", "caption": "Typed context over authenticated local IPC.", "durationSeconds": 8 },
-    { "event": "demo-layout", "caption": "One command. A coordinated workspace.", "durationSeconds": 6 },
-    { "event": "sample-windows", "caption": "Three independent processes. One trusted broker.", "durationSeconds": 10 },
-    { "event": "ticker-vega", "caption": "Select once. Synchronize everywhere.", "durationSeconds": 10 },
-    { "event": "ticker-orin", "caption": "The actual series changes, not just a status label.", "durationSeconds": 10 },
-    { "event": "ticker-scene-complete", "caption": "Observable execution. Explicit provider provenance.", "durationSeconds": 10 }
+    {
+      "event": "shell-ready",
+      "caption": "A local-first workspace. No network listener.",
+      "durationSeconds": 4
+    },
+    {
+      "event": "command-center-preset",
+      "caption": "Intent plus explicit scope. The model still cannot widen it.",
+      "durationSeconds": 6
+    },
+    {
+      "event": "track-b-configured",
+      "caption": "AI proposes. Policy decides. Execution is enforced.",
+      "durationSeconds": 8
+    },
+    {
+      "event": "workflow-started",
+      "caption": "A governed plan launches three independent Windows apps.",
+      "durationSeconds": 8
+    },
+    {
+      "event": "workflow-succeeded",
+      "caption": "Typed context over authenticated local IPC.",
+      "durationSeconds": 8
+    },
+    {
+      "event": "demo-layout",
+      "caption": "One command. A coordinated workspace.",
+      "durationSeconds": 6
+    },
+    {
+      "event": "sample-windows",
+      "caption": "Three independent processes. One trusted broker.",
+      "durationSeconds": 10
+    },
+    {
+      "event": "ticker-vega",
+      "caption": "Select once. Synchronize everywhere.",
+      "durationSeconds": 10
+    },
+    {
+      "event": "ticker-orin",
+      "caption": "The actual series changes, not just a status label.",
+      "durationSeconds": 10
+    },
+    {
+      "event": "ticker-scene-complete",
+      "caption": "Observable execution. Explicit provider provenance.",
+      "durationSeconds": 10
+    }
   ]
 }

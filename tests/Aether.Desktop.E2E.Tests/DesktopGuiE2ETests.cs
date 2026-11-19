@@ -413,17 +413,31 @@ public sealed class DesktopGuiE2ETests
         void Mark(string name, string? detail = null) =>
             events.Add(new { name, timestampUtc = DateTimeOffset.UtcNow, detail });
 
+        var isV151 = string.Equals(scenario, "V151", StringComparison.OrdinalIgnoreCase);
         var samplesExecutable = DesktopExecutableLocator.ResolveWpfSampleApps();
+        var webView2Executable = isV151 ? DesktopExecutableLocator.ResolveWebView2Chart() : null;
         await using var broker = await NamedPipeBrokerHarness.StartAsync(
             "demo-capture-" + scenario.ToLowerInvariant(),
             useWindowsRegistry: true,
-            wpfSamplesExe: samplesExecutable);
+            wpfSamplesExe: samplesExecutable,
+            webView2ChartExe: webView2Executable);
         using var shell = ShellWindowSession.Launch(broker.EndpointFile);
 
         _ = shell.WaitForBackendModeContaining("named-pipe", ShellWindowSession.BackendTimeout);
         shell.WaitForStatus(text => text.Contains("Registered", StringComparison.Ordinal), ShellWindowSession.RegistrationTimeout, "shell registration");
         Mark("shell-ready");
         await Hold(4);
+
+        if (isV151)
+        {
+            shell.WaitForStatus(
+                text => text.Contains("Application catalog refreshed", StringComparison.Ordinal),
+                ShellWindowSession.ElementTimeout,
+                "application catalog");
+            shell.ClickWebView2DemoPreset();
+            Mark("command-center-preset", "strict; WPF watchlist+risk+WebView2");
+            await Hold(5);
+        }
 
         string traceText;
         string traceId;
@@ -479,11 +493,19 @@ public sealed class DesktopGuiE2ETests
         await Hold(6);
 
         using var automation = new FlaUI.UIA3.UIA3Automation();
-        var windows = WaitForSampleWindows(automation, TimeSpan.FromSeconds(30));
+        var windows = isV151
+            ? WaitForV151Windows(automation, TimeSpan.FromSeconds(40))
+            : WaitForSampleWindows(automation, TimeSpan.FromSeconds(30));
         var sampleProcesses = Process.GetProcessesByName("Aether.SampleApps")
             .Where(process => !process.HasExited)
             .ToArray();
-        Mark("sample-windows", string.Join(",", windows.Keys));
+        var webView2Processes = Process.GetProcessesByName("Aether.SampleApps.WebView2")
+            .Where(process => !process.HasExited)
+            .ToArray();
+        var allPids = sampleProcesses.Select(process => process.Id)
+            .Concat(webView2Processes.Select(process => process.Id))
+            .ToArray();
+        Mark("sample-windows", string.Join(",", windows.Keys) + (isV151 ? ",webview2" : ""));
         await Hold(8);
 
         foreach (var ticker in new[] { "VEGA", "ORIN" })
@@ -512,8 +534,9 @@ public sealed class DesktopGuiE2ETests
             traceId,
             planner = usedModel ? "cloud-plan" : "deterministic-grammar",
             usedModel,
-            pids = sampleProcesses.Select(process => process!.Id).ToArray(),
+            pids = allPids,
             tickers = new[] { "VEGA", "ORIN" },
+            webView2 = isV151,
             events,
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(eventsPath))!);
@@ -557,6 +580,48 @@ public sealed class DesktopGuiE2ETests
         }
 
         throw new Xunit.Sdk.XunitException("The real WPF sample windows did not appear for the demo capture scenario.");
+    }
+
+    private static Dictionary<string, FlaUI.Core.AutomationElements.Window> WaitForV151Windows(
+        FlaUI.UIA3.UIA3Automation automation,
+        TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            var found = new Dictionary<string, FlaUI.Core.AutomationElements.Window>(StringComparer.Ordinal);
+            foreach (var process in Process.GetProcessesByName("Aether.SampleApps").Where(process => !process.HasExited))
+            {
+                var windows = FlaUI.Core.Application.Attach(process.Id).GetAllTopLevelWindows(automation);
+                foreach (var (key, title) in new[] { ("watchlist", "Synthetic Watchlist"), ("risk", "Synthetic Risk View") })
+                {
+                    var window = windows.FirstOrDefault(candidate => candidate.Title.Contains(title, StringComparison.Ordinal));
+                    if (window is not null)
+                    {
+                        found[key] = window;
+                    }
+                }
+            }
+
+            foreach (var process in Process.GetProcessesByName("Aether.SampleApps.WebView2").Where(process => !process.HasExited))
+            {
+                var windows = FlaUI.Core.Application.Attach(process.Id).GetAllTopLevelWindows(automation);
+                var window = windows.FirstOrDefault(candidate => candidate.Title.Contains("Synthetic Bond Chart (WebView2)", StringComparison.Ordinal));
+                if (window is not null)
+                {
+                    found["webview2"] = window;
+                }
+            }
+
+            if (found.Count == 3)
+            {
+                return found;
+            }
+
+            Thread.Sleep(250);
+        }
+
+        throw new Xunit.Sdk.XunitException("The v1.5.1 demo windows (WPF watchlist/risk + WebView2 chart) did not appear.");
     }
 
     private static void SelectWatchlistTicker(FlaUI.Core.AutomationElements.Window watchlist, string ticker)

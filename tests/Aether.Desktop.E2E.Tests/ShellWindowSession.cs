@@ -351,6 +351,17 @@ internal sealed class ShellWindowSession : IDisposable
         button.Invoke();
     }
 
+    /// <summary>Loads the v1.5.1 WPF+WebView2 demo preset through the real Shell UI.</summary>
+    public void ClickWebView2DemoPreset()
+    {
+        var button = WaitForElement("DemoPresetButton", ElementTimeout).AsButton();
+        button.Invoke();
+    }
+
+    /// <summary>Reads the trusted launch-selection mode shown by the Shell.</summary>
+    public string ReadSelectionMode() =>
+        WaitForElement("SelectionModeCombo", ElementTimeout).AsComboBox().SelectedItem?.Name ?? string.Empty;
+
     /// <summary>Finds a descendant by automation id, returning null when absent.</summary>
     public AutomationElement? TryFindElement(string automationId) =>
         Window.FindFirstDescendant(cf => cf.ByAutomationId(automationId));
