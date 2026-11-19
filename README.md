@@ -46,35 +46,22 @@ Windows apps over authenticated local IPC. The deterministic Track A path remain
 ## Architecture at a glance
 
 ```mermaid
-flowchart LR
-  subgraph Proposal["Untrusted proposal"]
-    Planner["AI planner (Track B)<br/>or deterministic grammar (Track A)"]
-    Plan["Versioned ActionPlan JSON<br/>(typed, flat, no URLs/executable paths)"]
-    Planner -->|proposes| Plan
-  end
-
-  subgraph Control["Policy-governed control plane"]
-    Executor["Deterministic validator<br/>+ capability authorizer<br/>+ bounded executor"]
-    Audit[("Hash-chained audit<br/>metadata + denials")]
-    Plan --> Executor
-    Executor -.->|allow / deny evidence| Audit
-  end
-
-  subgraph Local["Authenticated local IPC"]
-    Broker["Local broker"]
-    Apps["Independent synthetic apps<br/>Watchlist · Risk · Chart · WebView2 chart"]
-    Executor -->|authorized steps only| Broker
-    Broker <--> Apps
-  end
-
-  Cloud["Optional cloud provider"]
-  Egress["Deny-by-default egress gateway<br/>PUBLIC + explicit consent only"]
-  Executor -.->|planning / summary request| Egress
-  Egress -.->|only if policy allows| Cloud
+%%{init: {'themeVariables': {'fontSize': '20px'}}}%%
+flowchart TD
+  Request["User request"] --> Planner["Planner<br/>AI or deterministic"]
+  Planner -->|"ActionPlan JSON"| Executor["Deterministic Executor"]
+  Executor --> Checks{"Policy + capability checks"}
+  Checks -->|"authorized"| Broker["Local Broker"]
+  Broker --> Apps["Independent desktop apps"]
+  Executor -. "allow / deny evidence" .-> Audit[("Hash-chained audit")]
+  Checks -. "PUBLIC + consent only" .-> Egress["Egress Gateway"]
+  Egress -. "only if allowed" .-> Cloud["Cloud provider"]
 ```
 
 The model never receives direct OS/desktop access. The deterministic control plane is
-authoritative; the broker sees only authorized steps and typed context.
+authoritative; the broker sees only authorized steps and typed context. The diagram is
+intentionally compact so its labels remain readable when GitHub scales it; the full component map
+is in [Wiki: Architecture](https://github.com/SergeyGer/AetherWorkspace/wiki/Architecture).
 
 <details>
 <summary><b>Example: a real ActionPlan shape and a denial (click)</b></summary>
