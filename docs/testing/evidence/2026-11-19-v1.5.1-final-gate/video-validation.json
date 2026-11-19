@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-demo-video-validation",
+  "validatedAtUtc": "2026-11-19T13:32:40.9894983Z",
+  "pass": true,
+  "mp4": {
+    "path": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\demo-hero.mp4",
+    "sha256": "90eac9809d44b4e9adefb6e8426173679f06035dd81242d46afafded00f813b3",
+    "codec": "h264",
+    "width": 1920,
+    "height": 1080,
+    "pixFmt": "yuv420p",
+    "durationSeconds": 76.8,
+    "blackIntervals": []
+  },
+  "gif": {
+    "path": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\demo-preview.gif",
+    "sha256": "6fceaf0c05bf39c94224bda0cdb7d4411f9cd4d283566ce9c3ab5fddbc77549c",
+    "bytes": 519181
+  },
+  "audio": {
+    "codec": "aac",
+    "channels": 2,
+    "sampleRate": 48000,
+    "durationSeconds": 76.8
+  },
+  "captionsIncluded": false,
+  "narration": "C:\\AetherWorkspace\\trusted\\docs\\demo\\media\\narration-v151.mp3",
+  "problems": [],
+  "humanReviewRequired": true
+}

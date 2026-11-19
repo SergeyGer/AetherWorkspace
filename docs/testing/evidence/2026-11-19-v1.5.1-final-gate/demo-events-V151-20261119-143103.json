@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-demo-capture",
+  "scenario": "V151",
+  "startedAtUtc": "2026-11-19T13:31:08.0227368+00:00",
+  "completedAtUtc": "2026-11-19T13:32:27.3206541+00:00",
+  "commitSha": "e07b53e33456cb43d98acec988ab7ee6e9f5a325",
+  "runId": "demo-20261119-143041-e07b53e3",
+  "traceId": "fd4e27ab22c3fb05d48ce3e0533b4d95",
+  "planner": "deterministic-grammar",
+  "usedModel": false,
+  "pids": [
+    20608,
+    24532,
+    24556
+  ],
+  "tickers": [
+    "VEGA",
+    "ORIN"
+  ],
+  "webView2": true,
+  "events": [
+    {
+      "name": "shell-ready",
+      "timestampUtc": "2026-11-19T13:31:12.0545207+00:00",
+      "detail": null
+    },
+    {
+      "name": "command-center-preset",
+      "timestampUtc": "2026-11-19T13:31:16.1385162+00:00",
+      "detail": "strict; WPF watchlist\u002Brisk\u002BWebView2"
+    },
+    {
+      "name": "instruction-typed",
+      "timestampUtc": "2026-11-19T13:31:21.7185363+00:00",
+      "detail": null
+    },
+    {
+      "name": "workflow-started",
+      "timestampUtc": "2026-11-19T13:31:30.7577237+00:00",
+      "detail": null
+    },
+    {
+      "name": "workflow-succeeded",
+      "timestampUtc": "2026-11-19T13:31:36.4039802+00:00",
+      "detail": "planner=deterministic-grammar"
+    },
+    {
+      "name": "demo-layout",
+      "timestampUtc": "2026-11-19T13:31:46.6728896+00:00",
+      "detail": "shell minimized; side-by-side applied"
+    },
+    {
+      "name": "sample-windows",
+      "timestampUtc": "2026-11-19T13:31:53.1616661+00:00",
+      "detail": "watchlist,risk,webview2,webview2"
+    },
+    {
+      "name": "ticker-vega",
+      "timestampUtc": "2026-11-19T13:32:01.2551992+00:00",
+      "detail": null
+    },
+    {
+      "name": "ticker-orin",
+      "timestampUtc": "2026-11-19T13:32:11.3003021+00:00",
+      "detail": null
+    },
+    {
+      "name": "ticker-scene-complete",
+      "timestampUtc": "2026-11-19T13:32:21.3065106+00:00",
+      "detail": null
+    }
+  ]
+}

@@ -3,6 +3,19 @@
 All notable changes to this reference implementation are recorded here. Version labels follow the
 implementation-plan milestones; release assets are published on GitHub Releases.
 
+## [v1.5.1] — Workspace UX & AI Command Center
+
+- AI Command Center: instruction editor, local saved templates, truthful phase/provenance, plan
+  preview and transport/PID execution details.
+- Application catalog + Launch Selected and per-app Launch/Focus/Stop/Restart through the existing
+  broker; trusted Preferred/Strict whole-plan selection authorization (`plan.selection.app_not_selected`).
+- Reviewed V151 hero: caption-free synthetic English voiceover, progressive instruction typing,
+  minimized Shell and all three WPF/WebView2 windows visible for the VEGA→ORIN change.
+- Physical reference-full 616/616 PASS; clean 100-cycle UI rerun PASS (command p95/p99 10/14 ms,
+  0 threshold violations). The combined final gate's UI step failed in that session and is retained
+  as a failed summary, not relabelled PASS.
+- Release details: `docs/releases/v1.5.1.md`.
+
 ## [v1.5.0] — Heterogeneous UI, hybrid AI, privacy gate, extension decisions (2026-11-18)
 
 Cumulative v1.2–v1.5 milestone release; runtime evidence boundaries unchanged.

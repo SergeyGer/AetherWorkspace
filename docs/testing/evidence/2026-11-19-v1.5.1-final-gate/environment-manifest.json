@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "1.0",
+  "addendum": "v3.0 Addendum A01 (Windows 11 reference desktop)",
+  "runId": "20261119-133410-release-full-8c0647",
+  "capturedAtUtc": "2026-11-19T12:37:44.4828726Z",
+  "commitSha": "e07b53e33456cb43d98acec988ab7ee6e9f5a325",
+  "releaseTarget": "v0.4.0",
+  "profile": "release-full",
+  "git": {
+    "version": "git version 2.56.0.windows.4",
+    "repositoryRoot": "C:\\AetherWorkspace\\trusted",
+    "worktreePath": "C:\\AetherWorkspace\\runs\\20261119-133410-release-full-8c0647",
+    "detached": true
+  },
+  "os": {
+    "caption": "Майкрософт Windows 11 Pro",
+    "version": "10.0.26300",
+    "buildNumber": "26300",
+    "architecture": "64-разрядная",
+    "machineName": "NUC-MINI"
+  },
+  "cpu": {
+    "name": "Intel(R) Core(TM) Ultra 7 255H",
+    "physicalCores": 16,
+    "logicalProcessors": 16,
+    "maxClockMhz": 2000
+  },
+  "memory": {
+    "totalGB": 63.3,
+    "freeDiskGB": 3561.6
+  },
+  "gpu": [
+    {
+      "name": "Intel(R) Arc(TM) 140T GPU (32GB)",
+      "driverVersion": "32.0.101.9150"
+    }
+  ],
+  "displays": {
+    "monitorCount": 1,
+    "desktopMonitorCount": 1,
+    "maximumWidth": 1920,
+    "maximumHeight": 1200,
+    "dpi": 96,
+    "dpiPercent": 100.0,
+    "screens": [
+      {
+        "deviceName": "\\\\.\\DISPLAY1",
+        "primary": true,
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1200,
+        "bitsPerPixel": 32
+      }
+    ],
+    "adapters": [
+      {
+        "name": "Intel(R) Arc(TM) 140T GPU (32GB)",
+        "driverVersion": "32.0.101.9150",
+        "width": 1920,
+        "height": 1200,
+        "refreshHz": 59
+      }
+    ]
+  },
+  "power": {
+    "hasBattery": false,
+    "onBattery": false,
+    "status": "ac-or-desktop"
+  },
+  "session": {
+    "sessionId": 1,
+    "interactive": true,
+    "user": "Serg"
+  },
+  "dotnet": {
+    "version": "10.0.404",
+    "sdk": "10.0.x (pinned by global.json)",
+    "availableSdks": [
+      "10.0.401 [C:\\Program Files\\dotnet\\sdk]",
+      "10.0.404 [C:\\Program Files\\dotnet\\sdk]"
+    ]
+  },
+  "powershell": {
+    "version": "7.7.0",
+    "edition": "Core"
+  },
+  "build": {
+    "configuration": "Release",
+    "projects": [
+      {
+        "name": "solution",
+        "status": "PASS",
+        "durationSeconds": 15.3,
+        "log": "logs/build-solution.log"
+      },
+      {
+        "name": "windows-ui-tests",
+        "status": "PASS",
+        "durationSeconds": 3.1,
+        "log": "logs/build-windows-ui-tests.log"
+      },
+      {
+        "name": "desktop-e2e-tests",
+        "status": "PASS",
+        "durationSeconds": 3.6,
+        "log": "logs/build-desktop-e2e-tests.log"
+      }
+    ]
+  },
+  "network": {
+    "policy": "local IPC only; no inbound listener; package restore over TLS when not cached",
+    "ownedInboundListeners": []
+  }
+}

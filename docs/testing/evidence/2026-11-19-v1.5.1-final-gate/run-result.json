@@ -1,0 +1,321 @@
+{
+  "schemaVersion": "1.0",
+  "addendum": "v3.0 Addendum A01 (Windows 11 reference desktop)",
+  "runId": "20261119-133410-release-full-8c0647",
+  "commitSha": "e07b53e33456cb43d98acec988ab7ee6e9f5a325",
+  "releaseTarget": "v0.4.0",
+  "profile": "release-full",
+  "status": "PASS",
+  "exitCode": 0,
+  "message": "",
+  "startedAtUtc": "2026-11-19T12:34:10.7950321Z",
+  "finishedAtUtc": "2026-11-19T12:37:42.7606028Z",
+  "stage": "CLEANUP",
+  "approvedRevisionFile": "C:\\AetherWorkspace\\approved-revision.txt",
+  "configPath": "C:\\AetherWorkspace\\automation\\test-config.json",
+  "environment": {
+    "manifest": "environment-manifest.json",
+    "manifestCaptured": true,
+    "error": ""
+  },
+  "suites": [
+    {
+      "name": "portable",
+      "description": "Portable .NET solution suites (contracts, security, execution, AI, broker, workflow, FDC3, E2E, testing helpers).",
+      "project": "AetherWorkspace.slnx",
+      "filter": "",
+      "status": "PASS",
+      "durationSeconds": 50.2,
+      "trx": "trx/portable",
+      "log": "logs/test-portable-*.log",
+      "counters": {
+        "available": true,
+        "total": 600,
+        "executed": 600,
+        "passed": 600,
+        "failed": 0,
+        "skipped": 0,
+        "aborted": 0
+      }
+    },
+    {
+      "name": "windows-ui",
+      "description": "Existing Windows WPF shell UI automation (smoke + restricted workflow, Unix-domain-socket harness).",
+      "project": "tests/Aether.Shell.UiTests/Aether.Shell.UiTests.csproj",
+      "filter": "Category=UI",
+      "status": "PASS",
+      "durationSeconds": 11.9,
+      "trx": "trx/windows-ui.trx",
+      "log": "logs/test-windows-ui.log",
+      "counters": {
+        "available": true,
+        "total": 3,
+        "executed": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "aborted": 0
+      }
+    },
+    {
+      "name": "desktop-e2e",
+      "description": "Reference-desktop GUI end-to-end tests over the Windows named-pipe transport (WT-04-01/02).",
+      "project": "tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj",
+      "filter": "Category=ReferenceDesktop",
+      "status": "PASS",
+      "durationSeconds": 120.0,
+      "trx": "trx/desktop-e2e.trx",
+      "log": "logs/test-desktop-e2e.log",
+      "counters": {
+        "available": true,
+        "total": 9,
+        "executed": 9,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "aborted": 0
+      }
+    },
+    {
+      "name": "layout05",
+      "description": "WT-05 durable multi-monitor layout tests: save/restore on visible screens, dual-monitor restore, missing-monitor fallback, corrupt layout denial.",
+      "project": "tests/Aether.Desktop.E2E.Tests/Aether.Desktop.E2E.Tests.csproj",
+      "filter": "Category=Layout05",
+      "status": "PASS",
+      "durationSeconds": 4.1,
+      "trx": "trx/layout05.trx",
+      "log": "logs/test-layout05.log",
+      "counters": {
+        "available": true,
+        "total": 4,
+        "executed": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "aborted": 0
+      }
+    }
+  ],
+  "builds": [
+    {
+      "name": "solution",
+      "status": "PASS",
+      "durationSeconds": 15.3,
+      "log": "logs/build-solution.log"
+    },
+    {
+      "name": "windows-ui-tests",
+      "status": "PASS",
+      "durationSeconds": 3.1,
+      "log": "logs/build-windows-ui-tests.log"
+    },
+    {
+      "name": "desktop-e2e-tests",
+      "status": "PASS",
+      "durationSeconds": 3.6,
+      "log": "logs/build-desktop-e2e-tests.log"
+    }
+  ],
+  "failures": [],
+  "summary": {
+    "suitesTotal": 4,
+    "suitesPassed": 4,
+    "suitesFailed": 0,
+    "suitesInconclusive": 0,
+    "testsPassed": 616,
+    "testsFailed": 0,
+    "testsSkipped": 0,
+    "testsAborted": 0
+  },
+  "artifacts": [
+    {
+      "name": "environment-manifest.json",
+      "path": "environment-manifest.json",
+      "bytes": 2917,
+      "redacted": true
+    },
+    {
+      "name": "run.log",
+      "path": "run.log",
+      "bytes": 7663,
+      "redacted": true
+    },
+    {
+      "name": "build-desktop-e2e-tests.log",
+      "path": "logs/build-desktop-e2e-tests.log",
+      "bytes": 2590,
+      "redacted": true
+    },
+    {
+      "name": "build-solution.log",
+      "path": "logs/build-solution.log",
+      "bytes": 7373,
+      "redacted": true
+    },
+    {
+      "name": "build-windows-ui-tests.log",
+      "path": "logs/build-windows-ui-tests.log",
+      "bytes": 1902,
+      "redacted": true
+    },
+    {
+      "name": "test-desktop-e2e.log",
+      "path": "logs/test-desktop-e2e.log",
+      "bytes": 782,
+      "redacted": true
+    },
+    {
+      "name": "test-layout05.log",
+      "path": "logs/test-layout05.log",
+      "bytes": 763,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.AI.Tests.log",
+      "path": "logs/test-portable-Aether.AI.Tests.log",
+      "bytes": 718,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.Broker.Tests.log",
+      "path": "logs/test-portable-Aether.Broker.Tests.log",
+      "bytes": 743,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.Contracts.Tests.log",
+      "path": "logs/test-portable-Aether.Contracts.Tests.log",
+      "bytes": 767,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.E2E.Tests.log",
+      "path": "logs/test-portable-Aether.E2E.Tests.log",
+      "bytes": 723,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.Execution.Tests.log",
+      "path": "logs/test-portable-Aether.Execution.Tests.log",
+      "bytes": 767,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.Fdc3.Tests.log",
+      "path": "logs/test-portable-Aether.Fdc3.Tests.log",
+      "bytes": 729,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.Security.Tests.log",
+      "path": "logs/test-portable-Aether.Security.Tests.log",
+      "bytes": 760,
+      "redacted": true
+    },
+    {
+      "name": "test-portable-Aether.Workflow.Tests.log",
+      "path": "logs/test-portable-Aether.Workflow.Tests.log",
+      "bytes": 760,
+      "redacted": true
+    },
+    {
+      "name": "test-windows-ui.log",
+      "path": "logs/test-windows-ui.log",
+      "bytes": 742,
+      "redacted": true
+    },
+    {
+      "name": "desktop-e2e.trx",
+      "path": "trx/desktop-e2e.trx",
+      "bytes": 15725,
+      "redacted": true
+    },
+    {
+      "name": "layout05.trx",
+      "path": "trx/layout05.trx",
+      "bytes": 7721,
+      "redacted": true
+    },
+    {
+      "name": "windows-ui.trx",
+      "path": "trx/windows-ui.trx",
+      "bytes": 5925,
+      "redacted": true
+    },
+    {
+      "name": "Aether.AI.Tests.trx",
+      "path": "trx/portable/Aether.AI.Tests.trx",
+      "bytes": 82745,
+      "redacted": true
+    },
+    {
+      "name": "Aether.Broker.Tests.trx",
+      "path": "trx/portable/Aether.Broker.Tests.trx",
+      "bytes": 122067,
+      "redacted": true
+    },
+    {
+      "name": "Aether.Contracts.Tests.trx",
+      "path": "trx/portable/Aether.Contracts.Tests.trx",
+      "bytes": 147188,
+      "redacted": true
+    },
+    {
+      "name": "Aether.E2E.Tests.trx",
+      "path": "trx/portable/Aether.E2E.Tests.trx",
+      "bytes": 26984,
+      "redacted": true
+    },
+    {
+      "name": "Aether.Execution.Tests.trx",
+      "path": "trx/portable/Aether.Execution.Tests.trx",
+      "bytes": 205026,
+      "redacted": true
+    },
+    {
+      "name": "Aether.Fdc3.Tests.trx",
+      "path": "trx/portable/Aether.Fdc3.Tests.trx",
+      "bytes": 58677,
+      "redacted": true
+    },
+    {
+      "name": "Aether.Security.Tests.trx",
+      "path": "trx/portable/Aether.Security.Tests.trx",
+      "bytes": 209328,
+      "redacted": true
+    },
+    {
+      "name": "Aether.Workflow.Tests.trx",
+      "path": "trx/portable/Aether.Workflow.Tests.trx",
+      "bytes": 21574,
+      "redacted": true
+    }
+  ],
+  "cleanup": {
+    "ownedProcessIds": [],
+    "worktreeRemoved": true,
+    "warnings": [],
+    "globalStateModified": false
+  },
+  "privacy": {
+    "syntheticDataOnly": true,
+    "rawPayloadsPersisted": false,
+    "credentialsRedacted": true,
+    "windowImagesCaptured": false,
+    "externalProviderCalls": 0,
+    "ownedInboundListeners": [],
+    "networkPolicy": "local IPC only; no inbound listener; package restore over TLS when not cached"
+  },
+  "failureTaxonomy": [
+    "PASS: every selected suite passed on the reference desktop",
+    "FAIL_PRODUCT: a product assertion/behaviour failed (test or build compiler error)",
+    "FAIL_HARNESS: the run/harness/build environment failed (timeout, tool error, no tests)",
+    "SKIPPED_LOCKED: interactive desktop session was locked",
+    "SKIPPED_UNAPPROVED: no reviewed full 40-hex SHA / commit not present",
+    "SKIPPED_OVERLAP: another run held the single-instance mutex",
+    "SKIPPED_INSUFFICIENT_RESOURCES: memory/CPU/display/disk below the configured minimum",
+    "SKIPPED_ON_BATTERY: reference desktop on battery power",
+    "SKIPPED_NO_INTERACTIVE_SESSION: not an interactive user session (Session 0)",
+    "INCONCLUSIVE: suites reported no executed tests and the run cannot be interpreted"
+  ]
+}

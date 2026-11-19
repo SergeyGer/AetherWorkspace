@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-demo-capture",
+  "scenario": "V151",
+  "capturedAtUtc": "2026-11-19T13:32:29.5215576Z",
+  "recordingStartedUtc": "2026-11-19T13:31:05.8610658Z",
+  "approvedSha": "e07b53e33456cb43d98acec988ab7ee6e9f5a325",
+  "runId": "demo-20261119-143041-e07b53e3",
+  "rawRecording": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\raw-V151-20261119-143103.mp4",
+  "rawSha256": "9f83de87e0d4f3d9c427c178b0805ffccc3f80f48a7ab283ec05af94fbd93e62",
+  "eventsFile": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\demo-events-V151-20261119-143103.json",
+  "traceId": "fd4e27ab22c3fb05d48ce3e0533b4d95",
+  "planner": "deterministic-grammar",
+  "usedModel": false,
+  "pids": [
+    20608,
+    24532,
+    24556
+  ],
+  "tickers": [
+    "VEGA",
+    "ORIN"
+  ],
+  "testExit": 0
+}

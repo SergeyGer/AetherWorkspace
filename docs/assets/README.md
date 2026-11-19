@@ -31,6 +31,23 @@ node -e "const sharp=require('sharp');const fs=require('fs');sharp(fs.readFileSy
 `tools/coverage/summarize-coverage.py` (see [`docs/testing/coverage.md`](../testing/coverage.md)).
 Do not hand-edit it; regenerate after a coverage measurement.
 
+## Demo media (v1.5.1)
+
+**v1.5.1 hero:** AI Command Center → Strict workspace → WPF + WebView2 execution. Synthetic English
+voiceover, **no on-screen captions**; deterministic provenance (`usedModel=false`). The approved MP4
+was reviewed on a physical Windows 11 render; YouTube publication is pending explicit operator
+approval.
+
+| File | Description | SHA-256 |
+|---|---|---|
+| `demo-hero-v151.mp4` | Approved v1.5.1 hero (76.8 s, H.264 1080p30 + AAC 48 kHz stereo, caption-free synthetic English voiceover) | `90eac9809d44b4e9adefb6e8426173679f06035dd81242d46afafded00f813b3` |
+| `demo-preview-v151.gif` | Animated 10 s preview re-derived from the approved MP4 (960×540, no captions) | `a341b70cc5544d403ba74d1855ceb24bfdbc01d3985c23f398d3b8133b623bde` |
+| `../demo/media/narration-v151.mp3` | Synthetic English voiceover source | `a31f43a43d5003b4f7e4e7d46e76debc413f1f06df672d452c6c2851274f93d1` |
+
+Evidence: [`2026-11-19-v1.5.1-final-gate.md`](../testing/evidence/2026-11-19-v1.5.1-final-gate.md)
+and [`narration-script-v151.md`](../demo/narration-script-v151.md). The prior v1.1 narrated Track B
+hero remains below as historical media.
+
 ## Demo media (v1.1)
 
 **Published narrated demo:** [YouTube — AetherWorkspace Track B](https://youtu.be/CFJJZX-QcnU)

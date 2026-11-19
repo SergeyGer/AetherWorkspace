@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-physical-release-gate",
+  "runId": "physical-gate-20261119-133410",
+  "startedAtUtc": "2026-11-19T12:34:10.3317295Z",
+  "repoRoot": "C:\\AetherWorkspace\\trusted",
+  "gateRoot": "C:\\AetherWorkspace\\results\\physical-gate-20261119-133410",
+  "steps": {
+    "trust": {
+      "state": "PASS",
+      "detail": "e07b53e33456cb43d98acec988ab7ee6e9f5a325"
+    },
+    "reference-full": {
+      "state": "PASS",
+      "detail": "C:\\AetherWorkspace\\results\\20261119-133410-release-full-8c0647"
+    },
+    "wt-ledger": {
+      "state": "PASS",
+      "detail": "C:\\AetherWorkspace\\results\\physical-gate-20261119-133410"
+    },
+    "ui-responsiveness": {
+      "state": "FAIL",
+      "detail": null
+    },
+    "prepare-demo": {
+      "state": "PASS",
+      "detail": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3"
+    },
+    "capture-V151": {
+      "state": "PASS",
+      "detail": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\capture-V151-20261119-143103.json"
+    },
+    "video-build-V151": {
+      "state": "PASS",
+      "detail": "C:\\AetherWorkspace\\runs\\demo-20261119-143041-e07b53e3\\video-build.json"
+    },
+    "video-validate-V151": {
+      "state": "PASS",
+      "detail": null
+    }
+  },
+  "finishedAtUtc": "2026-11-19T13:32:41.0615278Z",
+  "overall": "FAILED"
+}

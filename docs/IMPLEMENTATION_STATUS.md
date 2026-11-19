@@ -4,10 +4,12 @@ Status legend: **Done** = implemented with committed automated evidence; **Parti
 key parts implemented and tested, milestone gate not fully met; **Not started** = planned
 only. Every claim below points at code and tests in this repository.
 
-**Current snapshot:** **v1.5.1 Workspace UX & AI Command Center is in progress** (issues #137–#144,
-planning: `docs/planning/v1.5.1-ux-execution-plan.md`); its physical/video gates are not yet claimed.
-All prior planned milestones **M0 through v1.5** are delivered; latest stable release is
-**v1.5.0** (cumulative v1.2–v1.5) with all GitHub Issues and milestones closed. The authoritative
+**Current snapshot:** **v1.5.1 Workspace UX & AI Command Center is released** (AI Command Center,
+trusted application selection/lifecycle, Preferred/Strict whole-plan scope, local instruction
+templates, reviewed caption-free V151 hero). Physical reference-full 616/616 PASS and a clean
+100-cycle UI rerun PASS; the combined final gate's UI step failed in that session and is retained as
+failed evidence, not relabelled PASS. All planned milestones **M0 through v1.5.1** are delivered.
+Release notes: `docs/releases/v1.5.1.md`. The authoritative
 versioned summary is the
 [Wiki Project status](https://github.com/SergeyGer/AetherWorkspace/wiki/Project-Status).
 
