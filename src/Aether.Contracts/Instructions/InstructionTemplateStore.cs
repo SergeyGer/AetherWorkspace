@@ -212,13 +212,13 @@ public sealed class InstructionTemplateStore
         var time = DateTimeOffset.UnixEpoch.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
         return
         [
-            new("starter-vega", "Vega Analytics Workspace (3 apps)",
+            new("starter-vega", "Vega Analytics Workspace (synthetic, 3 apps)",
                 "Open Vega bond analytics, show the associated risk view, synchronize this instrument across the workspace and summarize the exposure privately.",
                 time, time),
-            new("starter-orin", "ORIN Watchlist + Chart (2 apps)",
+            new("starter-orin", "ORIN Watchlist + Chart (synthetic, 2 apps)",
                 "Open the ORIN watchlist, show the associated risk view, synchronize this instrument across the workspace and summarize the exposure privately.",
                 time, time),
-            new("starter-northstar", "Northstar Restricted Offline (local-only)",
+            new("starter-northstar", "Northstar Restricted Offline (synthetic, local-only)",
                 "Open Northstar bond analytics, show the associated risk view, synchronize this instrument across the workspace and summarize the exposure privately without any cloud call.",
                 time, time),
         ];

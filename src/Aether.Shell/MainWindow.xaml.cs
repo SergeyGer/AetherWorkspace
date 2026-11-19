@@ -45,6 +45,7 @@ public partial class MainWindow : Window
     private List<InstructionTemplate> _templates = [];
     private string? _activeTemplateId;
     private bool _suppressTemplateSelection;
+    private bool _catalogInitialized;
     private readonly HashChainAuditLog _auditSink = new();
     private BrokerClient? _client;
     private BrokerEndpointInfo? _endpoint;
@@ -237,6 +238,8 @@ public partial class MainWindow : Window
             classification = DataClassification.Unknown;
         }
 
+        var plannerLabel = PlannerCombo.SelectedIndex == 1 ? "LLM-assisted (PUBLIC, consent)" : "Deterministic (offline)";
+
         SetRunningState(true);
         _steps.Clear();
         SummaryBox.Text = string.Empty;
@@ -249,6 +252,9 @@ public partial class MainWindow : Window
 
         TraceBox.Text = string.Empty;
         StatusBox.Text = string.Empty;
+        AppendStatus($"Run context: planner={plannerLabel}; classification={classification.ToWireName()}; " +
+                     $"externalConsent={CloudConsentCheck.IsChecked == true}; selection={selectionMode} " +
+                     $"allowedApps=[{string.Join(", ", selectedAppIds.Order(StringComparer.Ordinal))}].");
         PhaseText.Text = WorkflowPhase.Classifying.ToString().ToUpperInvariant();
         _runCancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         _uiTelemetry.Start();
@@ -262,6 +268,7 @@ public partial class MainWindow : Window
             var result = await _orchestrator.ExecuteAsync(request, _runCancellation.Token);
             _lastTelemetry = _uiTelemetry.Stop(result.DurationMs);
             CaptureWorkflowProcessIds(result);
+            RenderProcessDetails(result);
             PhaseText.Text = result.Success ? "COMPLETED" : "DENIED";
             RenderPlanPreview(result);
             RenderResult(result);
@@ -305,6 +312,8 @@ public partial class MainWindow : Window
             {
                 "sample.watchlist", "sample.risk", DeterministicCommandPlanner.DefaultChartAppId,
             };
+            var useDefaultSelection = !_catalogInitialized;
+            _catalogInitialized = true;
             _apps.Clear();
             foreach (var app in snapshot.Apps.Where(app => app.Launchable).OrderBy(app => app.DisplayName, StringComparer.Ordinal))
             {
@@ -313,11 +322,14 @@ public partial class MainWindow : Window
                 var status = healthEntry is null ? "STOPPED" : healthEntry[(app.AppId.Length + 1)..].ToUpperInvariant();
                 _apps.Add(new AppRow(app.AppId, app.DisplayName, RuntimeTypeFor(app.AppId), status)
                 {
-                    IsSelected = selected.Count > 0 ? selected.Contains(app.AppId) : defaultSelection.Contains(app.AppId),
+                    IsSelected = selected.Count > 0
+                        ? selected.Contains(app.AppId)
+                        : useDefaultSelection && defaultSelection.Contains(app.AppId),
                     Launchable = app.Launchable,
                 });
             }
 
+            RenderProcessDetails(_lastResult);
             AppendStatus($"Application catalog refreshed: {_apps.Count} registered app(s), {health.AppHealth.Count} health entr(y/ies).");
         }
         catch (Exception exception)
@@ -690,6 +702,32 @@ public partial class MainWindow : Window
 
             _appProcessIds[step.AppId] = processId;
         }
+    }
+
+    private void RenderProcessDetails(WorkflowResult? result = null)
+    {
+        var lines = new List<string>
+        {
+            "Local transport: " + (_endpoint?.Transport ?? "not connected"),
+            "Broker endpoint: " + (_endpoint?.Endpoint ?? "not connected"),
+            "Operator identity: " + (_endpoint?.OperatorAppId ?? "not registered"),
+            "Selection mode: " + (SelectionModeCombo.SelectedIndex == 1 ? "Strict" : "Preferred"),
+        };
+        if (result is not null)
+        {
+            lines.Add("Trace: " + result.TraceId);
+            lines.Add("Planner: " + result.PlannerProvider + " (usedModel=" + result.UsedModel + ")");
+            lines.Add("Plan: " + (result.PlanId ?? "none"));
+            lines.Add("Result: " + (result.Success ? "success" : "denied/failed " + (result.DenialCode ?? "")));
+        }
+
+        lines.Add("Application process IDs:");
+        foreach (var app in _apps.OrderBy(app => app.AppId, StringComparer.Ordinal))
+        {
+            lines.Add($"  {app.AppId}  status={app.Status}  pid={(_appProcessIds.TryGetValue(app.AppId, out var pid) ? pid.ToString(CultureInfo.InvariantCulture) : "n/a")}");
+        }
+
+        ProcessesBox.Text = string.Join(Environment.NewLine, lines);
     }
 
     private void RenderPlanPreview(WorkflowResult result)
