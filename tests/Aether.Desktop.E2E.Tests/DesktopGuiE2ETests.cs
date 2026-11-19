@@ -421,7 +421,7 @@ public sealed class DesktopGuiE2ETests
             useWindowsRegistry: true,
             wpfSamplesExe: samplesExecutable,
             webView2ChartExe: webView2Executable);
-        using var shell = ShellWindowSession.Launch(broker.EndpointFile);
+        using var shell = ShellWindowSession.Launch(broker.EndpointFile, emptyInstruction: isV151);
 
         _ = shell.WaitForBackendModeContaining("named-pipe", ShellWindowSession.BackendTimeout);
         shell.WaitForStatus(text => text.Contains("Registered", StringComparison.Ordinal), ShellWindowSession.RegistrationTimeout, "shell registration");

@@ -59,6 +59,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        if (Environment.GetEnvironmentVariable("AETHER_DEMO_EMPTY_INSTRUCTION") == "1")
+        {
+            // Demo capture only: start with an empty Instruction so the recording can show the
+            // operator typing it from the first visible frame. Normal Shell startup keeps the
+            // documented default reference command for UI tests/users.
+            CommandBox.Text = string.Empty;
+            InstructionTitleBox.Text = string.Empty;
+        }
+
         StepsList.ItemsSource = _steps;
         InspectorList.ItemsSource = _inspector;
         AppsGrid.ItemsSource = _apps;
