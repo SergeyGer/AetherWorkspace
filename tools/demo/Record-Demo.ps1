@@ -11,7 +11,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $RunDirectory,
-    [ValidateSet('TrackA', 'TrackB')]
+    [ValidateSet('TrackA', 'TrackB', 'V151')]
     [string] $Scenario = 'TrackB',
     [string] $EnvironmentFile = 'C:\AetherWorkspace\trusted\.env',
     [string] $Configuration = 'Release'

@@ -1,11 +1,11 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-  One-command local Windows 11 physical release gate (v1.1 AW-054/AW-055/AW-056/AW-065/AW-066).
+  One-command local Windows 11 physical release gate (v1.1–v1.5.1).
 .DESCRIPTION
   Runs the reference-desktop release-full suite on an approved SHA, exports the per-WT ledger,
-  runs the 100-cycle UI responsiveness measurement, and (unless skipped) captures the Track B
-  demo, builds the MP4/GIF and validates it. Copies sanitized artifacts into one gate directory.
+  runs the 100-cycle UI responsiveness measurement, and (unless skipped) captures the v1.5.1 V151
+  AI Command Center / WebView2 demo, builds the MP4/GIF and validates it. Copies sanitized artifacts into one gate directory.
   All execution is local; raw media stays local and no data is uploaded.
 #>
 [CmdletBinding()]
@@ -16,7 +16,7 @@ param(
     [string] $ConfigPath = 'C:\AetherWorkspace\automation\test-config.json',
     [string] $EnvironmentFile,
     [int] $UiCycles = 100,
-    [string[]] $CaptureScenarios = @('TrackB'),
+    [string[]] $CaptureScenarios = @('V151'),
     [string] $ManualLedgerPath,
     [switch] $SkipCapture,
     # Skips only the UI responsiveness measurement. The release-full reference suite and WT ledger
@@ -102,7 +102,7 @@ if (-not $SkipCapture) {
         $env:AETHER_OBS_WEBSOCKET_PASSWORD = [System.Net.NetworkCredential]::new('', $securePassword).Password
     }
     if (-not $env:AETHER_OBS_WEBSOCKET_PASSWORD) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'AETHER_OBS_WEBSOCKET_PASSWORD is not set (use -PromptObsPassword or run in the same PowerShell process where it is set)'; $capturePass = $false }
-    elseif (-not $EnvironmentFile) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'EnvironmentFile is required for Track B'; $capturePass = $false }
+    elseif (-not $EnvironmentFile) { Step 'capture' 'SKIPPED_ENVIRONMENT' 'EnvironmentFile is required for the capture scenario'; $capturePass = $false }
     else {
         $runsRoot = Join-Path (Split-Path -Parent $repo) 'runs'
         New-Item -ItemType Directory -Force -Path $runsRoot | Out-Null

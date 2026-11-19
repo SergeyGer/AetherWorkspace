@@ -261,6 +261,7 @@ public partial class MainWindow : Window
                 LaunchSelection: launchSelection);
             var result = await _orchestrator.ExecuteAsync(request, _runCancellation.Token);
             _lastTelemetry = _uiTelemetry.Stop(result.DurationMs);
+            CaptureWorkflowProcessIds(result);
             PhaseText.Text = result.Success ? "COMPLETED" : "DENIED";
             RenderPlanPreview(result);
             RenderResult(result);
@@ -666,6 +667,30 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    private void CaptureWorkflowProcessIds(WorkflowResult result)
+    {
+        if (result.Plan is null || result.Execution?.Steps is null)
+        {
+            return;
+        }
+
+        for (var index = 0; index < Math.Min(result.Plan.Steps.Count, result.Execution.Steps.Count); index++)
+        {
+            var step = result.Plan.Steps[index];
+            var artifacts = result.Execution.Steps[index].Artifacts;
+            if (!string.Equals(step.Action, ActionKinds.LaunchApp, StringComparison.Ordinal)
+                || step.AppId is null
+                || artifacts is null
+                || !artifacts.TryGetValue("processId", out var processText)
+                || !int.TryParse(processText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var processId))
+            {
+                continue;
+            }
+
+            _appProcessIds[step.AppId] = processId;
+        }
+    }
 
     private void RenderPlanPreview(WorkflowResult result)
     {

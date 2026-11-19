@@ -1,4 +1,4 @@
-# Local Windows 11 demo production pipeline (v1.1 AW-055/AW-056)
+# Local Windows 11 demo production pipeline (v1.1–v1.5.1)
 
 Remote engineering (DeepSeek Harness on Hetzner Linux) authors and reviews this pipeline but never
 operates the laptop desktop, OBS or FFmpeg. Everything below runs **locally on the Windows 11
@@ -37,26 +37,27 @@ pwsh -NoProfile -File tools/demo/Prepare-Demo.ps1 `
 Creates `runs/demo-<stamp>-<sha8>` with a detached worktree, builds the solution and capture test
 project, validates OBS WebSocket/FFmpeg/.NET/power/session and writes `demo-preparation.json`.
 
-## 2. Record (Track B is the primary hero track)
+## 2. Record (v1.5.1 V151 is the current hero; Track B remains available)
 
 ```powershell
 $env:AETHER_OBS_WEBSOCKET_PASSWORD = '<local OBS password>'
 pwsh -NoProfile -File tools/demo/Record-Demo.ps1 `
   -RunDirectory C:\AetherWorkspace\runs\demo-<stamp>-<sha8> `
-  -Scenario TrackB `
+  -Scenario V151 `
   -EnvironmentFile C:\AetherWorkspace\trusted\.env
 ```
 
 `Record-Demo.ps1` starts OBS locally, runs the real named-pipe desktop workflow
 (`Category=DemoCapture`), drives the real WPF sample windows for the VEGA/ORIN ticker scene, stops
-OBS, copies the raw MKV and writes `capture-TrackB-<stamp>.json`. Track A is the same command with
-`-Scenario TrackA` (deterministic, `usedModel=false`).
+OBS, copies the raw MKV and writes `capture-V151-<stamp>.json`. v1.5.1 `V151` is deterministic
+(`usedModel=false`) and includes the AI Command Center preset + WebView2 chart; `TrackA`/`TrackB`
+remain available for the historical v1.1 tracks, and Track B still requires the local provider env.
 
 ## 3. Build and validate media
 
 ```powershell
 pwsh -NoProfile -File tools/demo/Build-Video.ps1 `
-  -CaptureManifest C:\AetherWorkspace\runs\<demo-run>\capture-TrackB-<stamp>.json
+  -CaptureManifest C:\AetherWorkspace\runs\<demo-run>\capture-V151-<stamp>.json
 pwsh -NoProfile -File tools/demo/Validate-Video.ps1 `
   -VideoBuildManifest C:\AetherWorkspace\runs\<demo-run>\video-build.json
 ```
@@ -68,7 +69,7 @@ human review of the MP4/GIF and provenance is mandatory before README/Wiki publi
 ## One-command physical gate (recommended)
 
 `tools/windows-test/Run-PhysicalReleaseGate.ps1` chains the approved-SHA reference-desktop suite,
-per-WT ledger, 100-cycle UI measurement and the Track B capture/build/validate into one local
+per-WT ledger, 100-cycle UI measurement and the V151 capture/build/validate into one local
 `results\physical-gate-<stamp>` directory with `gate-summary.json`:
 
 ```powershell
@@ -83,7 +84,8 @@ pwsh -NoProfile -File tools\windows-test\Run-PhysicalReleaseGate.ps1 `
 ```
 
 OBS must already run with WebSocket enabled and the MKV/1080p profile/scene configured. Add
-`-SkipMeasurements` or `-SkipCapture` for partial runs; `-CaptureScenarios TrackA,TrackB` records both
+`-SkipMeasurements` or `-SkipCapture` for partial runs; `-CaptureScenarios V151` records the v1.5.1
+hero; `-CaptureScenarios TrackA,TrackB` records the historical tracks
 tracks. Add `-PromptObsPassword` if the OBS WebSocket password is not already in this PowerShell
 process: the runner prompts once (hidden input) and passes it to child processes. Share
 `gate-summary.json` and the sanitized manifests only.
@@ -103,5 +105,5 @@ committed.
 | `Record-Demo.ps1` | OBS recording + demo scenario + raw capture manifest |
 | `Build-Video.ps1` | FFmpeg hero MP4 + GIF, captions from measured events |
 | `Validate-Video.ps1` | codec/dimensions/duration/pixel-format/GIF-size/black-frame QA |
-| `demo-scenes.json` | Track A/B captions and scene timing source of truth |
+| `demo-scenes.json` | V151/Track A/Track B captions and scene timing source of truth |
 | `obs-profile.example.json` | documented OBS setup; never contains the password |
