@@ -25,7 +25,8 @@ public class OrchestratorTests
         bool withCloudPlanner = false,
         bool cloudEnabled = true,
         bool cloudConsent = true,
-        PlanGenerationMode planningMode = PlanGenerationMode.DeterministicPreferred)
+        PlanGenerationMode planningMode = PlanGenerationMode.DeterministicPreferred,
+        Action<WorkflowPhase>? phaseObserver = null)
     {
         var audit = new HashChainAuditLog();
         var egress = new EgressGateway(new PolicyEngine(PolicyDocument.CreateDefault()), audit);
@@ -43,7 +44,7 @@ public class OrchestratorTests
             summaryService,
             new ActionPlanValidator(new ActionPlanValidationOptions { MaxActions = 6 }),
             new CapabilityPlanAuthorizationPolicy(),
-            new WorkflowOrchestratorOptions { MaxActionsPerPlan = 6, PlanningMode = planningMode },
+            new WorkflowOrchestratorOptions { MaxActionsPerPlan = 6, PlanningMode = planningMode, PhaseObserver = phaseObserver },
             audit);
         return (orchestrator, broker, audit, cloudTransport);
     }
@@ -197,6 +198,53 @@ public class OrchestratorTests
         Assert.Equal(DataClassification.Unknown, result.Classification);
         Assert.Equal(AetherErrorCodes.PolicyClassificationUnknown, result.DenialCode);
         Assert.Single(broker.PublishedContexts);
+    }
+
+    [Fact]
+    public async Task StrictSelectionRejectsUnselectedAppBeforeAnyBrokerSideEffect()
+    {
+        var (orchestrator, broker, audit, _) = Create();
+        var selection = Aether.Contracts.Models.LaunchSelectionContext.Strict(
+            ["sample.watchlist", "sample.risk", "sample.chart.webview2"], "selection-revision-1");
+
+        var result = await orchestrator.ExecuteAsync(new WorkflowRequest(
+            ReferenceCommand, DataClassification.Restricted, LaunchSelection: selection));
+
+        Assert.False(result.Success);
+        Assert.Equal(AetherErrorCodes.PlanSelectionAppNotSelected, result.DenialCode);
+        Assert.Equal(Aether.Contracts.Errors.DenialCategory.UnauthorizedApp, result.DenialCategory);
+        Assert.Empty(broker.LaunchedApps);
+        Assert.NotNull(result.Plan);
+        Assert.True(audit.Verify().Valid);
+    }
+
+    [Fact]
+    public async Task PreferredSelectionDoesNotRestrictAuthorizedPlan()
+    {
+        var (orchestrator, broker, _, _) = Create();
+        var selection = Aether.Contracts.Models.LaunchSelectionContext.Preferred(
+            ["sample.watchlist"], "selection-revision-1");
+
+        var result = await orchestrator.ExecuteAsync(new WorkflowRequest(
+            ReferenceCommand, DataClassification.Restricted, LaunchSelection: selection));
+
+        Assert.True(result.Success, result.DenialCode + ": " + result.DenialMessage);
+        Assert.Equal(3, broker.LaunchedApps.Count);
+    }
+
+    [Fact]
+    public async Task PhaseObserverReportsPlanningAndExecutionStages()
+    {
+        var phases = new List<WorkflowPhase>();
+        var (orchestrator, _, _, _) = Create(phaseObserver: phase => phases.Add(phase));
+
+        _ = await orchestrator.ExecuteAsync(new WorkflowRequest(ReferenceCommand, DataClassification.Restricted));
+
+        Assert.Contains(WorkflowPhase.Classifying, phases);
+        Assert.Contains(WorkflowPhase.Planning, phases);
+        Assert.Contains(WorkflowPhase.Validating, phases);
+        Assert.Contains(WorkflowPhase.Authorizing, phases);
+        Assert.Contains(WorkflowPhase.Executing, phases);
     }
 
     [Fact]

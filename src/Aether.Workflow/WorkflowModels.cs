@@ -12,7 +12,8 @@ public sealed record WorkflowRequest(
     DataClassification SourceClassification,
     string? TraceId = null,
     ActionPlan? SuppliedPlan = null,
-    string SourceAppId = "aether.shell");
+    string SourceAppId = "aether.shell",
+    LaunchSelectionContext? LaunchSelection = null);
 
 /// <summary>Safe summary output returned to the shell (never written to audit).</summary>
 public sealed record SummaryOutcome(
@@ -67,8 +68,24 @@ public enum PlanGenerationMode
     CloudPreferred = 1,
 }
 
+public enum WorkflowPhase
+{
+    Classifying = 0,
+    Planning = 1,
+    Validating = 2,
+    Authorizing = 3,
+    Executing = 4,
+    Completed = 5,
+    Denied = 6,
+    Failed = 7,
+    Cancelled = 8,
+}
+
 public sealed record WorkflowOrchestratorOptions
 {
+    /// <summary>Optional Shell progress observer; phases are advisory and never affect authorization.</summary>
+    public Action<WorkflowPhase>? PhaseObserver { get; init; }
+
     /// <summary>
     /// Configured per-deployment plan action budget. The library default is 5
     /// (spec 5.3); the reference workflow configuration uses 6 because it

@@ -40,6 +40,19 @@ public interface IPlanGenerator
 public sealed class DeterministicCommandPlanner : IPlanGenerator
 {
     public const string ProviderName = "deterministic-grammar";
+    public const string DefaultChartAppId = "sample.chart";
+    public const string WebView2ChartAppId = "sample.chart.webview2";
+    private readonly string _chartAppId;
+
+    public DeterministicCommandPlanner(string chartAppId = DefaultChartAppId)
+    {
+        if (string.IsNullOrWhiteSpace(chartAppId))
+        {
+            throw new ArgumentException("A chart app id is required.", nameof(chartAppId));
+        }
+
+        _chartAppId = chartAppId;
+    }
 
     public string ProviderId => ProviderName;
 
@@ -80,7 +93,7 @@ public sealed class DeterministicCommandPlanner : IPlanGenerator
             [
                 new ActionPlanStep { Action = ActionKinds.LaunchApp, AppId = "sample.watchlist" },
                 new ActionPlanStep { Action = ActionKinds.LaunchApp, AppId = "sample.risk" },
-                new ActionPlanStep { Action = ActionKinds.LaunchApp, AppId = "sample.chart" },
+                new ActionPlanStep { Action = ActionKinds.LaunchApp, AppId = _chartAppId },
                 new ActionPlanStep { Action = ActionKinds.PublishContext, ContextRef = "synthetic.instrument.northstar" },
                 new ActionPlanStep { Action = ActionKinds.ArrangeWindows, Layout = Layouts.SideBySide },
                 new ActionPlanStep

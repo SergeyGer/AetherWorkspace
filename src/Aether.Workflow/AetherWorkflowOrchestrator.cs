@@ -68,6 +68,7 @@ public sealed class AetherWorkflowOrchestrator
         ArgumentNullException.ThrowIfNull(request);
 
         var stopwatch = Stopwatch.StartNew();
+        ReportPhase(WorkflowPhase.Classifying);
         var traceId = TraceContext.IsValidTraceId(request.TraceId) ? request.TraceId! : TraceIdGenerator.NewTraceId();
         var trace = new TraceContext(traceId, TraceIdGenerator.NewSpanId());
 
@@ -98,6 +99,7 @@ public sealed class AetherWorkflowOrchestrator
             request.SourceClassification,
             request.SourceAppId));
         AppendClassificationAudit(traceId, classification, request.Command);
+        ReportPhase(WorkflowPhase.Planning);
 
         if (classification.Classification == DataClassification.Unknown)
         {
@@ -225,6 +227,7 @@ public sealed class AetherWorkflowOrchestrator
             var catalog = PlanCatalogMapper.FromSnapshot(snapshot);
             var grant = PlanCatalogMapper.FromRegistration(_broker.Registration);
 
+            ReportPhase(WorkflowPhase.Validating);
             var validationOptions = new ActionPlanValidationOptions { MaxActions = _options.MaxActionsPerPlan };
             var validation = _validator.Validate(plan, validationOptions, catalog);
             if (!validation.IsValid)
@@ -252,8 +255,41 @@ public sealed class AetherWorkflowOrchestrator
                     plan: plan);
             }
 
+            if (request.LaunchSelection is { Mode: LaunchSelectionMode.Strict } selection)
+            {
+                var deniedLaunch = plan.Steps.FirstOrDefault(step =>
+                    string.Equals(step.Action, ActionKinds.LaunchApp, StringComparison.Ordinal)
+                    && !selection.Allows(step.AppId));
+                if (deniedLaunch is not null)
+                {
+                    stopwatch.Stop();
+                    AppendWorkflowAudit(traceId, classification, AuditOutcomes.Denied, AetherErrorCodes.PlanSelectionAppNotSelected, stopwatch.ElapsedMilliseconds);
+                    _auditSink.Append(new AuditEventDraft
+                    {
+                        TraceId = traceId,
+                        EventType = AuditEventTypes.PlanValidation,
+                        Outcome = AuditOutcomes.Denied,
+                        Code = AetherErrorCodes.PlanSelectionAppNotSelected,
+                        Classification = classification.Classification.ToWireName(),
+                        BrokeredAppId = deniedLaunch.AppId,
+                    });
+                    return WorkflowResult.Denied(
+                        traceId,
+                        classification.Classification,
+                        classification.ReasonCodes,
+                        AetherErrorCodes.PlanSelectionAppNotSelected,
+                        $"Strict launch selection rejected unselected application '{deniedLaunch.AppId}' before execution.",
+                        plannerProvider,
+                        usedModel,
+                        stopwatch.ElapsedMilliseconds,
+                        plan: plan);
+                }
+            }
+
+            ReportPhase(WorkflowPhase.Authorizing);
             var handlers = BuildHandlers(classification.Classification, catalog);
             var executionOptions = _options.Execution with { MaxActionsPerPlan = _options.MaxActionsPerPlan };
+            ReportPhase(WorkflowPhase.Executing);
             var executor = new PlanExecutor(_validator, _authorizationPolicy, handlers, _auditSink, executionOptions, _timeProvider);
             var execution = await executor.ExecuteAsync(plan, catalog, grant, trace, cancellationToken).ConfigureAwait(false);
 
@@ -365,6 +401,18 @@ public sealed class AetherWorkflowOrchestrator
             : 0;
 
         return new SummaryOutcome(summary, provider, classification, redactionCount);
+    }
+
+    private void ReportPhase(WorkflowPhase phase)
+    {
+        try
+        {
+            _options.PhaseObserver?.Invoke(phase);
+        }
+        catch
+        {
+            // Progress UI must never influence workflow authorization/execution.
+        }
     }
 
     private void AppendClassificationAudit(string traceId, ClassificationResult classification, string content)

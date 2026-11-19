@@ -15,6 +15,9 @@ public static class AetherErrorCodes
     public const string PlanActionUnknown = "plan.action.unknown";
     public const string PlanActionFieldsInvalid = "plan.action.fields_invalid";
     public const string PlanAppUnknown = "plan.app.unknown";
+
+    /// <summary>Strict launch-selection scope: a plan tried to launch an app the operator did not select.</summary>
+    public const string PlanSelectionAppNotSelected = "plan.selection.app_not_selected";
     public const string PlanAppNotLaunchable = "plan.app.not_launchable";
     public const string PlanAppDuplicateLaunch = "plan.app.duplicate_launch";
     public const string PlanContextUnknown = "plan.context.unknown";
@@ -114,7 +117,7 @@ public static class AetherErrorCodes
             "plan" => code switch
             {
                 PlanActionUnknown => DenialCategory.UnsupportedAction,
-                PlanAppUnknown or PlanAppNotLaunchable or PlanAppDuplicateLaunch => DenialCategory.UnauthorizedApp,
+                PlanAppUnknown or PlanAppNotLaunchable or PlanAppDuplicateLaunch or PlanSelectionAppNotSelected => DenialCategory.UnauthorizedApp,
                 PlanSchemaVersionUnsupported or PlanIdInvalid or PlanStepsEmpty or PlanStepsTooMany
                     or PlanActionFieldsInvalid or PlanContextUnknown or PlanLayoutUnsupported
                     or PlanModeUnsupported or PlanStatusInvalid or PlanInvalidJson => DenialCategory.InvalidPlan,

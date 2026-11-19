@@ -44,6 +44,14 @@ public sealed partial class ShellUiAutomationTests
         "CancelButton",
         "StatusBox",
         "StepsList",
+        "SelectionModeCombo",
+        "InstructionTitleBox",
+        "NewInstructionButton",
+        "SaveInstructionButton",
+        "SavedInstructionsCombo",
+        "AppsGrid",
+        "LaunchSelectedButton",
+        "PhaseText",
     ];
 
     private static readonly TimeSpan ElementTimeout = TimeSpan.FromSeconds(10);
@@ -295,6 +303,14 @@ public sealed partial class ShellUiAutomationTests
 
             var classificationCombo = WaitForElement(window, "ClassificationCombo", ElementTimeout).AsComboBox();
             Assert.Equal("RESTRICTED", classificationCombo.SelectedItem?.Name);
+
+            var selectionCombo = WaitForElement(window, "SelectionModeCombo", ElementTimeout).AsComboBox();
+            Assert.Contains(selectionCombo.Items, item => item.Name == "Preferred");
+            Assert.Contains(selectionCombo.Items, item => item.Name == "Strict");
+            Assert.Equal("Preferred", selectionCombo.SelectedItem?.Name);
+
+            var templates = WaitForElement(window, "SavedInstructionsCombo", ElementTimeout).AsComboBox();
+            Assert.True(templates.Items.Length >= 3, "Expected the three synthetic starter instructions.");
         }
         finally
         {
