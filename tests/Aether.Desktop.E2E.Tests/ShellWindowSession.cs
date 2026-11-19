@@ -74,7 +74,7 @@ internal sealed class ShellWindowSession : IDisposable
     public Window Window { get; }
 
     /// <summary>Launches the compiled WPF shell and attaches to its main window.</summary>
-    public static ShellWindowSession Launch(string endpointFile)
+    public static ShellWindowSession Launch(string endpointFile, bool emptyInstruction = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(endpointFile);
         var executable = DesktopExecutableLocator.ResolveShell();
@@ -85,6 +85,10 @@ internal sealed class ShellWindowSession : IDisposable
             UseShellExecute = false,
         };
         startInfo.Environment["AETHER_ENDPOINT_FILE"] = Path.GetFullPath(endpointFile);
+        if (emptyInstruction)
+        {
+            startInfo.Environment["AETHER_DEMO_EMPTY_INSTRUCTION"] = "1";
+        }
 
         var application = Application.Launch(startInfo);
         var automation = new UIA3Automation();
