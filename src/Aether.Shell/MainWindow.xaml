@@ -115,6 +115,12 @@
                        AutomationProperties.AutomationId="TraceBox"
                        AutomationProperties.Name="Trace and audit" />
             </TabItem>
+            <TabItem Header="Processes">
+              <TextBox x:Name="ProcessesBox" IsReadOnly="True" TextWrapping="Wrap" FontFamily="Consolas"
+                       VerticalScrollBarVisibility="Auto" BorderThickness="0"
+                       AutomationProperties.AutomationId="ProcessesBox"
+                       AutomationProperties.Name="Transport, selection and process IDs" />
+            </TabItem>
             <TabItem Header="Inspector">
               <DockPanel>
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
