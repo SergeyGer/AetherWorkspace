@@ -45,6 +45,12 @@ Windows apps over authenticated local IPC. The deterministic Track A path remain
 
 ## Architecture at a glance
 
+**Planner → ActionPlan → deterministic policy/executor → local broker → independent desktop
+apps**, with a hash-chained audit and deny-by-default egress.
+
+<details>
+<summary><b>Show trust-boundary diagram</b></summary>
+
 ```mermaid
 %%{init: {'themeVariables': {'fontSize': '20px'}}}%%
 flowchart TD
@@ -58,10 +64,11 @@ flowchart TD
   Egress -. "only if allowed" .-> Cloud["Cloud provider"]
 ```
 
-The model never receives direct OS/desktop access. The deterministic control plane is
-authoritative; the broker sees only authorized steps and typed context. The diagram is
-intentionally compact so its labels remain readable when GitHub scales it; the full component map
-is in [Wiki: Architecture](https://github.com/SergeyGer/AetherWorkspace/wiki/Architecture).
+The model never receives direct OS/desktop access. The deterministic control plane is authoritative;
+the broker sees only authorized steps and typed context. Full component map:
+[Wiki: Architecture](https://github.com/SergeyGer/AetherWorkspace/wiki/Architecture).
+
+</details>
 
 <details>
 <summary><b>Example: a real ActionPlan shape and a denial (click)</b></summary>
