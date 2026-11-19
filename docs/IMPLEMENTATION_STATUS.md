@@ -4,7 +4,7 @@ Status legend: **Done** = implemented with committed automated evidence; **Parti
 key parts implemented and tested, milestone gate not fully met; **Not started** = planned
 only. Every claim below points at code and tests in this repository.
 
-**Current snapshot:** **v1.5.1 Workspace UX & AI Command Center is released** (AI Command Center,
+**Current snapshot:** **v1.5.2 hero presentation patch is released** (previous hero intro/outro added to the reviewed V151 video; no runtime changes). v1.5.1 remains the functional release. **v1.5.1 Workspace UX & AI Command Center is released** (AI Command Center,
 trusted application selection/lifecycle, Preferred/Strict whole-plan scope, local instruction
 templates, reviewed caption-free V151 hero). Physical reference-full 616/616 PASS and a clean
 100-cycle UI rerun PASS; the combined final gate's UI step failed in that session and is retained as

@@ -3,6 +3,12 @@
 All notable changes to this reference implementation are recorded here. Version labels follow the
 implementation-plan milestones; release assets are published on GitHub Releases.
 
+## [v1.5.2] — Hero intro/outro presentation patch
+
+- Adds the previous narrated hero's intro and outro cards/voiceover to the reviewed v1.5.1 V151 video.
+- Caption-free 84.9 s composition; no runtime, contract or behavioural evidence changes.
+- Release details: `docs/releases/v1.5.2.md`.
+
 ## [v1.5.1] — Workspace UX & AI Command Center
 
 - AI Command Center: instruction editor, local saved templates, truthful phase/provenance, plan
