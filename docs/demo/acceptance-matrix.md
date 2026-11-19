@@ -38,6 +38,7 @@ README updated with working links.
 ## WT formal exceptions (v1.1)
 
 The automated WT rows and UI measurement pass. Manual DPI 125/150, focus/modal, display-topology
-recovery, physical crash/hang and manual Inspector/export privacy are **formal exceptions, not PASS**,
-recorded in `docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md` and tracked by issue #120;
-they are not part of the published demo claim.
+recovery, physical crash/hang and manual Inspector/export privacy are **accepted known limitations
+(won't test), not PASS**, recorded in
+`docs/testing/evidence/2026-11-18-v1.1-wt-formal-exceptions.md`; #120 is closed with that risk
+acceptance. They are not part of the published demo claim.
